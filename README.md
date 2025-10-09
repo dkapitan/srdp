@@ -30,8 +30,7 @@ Here's the lineup of our chosen champions:
 
 ![](https://www.authelia.com/overview/prologue/architecture/architecture-diagram_hu_5cc1768bd04afb0a.webp)
 
-
-- Zitadel and Traefik are the core: without oversight and security we can't have a SRDP
+Without oversight and security we can't have a SRDP, therefore this sprint focuses on the core authentication and authorization components. We follow the standard solution design of an IAM + reverse proxy as shown above (in this case with Authelia).
 
 ### Open question 1:
 - Using simple folder/repo structure (like cookiecutter)
@@ -42,11 +41,11 @@ Here's the lineup of our chosen champions:
 - Authelia and Authentik are more lightweigth
 
 ### Requirements
-- Deployment is abstracted via Terraform
-- IAM should support
-- Relay Party to allow use of Google, GitHub
-- Azure EntraID (LDAP)
-- Multi-Factor Authentication
+- Deployment via Terraform for cloud providers should be supported
+- Local deployment via Docker Compose for development should be support
+- IAM component should support
+  - Relying Party to Azure EntraID (LDAP), Google and GitHub
+  - Multi-Factor Authentication
 
 ### Preferred
 - Easy to switch between between Zitadel/Authelia/Authentik
