@@ -1,10 +1,11 @@
-# 🚀 The Single Repo Data Platform (SRDP) 🚀
+# 🚀 The Single Repo Data Platform (SRDP aka serendipity) 🚀
 Because your data stack shouldn't require a PhD in Kubernetes and a second mortgage.
 
-Welcome, weary data traveler. You've stumbled upon the SRDP, a quixotic quest to build a sane, powerful, and actually usable data platform from the best open-source components we can find. All from the comfort of a single Git repository.
+Welcome, weary data traveler. You've stumbled upon something serendipitous, a quixotic quest to build a sane, powerful, and actually usable data platform from the best open-source components we can find. All from the comfort of a single Git repository.[^1]
 
-What's the big idea? To stop gluing together 87 different services with YAML, duct tape, and desperate Stack Overflow searches at 3 AM. We're assembling a dream team of data tools that play nicely together, so you can spend less time wrangling infrastructure and more time doing... well, whatever it is you data people do. Probably making fancy charts. We take inspiration from [InstantHIE](https://openhie.github.io/instant/) 📊
+What's the big idea? To stop gluing together 87 different services with YAML, duct tape, and desperate Stack Overflow searches at 3 AM. We're assembling a dream team of data tools that play nicely together, so you can spend less time wrangling infrastructure and more time doing... well, whatever it is you data people do. Probably making fancy charts.📊
 
+[^1]: We take inspiration from [Instant OpenHIE](https://openhie.github.io/instant/) project who have done the same for open source health information exchange platforms.
 ---
 
 ## The Dream Team: Our All-Star Roster
@@ -30,24 +31,25 @@ Here's the lineup of our chosen champions:
 
 ![](https://www.authelia.com/overview/prologue/architecture/architecture-diagram_hu_5cc1768bd04afb0a.webp)
 
-Without oversight and security we can't have a SRDP, therefore this sprint focuses on the core authentication and authorization components. We follow the standard solution design of an IAM + reverse proxy as shown above (in this case with Authelia).
-
-### Open question 1:
-- Using simple folder/repo structure (like cookiecutter)
-- Go with Git submodules
-
-### Open question 2:
-- Zitadel does support Relay Party, but is more heavy
-- Authelia and Authentik are more lightweigth
+Without oversight and security we can't have a SRDP, therefore the first sprint focuses on the core authentication and authorization components. We follow the standard solution design of an IAM + reverse proxy as shown above (in this case with Authelia).
 
 ### Requirements
-- Deployment via Terraform for cloud providers should be supported
-- Local deployment via Docker Compose for development should be support
+- Deployment via Terraform for cloud providers should be supported. Azure, Google Cloud, OVHcloud and Scaleway are the preferred hosting providers.
+- Local deployment via Docker Compose for development should be supported
 - IAM component should support
   - Relying Party to Azure EntraID (LDAP), Google and GitHub
   - Multi-Factor Authentication
 
-### Preferred
+### Nice-to-haves
 - Easy to switch between between Zitadel/Authelia/Authentik
+
+### Open questions
+- Use simple folder/repo structure (like cookiecutter) or go with Git submodules?
+- Use Zitadel which supports Relying Party, but is more heavy, or a more lightweight
+- Authelia and Authentik are more lightweigth
+
+
+
+
 
   
