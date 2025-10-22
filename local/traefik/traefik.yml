@@ -1,0 +1,16 @@
+# Traefik's static configuration
+
+# Define the entrypoints for web traffic
+entryPoints:
+  web:
+    address: ":80"
+
+# Enable the Docker provider to automatically discover services
+providers:
+  docker:
+    exposedByDefault: false # Only expose containers we explicitly label
+
+# Enable the Traefik dashboard for debugging
+api:
+  dashboard: true
+  insecure: true # IMPORTANT: Only use 'insecure: true' for local development!

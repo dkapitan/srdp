@@ -1,0 +1,45 @@
+services:
+  # ---------------------------------------------
+  # 1. Traffic (Reverse Proxy)
+  # ---------------------------------------------
+  traefik:
+    image: traefik:v3.5.3
+    container_name: "traefik"
+    ports:
+      # The HTTP port
+      - "8888:80"
+      # The Traefik Dashboard (for debugging)
+      - "8080:8080"
+    volumes:
+      # Mount the static configuration
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+      # Allow Traefik to listen to Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # ---------------------------------------------
+  # 2. Marimo App
+  # ---------------------------------------------
+  marimo:
+    build: ./apps/marimo
+    container_name: "marimo_app"
+    labels:
+      # --- Instructions for Traefik ---
+      - "traefik.enable=true"
+      # Rule: If the host is 'marimo.localhost', send traffic here
+      - "traefik.http.routers.marimo.rule=Host(`marimo.localhost`)"
+      # Define the port based on /marimo/Dockerfile
+      - "traefik.http.services.marimo.loadbalancer.server.port=8000"
+
+  # ---------------------------------------------
+  # 3. Quarto Static Site
+  # ---------------------------------------------
+  quarto:
+    build: ./apps/quarto
+    container_name: "quarto_site"
+    labels:
+      # --- Instructions for Traefik ---
+      - "traefik.enable=true"
+      # Rule: If the host is 'quarto.localhost', send traffic here
+      - "traefik.http.routers.quarto.rule=Host(`quarto.localhost`)"
+      # Define the port based on /quarto/nginx.conf
+      - "traefik.http.services.quarto.loadbalancer.server.port=80"
