@@ -3,25 +3,121 @@ services:
   # 1. Traffic (Reverse Proxy)
   # ---------------------------------------------
   traefik:
-    image: traefik:v3.5.3
-    container_name: "traefik"
-    ports:
-      # The HTTP port
-      - "8888:80"
-      # The Traefik Dashboard (for debugging)
-      - "8080:8080"
+    image: "traefik:v3.5.3"
     volumes:
       # Mount the static configuration
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yaml:ro"
+      # Mount the self-signed certificates
+      - "./certs/selfsigned.crt:/etc/certs/selfsigned.crt:ro"
+      - "./certs/selfsigned.key:/etc/certs/selfsigned.key:ro"
       # Allow Traefik to listen to Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "443:443"
+        # The Traefik Dashboard (for debugging)
+      - "8080:8080"
+    networks:
+      - app
+    depends_on:
+      zitadel:
+        condition: 'service_healthy'
 
+  zitadel:
+    extends:
+      service: zitadel-init
+    command: 'start-from-setup --masterkey "${ZITADEL_MASTERKEY}"'
+    environment:
+      ZITADEL_EXTERNALPORT: 443
+      ZITADEL_EXTERNALSECURE: true
+      ZITADEL_TLS_ENABLED: true
+      ZITADEL_TLS_CERTPATH: /etc/certs/selfsigned.crt
+      ZITADEL_TLS_KEYPATH: /etc/certs/selfsigned.key
+    volumes:
+      - ./certs/selfsigned.crt:/etc/certs/selfsigned.crt
+      - ./certs/selfsigned.key:/etc/certs/selfsigned.key
+    networks:
+      - app
+      - db
+    depends_on:
+      zitadel-init:
+        condition: 'service_completed_successfully'
+      zitadel-db:
+        condition: 'service_healthy'
+
+  zitadel-init:
+    image: '${ZITADEL_IMAGE:-ghcr.io/zitadel/zitadel:v4.2.2}'
+    command: 'init'
+    depends_on:
+      zitadel-db:
+        condition: 'service_healthy'
+    environment:
+      # Using an external domain other than localhost proofs, that the proxy configuration works.
+      # If Zitadel can't resolve a requests original host to this domain,
+      # it will return a 404 Instance not found error.
+      ZITADEL_EXTERNALDOMAIN: 127.0.0.1.sslip.io
+      ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED: true
+      # For convenience, ZITADEL should not ask to change the initial admin users password.
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+      # Database configuration
+      ZITADEL_DATABASE_POSTGRES_HOST: zitadel-db
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel_pw
+      # Set up a service account with IAM_LOGIN_CLIENT role and write the PAT to the file ./login-client.pat
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /current-dir/login-client.pat
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM Login Client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
+    networks:
+      - db
+    healthcheck:
+      test: [ "CMD", "/app/zitadel", "ready" ]
+      interval: '10s'
+      timeout: '5s'
+      retries: 5
+      start_period: '10s'
+    volumes:
+      - '.:/current-dir:rw'
+
+  zitadel-db:
+    restart: 'always'
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 5s
+      timeout: 60s
+      retries: 10
+      start_period: 5s
+    networks:
+      - db
+    volumes:
+      - 'data:/var/lib/postgresql/data:rw'
+
+  login-enabled-tls:
+    restart: 'unless-stopped'
+    image: 'ghcr.io/zitadel/zitadel-login:v4.2.2'
+    environment:
+      - ZITADEL_API_URL=https://zitadel:8080
+      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+      - ZITADEL_SERVICE_USER_TOKEN_FILE=/current-dir/login-client.pat
+      - CUSTOM_REQUEST_HEADERS=Host:127.0.0.1.sslip.io
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    volumes:
+      - '.:/current-dir:ro'
+    networks:
+      - app
+    depends_on:
+      zitadel:
+        condition: 'service_healthy'
+  
   # ---------------------------------------------
   # 2. Marimo App
   # ---------------------------------------------
   marimo:
     build: ./apps/marimo
     container_name: "marimo_app"
+    networks:
+      - app
     labels:
       # --- Instructions for Traefik ---
       - "traefik.enable=true"
@@ -36,6 +132,8 @@ services:
   quarto:
     build: ./apps/quarto
     container_name: "quarto_site"
+    networks:
+      - app
     labels:
       # --- Instructions for Traefik ---
       - "traefik.enable=true"
@@ -43,3 +141,10 @@ services:
       - "traefik.http.routers.quarto.rule=Host(`quarto.localhost`)"
       # Define the port based on /quarto/nginx.conf
       - "traefik.http.services.quarto.loadbalancer.server.port=80"
+
+networks:
+  app:
+  db:
+
+volumes:
+  data:
