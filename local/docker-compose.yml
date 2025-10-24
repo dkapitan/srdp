@@ -17,7 +17,11 @@ services:
         # The Traefik Dashboard (for debugging)
       - "8080:8080"
     networks:
-      - app
+      app:
+        aliases:
+          # This makes the traefik container reachable at this hostname
+          # from any other container on the 'app' network.
+          - 127.0.0.1.sslip.io
     depends_on:
       zitadel:
         condition: 'service_healthy'
@@ -109,6 +113,35 @@ services:
     depends_on:
       zitadel:
         condition: 'service_healthy'
+
+  # ---------------------------------------------
+  # 1b. Authentication Proxy
+  # ---------------------------------------------
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    restart: unless-stopped
+    networks:
+      - app
+    command:
+      - --provider=oidc
+      - --email-domain=*
+
+      # Do not pass auth headers to the upstream app, as we only use it for auth decisions
+      - --pass-authorization-header=false
+      - --pass-access-token=false
+
+      # Use the PUBLIC issuer URL. The network alias will route it to Traefik.
+      - --oidc-issuer-url=https://127.0.0.1.sslip.io
+      # Skip validation for self-signed certificates
+      - --insecure-oidc-skip-issuer-verification=true
+      - --ssl-insecure-skip-verify
+
+      - --upstream=file:///dev/null
+      - --http-address=0.0.0.0:4180
+    environment:
+      OAUTH2_PROXY_CLIENT_ID: "${OIDC_CLIENT_ID}"
+      OAUTH2_PROXY_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"
+      OAUTH2_PROXY_COOKIE_SECRET: "${OIDC_COOKIE_SECRET}"
   
   # ---------------------------------------------
   # 2. Marimo App
@@ -121,8 +154,17 @@ services:
     labels:
       # --- Instructions for Traefik ---
       - "traefik.enable=true"
+      # Define the auth middleware pointing to oauth2-proxy
+      - "traefik.http.middlewares.zitadel-auth.forwardauth.address=http://oauth2-proxy:4180"
+      # Tell the middleware to trust the headers Traefik adds
+      - "traefik.http.middlewares.zitadel-auth.forwardauth.trustForwardHeader=true"
+      # These headers will be passed from the proxy to your app if you need user info
+      - "traefik.http.middlewares.zitadel-auth.forwardauth.authResponseHeaders=X-Auth-Request-User, X-Auth-Request-Email"
+
       # Rule: If the host is 'marimo.localhost', send traffic here
       - "traefik.http.routers.marimo.rule=Host(`marimo.localhost`)"
+      # Apply the auth middleware to the router
+      - "traefik.http.routers.marimo.middlewares=zitadel-auth@docker"
       # Define the port based on /marimo/Dockerfile
       - "traefik.http.services.marimo.loadbalancer.server.port=8000"
 
@@ -139,6 +181,8 @@ services:
       - "traefik.enable=true"
       # Rule: If the host is 'quarto.localhost', send traffic here
       - "traefik.http.routers.quarto.rule=Host(`quarto.localhost`)"
+      # Apply the auth middleware to the router
+      - "traefik.http.routers.quarto.middlewares=zitadel-auth@docker"
       # Define the port based on /quarto/nginx.conf
       - "traefik.http.services.quarto.loadbalancer.server.port=80"
 
