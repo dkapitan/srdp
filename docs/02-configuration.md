@@ -15,10 +15,10 @@ cd srdp/local
 
 ### Step 2: Configure Local Hostnames
 
-To access the services using friendly names like `marimo.localhost`, you need to edit your computer's `hosts` file. This file maps domain names to IP addresses. We will map our service domains to your local machine's IP, `127.0.0.1`.
+To access the services using friendly names like `marimo.local.dev`, you need to edit your computer's `hosts` file. This file maps domain names to IP addresses. We will map our service domains to your local machine's IP, `127.0.0.1`.
 
 **Why is this necessary?**
-When you type `marimo.localhost` into your browser, this file tells the browser to send the request to your own computer instead of trying to find a public website on the internet. Traefik, our proxy, will then receive this request and route it to the correct Docker container.
+When you type `marimo.local.dev` into your browser, this file tells the browser to send the request to your own computer instead of trying to find a public website on the internet. Traefik, our proxy, will then receive this request and route it to the correct Docker container.
 
 ---
 
@@ -44,10 +44,20 @@ When you type `marimo.localhost` into your browser, this file tells the browser 
 Add this single line to the **bottom** of the `hosts` file.
 
 ```
-127.0.0.1   marimo.localhost quarto.localhost
+127.0.0.1   marimo.local.dev quarto.local.dev auth.local.dev
 ```
 
-Save the file and exit the editor. (In `nano`, press `Ctrl+X`, then `Y`, then `Enter`).
+Save the file and exit the editor. (In `nano`, press `Ctrl+X`, then `Y`, then `Enter`). **You may need to restart your machine in order for changes to take effect.**
+
+### Step 2b: Generate Certificates
+
+You should generate local development certificates using [mkcert](https://github.com/FiloSottile/mkcert):
+
+```bash
+mkcert -cert-file ./certs/selfsigned.crt -key-file ./certs/selfsigned.key "*.local.dev" "local.dev"
+```
+
+**Make sure to put these certificates under /local/certs. The easies way to accomplish this is to run the previous comppand inside the /local/ directory.**
 
 ### Step 3: Launch the Services
 
@@ -60,6 +70,41 @@ docker-compose up --build -d
 *   `--build`: This flag tells Docker Compose to build the application images (for Marimo and Quarto) from their `Dockerfile`s before starting the services. You should use this the first time you run the command or after you've made changes to the application code.
 *   `-d`: This runs the containers in "detached" mode, meaning they will run in the background and your terminal will be free to use.
 
-The first time you run this, it may take a few minutes to download the base images. Subsequent launches will be much faster.
+**Note:** The first time you run this, Zitadel will be initialized but the database will be empty. You can log in as an admin using:
+
+- **Username:** `zitadel-admin@zitadel.auth.local.dev`
+- **Password:** `Password1!`
+
+After logging in, create a new project (e.g., "Protected Apps"). Then, create a new app with type **Web**, authentication method **Code**, and add the following redirect URIs:
+
+- `https://marimo.local.dev/oauth2/callback`
+- `https://quarto.local.dev/oauth2/callback`
+
+And post logout URIs:
+
+- `https://marimo.local.dev`
+- `https://quarto.local.dev`
+
+When the project is created, Zitadel will display a client ID and secret. Copy these and set them in your `.env` file under `/local/`:
+
+```
+OIDC_CLIENT_ID=your-client-id
+OIDC_CLIENT_SECRET=your-client-secret
+```
+
+After updating the `.env` file, run:
+
+```bash
+docker compose up --force-recreate
+```
+
+OR
+
+```bash
+docker compose down
+docker compose up --build
+```
+
+**Important:** Do **not** run `docker compose down -v`, as the `-v` option will destroy existing data, including the project and app you created in Zitadel.
 
 **Congratulations! The local environment should now be up and running.** Proceed to the next section, **Usage & Verification**, to confirm that everything is working correctly.
