@@ -1,4 +1,4 @@
-# 4. Troubleshooting
+# 6. Troubleshooting
 
 This section covers common issues you might encounter and how to solve them.
 

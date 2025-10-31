@@ -129,7 +129,7 @@ services:
       - --whitelist-domain=.local.dev
       - --set-xauthrequest=true
       - --provider-display-name=ZITADEL
-      - --oidc-issuer-url=https://auth.local.dev
+      - --oidc-issuer-url=https://zitadel:8080
       - --insecure-oidc-skip-issuer-verification=true
       - --ssl-insecure-skip-verify
       - --skip-provider-button

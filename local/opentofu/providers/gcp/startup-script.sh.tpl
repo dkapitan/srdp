@@ -41,6 +41,17 @@ echo "--- Phase 3: Cloning Repository and Configuring Application ---"
 # Clone the application repository from the URL provided by OpenTofu
 git clone "${REPO_URL}" "/opt/app"
 cd "/opt/app"
+git checkout dev
+cd "local"
+
+
+
+mkdir -p certs
+
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+  -keyout certs/selfsigned.key \
+  -out certs/selfsigned.crt \
+  -subj "/C=US/ST=State/L=City/O=Organization/OU=OrgUnit/CN=auth.local.dev"
 
 # Create the .env file from secrets and configuration passed by OpenTofu.
 # This file provides environment variables to Docker Compose.
@@ -62,6 +73,8 @@ sed -i "s|local.dev|${DOMAIN_NAME}|g" docker-compose.yml traefik/traefik.yml
 mkdir -p letsencrypt
 
 echo "--- Phase 4: Launching Application Stack with Docker Compose ---"
+
+chmod -R 777 .
 
 # Start all services defined in the compose files in detached mode.
 # The --build flag ensures any changes to custom Dockerfiles are applied.

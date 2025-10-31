@@ -1,8 +1,4 @@
-# opentofu/providers/gcp/main.tf
-
-# Define the required OpenTofu version and cloud providers.
-# Using a pessimistic constraint (~> 5.0) allows for non-breaking updates.
-tofu {
+terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
