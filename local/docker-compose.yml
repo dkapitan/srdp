@@ -13,8 +13,6 @@ services:
       - "traefik.docker.network=local_app"
     volumes:
       - "./traefik/traefik.yml:/etc/traefik/traefik.yaml:ro"
-      - "./certs/selfsigned.crt:/etc/certs/selfsigned.crt:ro"
-      - "./certs/selfsigned.key:/etc/certs/selfsigned.key:ro"
       - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
@@ -42,6 +40,7 @@ services:
     volumes:
       - ./certs/selfsigned.crt:/etc/certs/selfsigned.crt
       - ./certs/selfsigned.key:/etc/certs/selfsigned.key
+      - '.:/current-dir:rw'
     networks:
       - app
       - db

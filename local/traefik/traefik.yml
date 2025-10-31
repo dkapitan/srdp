@@ -23,7 +23,15 @@ entrypoints:
   websecure:
     address: ":443"
     http:
-      tls: true
+      tls:
+        certResolver: letsencrypt
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      storage: "/etc/traefik/acme/acme.json"
+      httpChallenge:
+        entryPoint: "web"
 
 http:
   routers:
