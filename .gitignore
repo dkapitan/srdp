@@ -1,0 +1,11 @@
+# Environment variables
+.env
+
+# Local certificates and PAT for Zitadel
+certs/
+login-client.pat
+
+# Terraform
+.terraform
+terraform.tfstate
+terraform.tfstate.backup

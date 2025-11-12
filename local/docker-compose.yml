@@ -1,0 +1,211 @@
+services:
+  # ---------------------------------------------
+  # 1. Traffic (Reverse Proxy)
+  # ---------------------------------------------
+  traefik:
+    image: "traefik:v3.5.3"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=local_app"
+    volumes:
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yaml:ro"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      app:
+        aliases:
+          - auth.local.dev
+    depends_on:
+      zitadel:
+        condition: 'service_healthy'
+
+  zitadel:
+    extends:
+      service: zitadel-init
+    command: 'start-from-setup --masterkey "${ZITADEL_MASTERKEY}"'
+    environment:
+      ZITADEL_EXTERNALPORT: 443
+      ZITADEL_EXTERNALSECURE: true
+      ZITADEL_TLS_ENABLED: true
+      ZITADEL_TLS_CERTPATH: /etc/certs/selfsigned.crt
+      ZITADEL_TLS_KEYPATH: /etc/certs/selfsigned.key
+    volumes:
+      - ./certs/selfsigned.crt:/etc/certs/selfsigned.crt
+      - ./certs/selfsigned.key:/etc/certs/selfsigned.key
+      - '.:/current-dir:rw'
+    networks:
+      - app
+      - db
+    depends_on:
+      zitadel-init:
+        condition: 'service_completed_successfully'
+      zitadel-db:
+        condition: 'service_healthy'
+
+  zitadel-init:
+    image: '${ZITADEL_IMAGE:-ghcr.io/zitadel/zitadel:v4.2.2}'
+    command: 'init'
+    depends_on:
+      zitadel-db:
+        condition: 'service_healthy'
+    environment:
+      ZITADEL_EXTERNALDOMAIN: auth.local.dev
+      ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED: true
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: false
+      ZITADEL_DATABASE_POSTGRES_HOST: zitadel-db
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel_pw
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /current-dir/login-client.pat
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM Login Client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
+    networks:
+      - db
+    healthcheck:
+      test: [ "CMD", "/app/zitadel", "ready" ]
+      interval: '10s'
+      timeout: '5s'
+      retries: 5
+      start_period: '10s'
+    volumes:
+      - '.:/current-dir:rw'
+
+  zitadel-db:
+    restart: 'always'
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 5s
+      timeout: 60s
+      retries: 10
+      start_period: 5s
+    networks:
+      - db
+    volumes:
+      - 'data:/var/lib/postgresql/data:rw'
+
+  login-enabled-tls:
+    restart: 'unless-stopped'
+    image: 'ghcr.io/zitadel/zitadel-login:v4.2.2'
+    environment:
+      - ZITADEL_API_URL=https://zitadel:8080
+      - NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+      - ZITADEL_SERVICE_USER_TOKEN_FILE=/current-dir/login-client.pat
+      - CUSTOM_REQUEST_HEADERS=Host:auth.local.dev
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    volumes:
+      - '.:/current-dir:ro'
+    networks:
+      - app
+    depends_on:
+      zitadel:
+        condition: 'service_healthy'
+
+  # ---------------------------------------------
+  # 1b. Authentication Proxy (Middleware)
+  # ---------------------------------------------
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    restart: unless-stopped
+    networks:
+      - app
+    command:
+      - --upstream=file:///dev/null
+      - --provider=oidc
+      - --http-address=0.0.0.0:4180
+      - --email-domain=*
+      - --reverse-proxy=true
+      - --pass-host-header=true
+      - --proxy-prefix=/oauth2
+      - --whitelist-domain=.local.dev
+      - --set-xauthrequest=true
+      - --provider-display-name=ZITADEL
+      - --oidc-issuer-url=https://auth.local.dev
+      - --insecure-oidc-skip-issuer-verification=true
+      - --ssl-insecure-skip-verify
+      - --skip-provider-button
+      - --cookie-name=_oauth2_proxy
+      - --cookie-domain=.local.dev
+      - --cookie-secure=true
+      - --cookie-samesite=lax
+      - --pass-authorization-header=false
+      - --pass-access-token=true
+    environment:
+      OAUTH2_PROXY_CLIENT_ID: "${OIDC_CLIENT_ID}"
+      OAUTH2_PROXY_CLIENT_SECRET: "${OIDC_CLIENT_SECRET}"
+      OAUTH2_PROXY_COOKIE_SECRET: "${OIDC_COOKIE_SECRET}"
+      OAUTH2_PROXY_COOKIE_CSRF_PER_REQUEST: true
+      OAUTH2_PROXY_COOKIE_CSRF_EXPIRE: '5m'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=local_app"
+      - "traefik.http.routers.oauth2-proxy.rule=(Host(`auth.local.dev`) || Host(`quarto.local.dev`) || Host(`marimo.local.dev`)) && PathPrefix(`/oauth2/`)"
+      - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+      
+      # Define forward auth middleware
+      - "traefik.http.middlewares.zitadel-auth.forwardauth.address=http://oauth2-proxy:4180/oauth2/auth"
+      - "traefik.http.middlewares.zitadel-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.zitadel-auth.forwardauth.authResponseHeaders=X-Auth-Request-User, X-Auth-Request-Email"
+
+      # Define errors middle to redirect user to sign in page,
+      # if they are unauthenticated. A chain of the forward auth and erros middalewares
+      # will be applied to each service
+      - "traefik.http.middlewares.zitadel-errors.errors.status=401,402,403"
+      - "traefik.http.middlewares.zitadel-errors.errors.statusRewrites.401=302"
+      - "traefik.http.middlewares.zitadel-errors.errors.service=oauth2-proxy@docker"
+      - "traefik.http.middlewares.zitadel-errors.errors.query=/oauth2/sign_in"
+    depends_on:
+      traefik:
+        condition: 'service_healthy'
+      zitadel:
+        condition: 'service_healthy'
+
+  # ---------------------------------------------
+  # 2. Marimo App
+  # ---------------------------------------------
+  marimo:
+    build: ./apps/marimo
+    container_name: "marimo_app"
+    networks:
+      - app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=local_app"
+      - "traefik.http.routers.marimo.rule=Host(`marimo.local.dev`)"
+      - "traefik.http.routers.marimo.service=marimo@docker"
+      - "traefik.http.services.marimo.loadbalancer.server.port=8000"
+      - "traefik.http.routers.marimo.middlewares=zitadel-errors@docker,zitadel-auth@docker"
+
+  # ---------------------------------------------
+  # 3. Quarto Static Site
+  # ---------------------------------------------
+  quarto:
+    build:
+      context: ./apps/quarto
+      dockerfile: Dockerfile
+    container_name: "quarto_site"
+    networks:
+      - app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=local_app"
+      - "traefik.http.routers.quarto.rule=Host(`quarto.local.dev`)"
+      - "traefik.http.routers.quarto.service=quarto@docker"
+      - "traefik.http.services.quarto.loadbalancer.server.port=80"
+      - "traefik.http.routers.quarto.middlewares=zitadel-errors@docker,zitadel-auth@docker"
+
+networks:
+  app:
+  db:
+
+volumes:
+  data:

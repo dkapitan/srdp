@@ -1,0 +1,78 @@
+# Traefik's static configuration
+
+log:
+  level: "INFO"
+accessLog: {}
+ping: {}
+
+providers:
+  docker: # Enable the Docker provider to automatically discover services
+    exposedByDefault: false # Only expose containers we explicitly label
+    network: "local_app"
+  file:
+    filename: "/etc/traefik/traefik.yaml"
+entrypoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: "websecure"
+          scheme: "https"
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      storage: "/etc/traefik/acme/acme.json"
+      httpChallenge:
+        entryPoint: "web"
+
+http:
+  routers:
+    zitadel:
+      entryPoints:
+        - "websecure"
+      service: "zitadel"
+      rule: '(Host(`auth.local.dev`) && !PathPrefix(`/ui/v2/login`) && !PathPrefix(`/oauth2/`))'
+      tls: {}
+    login-enabled-tls:
+      entryPoints:
+        - "websecure"
+      service: "login-enabled-tls"
+      rule: '(Host(`auth.local.dev`) && PathPrefix(`/ui/v2/login`))'
+      tls: {}
+  services:
+    zitadel:
+      loadBalancer:
+        serversTransport: "zitadel"
+        passHostHeader: true
+        servers:
+          - url: "https://zitadel:8080"
+    login-enabled-tls:
+      loadBalancer:
+        serversTransport: "login-enabled-tls"
+        passHostHeader: true
+        servers:
+          - url: "http://login-enabled-tls:3000"
+  serversTransports:
+    zitadel:
+      insecureSkipVerify: true
+    login-enabled-tls:
+      insecureSkipVerify: true
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/etc/certs/selfsigned.crt"
+        keyFile: "/etc/certs/selfsigned.key"
+
+api:
+  dashboard: true # Enable the Traefik dashboard for debugging
+  insecure: true # IMPORTANT: Only use 'insecure: true' for local development!
