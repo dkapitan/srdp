@@ -1,0 +1,131 @@
+# ---------------------------------------------------------
+# 1. MIDDLEWARES
+# ---------------------------------------------------------
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth-auth
+  namespace: {{ .Release.Namespace }}
+spec:
+  forwardAuth:
+    address: "http://srdp-oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local:80/oauth2/auth"
+    trustForwardHeader: true
+    authResponseHeaders:
+      - "X-Auth-Request-User"
+      - "X-Auth-Request-Email"
+      - "X-Auth-Request-Token"
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth-errors
+  namespace: {{ .Release.Namespace }}
+spec:
+  errors:
+    status:
+      - "401-403"
+    service:
+      name: srdp-oauth2-proxy
+      port: 80
+    query: "/oauth2/sign_in"
+    statusRewrites:
+      "401": 302
+
+---
+# ---------------------------------------------------------
+# 2. PUBLIC AUTH ROUTES
+# ---------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-routes-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - marimo.local.dev
+        - quarto.local.dev
+      secretName: custom-ingress-cert
+  rules:
+    # Auth Rule for Marimo
+    - host: marimo.local.dev
+      http:
+        paths:
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: srdp-oauth2-proxy
+                port:
+                  number: 80
+    # Auth Rule for Quarto
+    - host: quarto.local.dev
+      http:
+        paths:
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: srdp-oauth2-proxy
+                port:
+                  number: 80
+
+---
+# ---------------------------------------------------------
+# 3. PROTECTED APP ROUTES (Marimo)
+# ---------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: marimo-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - marimo.local.dev
+      secretName: custom-ingress-cert
+  rules:
+    - host: marimo.local.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: marimo
+                port:
+                  number: 80
+
+---
+# ---------------------------------------------------------
+# 4. PROTECTED APP ROUTES (Quarto)
+# ---------------------------------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quarto-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - quarto.local.dev
+      secretName: custom-ingress-cert
+  rules:
+    - host: quarto.local.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quarto
+                port:
+                  number: 80

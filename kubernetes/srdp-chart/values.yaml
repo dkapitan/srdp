@@ -1,0 +1,167 @@
+# ----------------------------------------------------------------
+# TRAEFIK
+# ----------------------------------------------------------------
+traefik:
+  service:
+    spec:
+      clusterIP: 10.96.0.50
+  ports:
+    web:
+      nodePort: 30080
+    websecure:
+      nodePort: 30443
+  tlsStore:
+    default:
+      defaultCertificate:
+        secretName: custom-ingress-cert
+
+# ----------------------------------------------------------------
+# POSTGRESQL
+# ----------------------------------------------------------------
+zitadel-db:
+  fullnameOverride: "db-postgresql"
+  auth:
+    database: zitadel
+    postgresPassword: "srdpTest123"
+    username: zitadel
+    password: srdpTest123
+  image:
+    repository: bitnamilegacy/postgresql
+  metrics:
+    image:
+      repository: bitnamilegacy/postgres-exporter
+  primary:
+    persistence:
+      enabled: true
+      size: 4Gi
+  volumePermissions:
+    enabled: true
+    image:
+      repository: bitnamilegacy/os-shell
+  tls:
+    enabled: true
+    certificatesSecret: postgres-cert
+    certFilename: "tls.crt"
+    certKeyFilename: "tls.key"
+
+# ----------------------------------------------------------------
+# ZITADEL
+# ----------------------------------------------------------------
+zitadel:
+  zitadel:
+    masterkey: "51a69a373f45c60d2ae08c48bb89d03e"
+    secretConfig:
+      Database:
+        Postgres:
+          User:
+            Password: srdpTest123
+          Admin:
+            Password: srdpTest123
+    configmapConfig:
+      ExternalDomain: auth.local.dev
+      ExternalPort: 443
+      TLS:
+        Enabled: false
+      FirstInstance:
+        Org:
+          Human:
+            Password: "srdpTest123!"
+            PasswordChangeRequired: false 
+      Database:
+        Postgres:
+          Host: db-postgresql
+          Port: 5432
+          Database: zitadel
+          User:
+            Username: zitadel
+            SSL:
+              Mode: verify-full
+          Admin:
+            Username: postgres
+            SSL:
+              Mode: verify-full
+    dbSslCaCrtSecret: postgres-cert
+    dbSslAdminCrtSecret: postgres-cert
+    dbSslUserCrtSecret: zitadel-cert
+
+  ingress:
+    enabled: false
+
+  login:
+    enabled: true
+    ingress:
+      enabled: false
+
+  initJob:
+    annotations:
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-weight": "-5"
+      "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            echo "Waiting for PostgreSQL at db-postgresql:5432..."
+            until nc -z -v -w 2 db-postgresql 5432; do 
+              sleep 2; 
+            done
+            echo "PostgreSQL is up!"
+
+  setupJob:
+    annotations:
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-weight": "5"
+      "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            echo "Waiting for PostgreSQL at db-postgresql:5432..."
+            until nc -z -v -w 2 db-postgresql 5432; do 
+              sleep 2; 
+            done
+            echo "PostgreSQL is up!"
+
+# ----------------------------------------------------------------
+# OAUTH2 PROXY
+# ----------------------------------------------------------------
+oauth2-proxy:
+  config:
+    clientID: "348868471498539436"
+    clientSecret: "VQMve4Thh857uplEKmN5nlcgSedaGyYQySSDYyoMgfk4d1PS8k6zUDSdhOdo3IVW"
+    cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE"
+
+  service:
+    portNumber: 80
+
+  extraArgs:
+    skip-provider-button: "true"
+    http-address: "0.0.0.0:4180" 
+    cookie-secure: "false" 
+    cookie-domain: ".local.dev"
+    whitelist-domain: ".local.dev"
+    cookie-samesite: "lax"
+    cookie-expire: "168h"
+    provider: "oidc"
+    provider-display-name: "ZITADEL"
+    oidc-issuer-url: "https://auth.local.dev"
+    insecure-oidc-skip-issuer-verification: "true"
+    ssl-insecure-skip-verify: "true"
+    email-domain: "*"
+    upstream: "file:///dev/null"
+    reverse-proxy: "true"
+
+  customRequestHeaders:
+    - "Host:auth.local.dev"
+    - "X-Forwarded-Proto:https"
+  
+  hostAliases:
+    - ip: "10.96.0.50"
+      hostnames:
+        - "auth.local.dev"

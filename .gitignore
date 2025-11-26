@@ -9,3 +9,7 @@ login-client.pat
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
+
+# Kubernetes
+values-secrets.yaml
+charts/

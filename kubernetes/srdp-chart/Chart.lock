@@ -1,0 +1,15 @@
+dependencies:
+- name: traefik
+  repository: https://traefik.github.io/charts
+  version: 37.4.0
+- name: zitadel
+  repository: https://charts.zitadel.com
+  version: 9.13.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.1.11
+- name: oauth2-proxy
+  repository: https://oauth2-proxy.github.io/manifests
+  version: 9.0.0
+digest: sha256:6a988b599bc9ffcc627cbb4e8b8f8dc9e1fabdd6afd75b2b49e0d3a33be62fca
+generated: "2025-11-24T14:52:09.6404701+01:00"
