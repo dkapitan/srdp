@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: quarto
-          image: quarto:local
-          imagePullPolicy: Never # Look in Docker Desktop cache only.
+          image: "{{ .Values.quarto.image.repository }}:{{ .Values.quarto.image.tag }}"
+          imagePullPolicy: {{ .Values.quarto.image.pullPolicy }}
           ports:
             - containerPort: 80
 ---

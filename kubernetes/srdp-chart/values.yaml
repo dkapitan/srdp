@@ -165,3 +165,21 @@ oauth2-proxy:
     - ip: "10.96.0.50"
       hostnames:
         - "auth.local.dev"
+
+# ----------------------------------------------------------------
+# MARIMO
+# ----------------------------------------------------------------
+marimo:
+  image:
+    repository: rg.fr-par.scw.cloud/srdp-registry/marimo # Replace with your registry URL
+    tag: "v1.0"
+    pullPolicy: IfNotPresent
+
+# ----------------------------------------------------------------
+# QUARTO
+# ----------------------------------------------------------------
+quarto:
+  image:
+    repository: rg.fr-par.scw.cloud/srdp-registry/quarto # Replace with your registry URL
+    tag: "v1.0"
+    pullPolicy: IfNotPresent

@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: marimo
-          image: marimo:local
-          imagePullPolicy: Never # Look in Docker Desktop cache only.
+          image: "{{ .Values.marimo.image.repository }}:{{ .Values.marimo.image.tag }}"
+          imagePullPolicy: {{ .Values.marimo.image.pullPolicy }}
           ports:
             - containerPort: 8000
 ---
