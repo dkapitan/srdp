@@ -2,8 +2,10 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.opentofu.org/hashicorp/random" {
-  version = "3.7.2"
+  version     = "3.7.2"
+  constraints = "~> 3.6"
   hashes = [
+    "h1:KvLLxlMi6iNdlZS+vQAwovIeL2r5Q2s/EXXF+oypKHI=",
     "h1:yHMBbZOIHlXUuBQ8Mhioe0hwmhermuboq2eNNoCJaf8=",
     "zh:2ffeb1058bd7b21a9e15a5301abb863053a2d42dffa3f6cf654a1667e10f4727",
     "zh:519319ed8f4312ed76519652ad6cd9f98bc75cf4ec7990a5684c072cf5dd0a5d",
@@ -19,7 +21,8 @@ provider "registry.opentofu.org/hashicorp/random" {
 }
 
 provider "registry.opentofu.org/scaleway/scaleway" {
-  version = "2.63.0"
+  version     = "2.63.0"
+  constraints = "~> 2.60"
   hashes = [
     "h1:+pAKybFkuoWDBiSxWDztpNUwkiOaH23wVlaNx5n4fJI=",
     "h1:Ls5VQWFb0Dtd3KVvmQzMVC9EHPOBWnkYDcVgk2dJnVM=",

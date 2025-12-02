@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Configuration
-REGISTRY="rg.fr-par.scw.cloud/srdp-registry" # REPLACE THIS with your actual Registry Endpoint from the previous step
+REGISTRY="rg.fr-par.scw.cloud/srdp-registry"
 VERSION="v1.0"
 
 echo "Logging into Scaleway Registry"
@@ -16,7 +16,7 @@ echo "Building Marimo..."
 docker build --platform linux/amd64 -t $REGISTRY/marimo:$VERSION ../local/apps/marimo
 docker push $REGISTRY/marimo:$VERSION
 
-# 2Build Quarto
+# Build Quarto
 echo "Building Quarto..."
 docker build --platform linux/amd64 -t $REGISTRY/quarto:$VERSION ../local/apps/quarto
 docker push $REGISTRY/quarto:$VERSION

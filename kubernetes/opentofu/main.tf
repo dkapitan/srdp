@@ -1,29 +1,3 @@
-terraform {
-  required_providers {
-    scaleway = {
-      source  = "scaleway/scaleway"
-      version = "~> 2.60"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
-    }
-  }
-  required_version = ">= 0.13"
-}
-
-# Provider will automatically use these environment variables:
-# - SCW_ACCESS_KEY
-# - SCW_SECRET_KEY
-# - SCW_DEFAULT_PROJECT_ID (this is your project_id, NOT organization_id!)
-# - SCW_DEFAULT_REGION
-# - SCW_DEFAULT_ZONE
-provider "scaleway" {
-  # No credentials needed here - reads from env vars
-  zone   = var.zone
-  region = var.region
-}
-
 # ----------------------------------------------------------------
 # Variables
 # ----------------------------------------------------------------
@@ -51,8 +25,28 @@ variable "database_name" {
   default     = "zitadel-db"
 }
 
+terraform {
+  required_providers {
+    scaleway = {
+      source  = "scaleway/scaleway"
+      version = "~> 2.60"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+# Provider will automatically use these environment variables:
+# - SCW_ACCESS_KEY
+# - SCW_SECRET_KEY
+# - SCW_DEFAULT_PROJECT_ID
+provider "scaleway" {
+  # No credentials needed here - reads from env vars
+  zone   = var.zone
+  region = var.region
+}
+
 # ----------------------------------------------------------------
-# 1. Registry - Use data source if already exists
+# Registry - must be created through Scaleway Console beforehand
 # ----------------------------------------------------------------
 data "scaleway_registry_namespace" "srdp_registry" {
   name = "srdp-registry"
@@ -63,7 +57,7 @@ data "scaleway_account_project" "current" {
 }
 
 # ----------------------------------------------------------------
-# 2. Private Network (REQUIRED for Kubernetes since April 2024)
+# Private Network (required for Kubernetes)
 # ----------------------------------------------------------------
 resource "scaleway_vpc_private_network" "k8s_network" {
   name = "${var.cluster_name}-network"
@@ -71,21 +65,14 @@ resource "scaleway_vpc_private_network" "k8s_network" {
 }
 
 # ----------------------------------------------------------------
-# 3. Kubernetes Cluster (with Private Network)
+# 3. Kubernetes Cluster
 # ----------------------------------------------------------------
 resource "scaleway_k8s_cluster" "srdp_cluster" {
   name = var.cluster_name
-
-  # Use currently available version
   version = "1.31.12"
-
   cni = "cilium"
-  
-  # CRITICAL: Private Network is MANDATORY since April 2024
   private_network_id = scaleway_vpc_private_network.k8s_network.id
-  
   delete_additional_resources = false
-  
   depends_on = [scaleway_vpc_private_network.k8s_network]
 }
 
@@ -94,16 +81,15 @@ resource "scaleway_k8s_pool" "srdp_pool" {
   name        = "${var.cluster_name}-default-pool"
   node_type   = "PLAY2-NANO"
   size        = 2
-  min_size    = 1
+  min_size    = 1 # TODO: Maybe reduce to 0?
   max_size    = 3
   autoscaling = true
   autohealing = true
-  
   wait_for_pool_ready = true
 }
 
 # ----------------------------------------------------------------
-# 4. Serverless SQL Database
+# Serverless SQL Database
 # ----------------------------------------------------------------
 resource "scaleway_sdb_sql_database" "zitadel_db" {
   name = var.database_name
@@ -116,11 +102,8 @@ resource "scaleway_sdb_sql_database" "zitadel_db" {
 }
 
 # ----------------------------------------------------------------
-# 5. IAM Application for Database Access
+# IAM Application for Database Access
 # ----------------------------------------------------------------
-# IMPORTANT: IAM applications do NOT have organization_id field
-# They automatically belong to your organization based on your credentials
-
 resource "scaleway_iam_application" "zitadel_app" {
   name        = "zitadel-serverless-db"
   description = "IAM application for Zitadel to access Serverless SQL Database"
