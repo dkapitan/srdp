@@ -1,5 +1,6 @@
 # Environment variables
 .env
+secrets.sh
 
 # Local certificates and PAT for Zitadel
 certs/
@@ -9,6 +10,7 @@ login-client.pat
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
+kubeconfig.yaml
 
 # Kubernetes
 values-secrets.yaml
