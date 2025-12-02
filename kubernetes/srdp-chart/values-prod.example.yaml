@@ -1,0 +1,125 @@
+# Global settings
+global:
+  domain: "XXX.XXX.XXX.XXX" # CHANGE THIS to the dedicated domain
+
+# Traefik
+traefik:
+  service:
+    spec:
+      # For Scaleway: ensure we get a LoadBalancer
+      type: LoadBalancer
+      clusterIP: ""
+
+  podSecurityContext:
+    fsGroup: 65532
+    runAsGroup: 65532
+    runAsNonRoot: true
+    runAsUser: 65532
+  
+  # Enable Let's Encrypt ACME
+  certResolver: "le"
+  additionalArguments:
+    - "--certificatesresolvers.le.acme.tlschallenge=true"
+    - "--certificatesresolvers.le.acme.email=john@doe.com" # CHANGE THIS
+    - "--certificatesresolvers.le.acme.storage=/data/acme.json"
+  
+  # Persistence for certificates (so they survive pod restarts)
+  persistence:
+    enabled: true
+    path: /data
+    size: 1Gi
+
+# Disable the local Postgres container
+zitadel-db:
+  enabled: false
+
+# Zitadel auth service
+zitadel:
+  zitadel:
+    masterkey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS, must be 32 characaters
+    secretConfig:
+      Database:
+        Postgres:
+          User:
+            Password: "XXXXXXXXXXXX" # CHANGE THIS
+          Admin:
+            Password: "XXXXXXXXXXXX" # CHANGE  THIS. From Terraform Output
+    configmapConfig:
+      ExternalDomain: "auth.XXX.XXX.XXX.XXX" # CHANGE THIS (must match global.domain)
+      ExternalPort: 443
+      TLS:
+        Enabled: false
+      Database:
+        Postgres:
+          Host: "XXX.XXX.XXX.XXX" # From Terraform Output
+          Port: 1234 # CHANGE THIS. From Terraform Output
+          Database: "zitadel-db"
+          User:
+            Username: "zitadel"
+            SSL:
+              Mode: require
+          Admin:
+            Username: "scw_admin"
+            SSL:
+              Mode: require
+      FirstInstance:
+        Org:
+          Human:
+            UserName: zitadel-admin
+            Email:
+              Address: zitadel-admin@auth.XXX.XXX.XXX.XXX
+              Verified: true
+            Password: "XXXXXXXXXX" # CHANGE THIS
+            PasswordChangeRequired: false
+    dbSslCaCrtSecret: ""
+    dbSslAdminCrtSecret: ""
+    dbSslUserCrtSecret: ""
+
+  initJob:
+    command: ""
+    initContainers:
+      - name: wait-for-cloud-db
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            HOST="XXX.XXX.XXX.XXX"
+            PORT="1234"
+            echo "Waiting for $HOST:$PORT..."
+            until nc -z -v -w 5 $HOST $PORT; do sleep 2; done
+            echo "Cloud DB is reachable!"
+
+  setupJob:
+    initContainers:
+      - name: wait-for-cloud-db
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            HOST="XXX.XXX.XXX.XXX"
+            PORT="1234"
+            echo "Waiting for $HOST:$PORT..."
+            until nc -z -v -w 5 $HOST $PORT; do sleep 2; done
+            echo "Cloud DB is reachable!"
+
+# O-Auth2 Proxy
+oauth2-proxy:
+  config:
+    clientID: "XXXXXXXXXXXXXXXXXX" # CHANGE THIS
+    clientSecret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS
+    # Generate a random string: python3 -c 'import os,base64; print(base64.b64encode(os.urandom(16)).decode())'
+    cookieSecret: "XXXXXXXXXXXXXXXXXXXXXXXX" # Must be 32 characters
+  
+  extraArgs:
+    cookie-domain: ".XXX.XXX.XXX.XXX" # CHANGE THIS
+    whitelist-domain: ".XXX.XXX.XXX.XXX" # CHANGE THIS
+    oidc-issuer-url: "https://auth.XXX.XXX.XXX.XXX" # CHANGE THIS
+    cookie-secure: "false"
+  
+  customRequestHeaders:
+    - "Host:auth.XXX.XXX.XXX.XXX"
+  
+  # Remove hardcoded local aliases
+  hostAliases: []

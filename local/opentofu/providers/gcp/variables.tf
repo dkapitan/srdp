@@ -24,7 +24,7 @@ variable "instance_name" {
 
 variable "domain_name" {
   type        = string
-  description = "The public domain for the application (e.g., srdp.yourdomain.com or 1.2.3.4.nip.io)."
+  description = "The public domain for the application (e.g., yourdomain.com or 1.2.3.4.nip.io)."
 }
 variable "repo_url" {
   type        = string

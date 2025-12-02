@@ -1,0 +1,7 @@
+traefik:
+  service:
+    type: ClusterIP
+  tlsStore:
+    default:
+      defaultCertificate:
+        secretName: custom-ingress-cert

@@ -1,6 +1,4 @@
-# ---------------------------------------------------------
-# 1. MIDDLEWARES
-# ---------------------------------------------------------
+# Middlewares
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -33,9 +31,7 @@ spec:
       "401": 302
 
 ---
-# ---------------------------------------------------------
-# 2. PUBLIC AUTH ROUTES
-# ---------------------------------------------------------
+# Public Auth Routes
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -45,12 +41,16 @@ spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
-        - marimo.local.dev
-        - quarto.local.dev
+        - marimo.{{ .Values.global.domain }}
+        - quarto.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: {{ .Values.global.domain | replace "." "-" }}-tls
+      {{- else }}
       secretName: custom-ingress-cert
+      {{- end }}
   rules:
     # Auth Rule for Marimo
-    - host: marimo.local.dev
+    - host: marimo.{{ .Values.global.domain }}
       http:
         paths:
           - path: /oauth2
@@ -61,7 +61,7 @@ spec:
                 port:
                   number: 80
     # Auth Rule for Quarto
-    - host: quarto.local.dev
+    - host: quarto.{{ .Values.global.domain }}
       http:
         paths:
           - path: /oauth2
@@ -73,9 +73,7 @@ spec:
                   number: 80
 
 ---
-# ---------------------------------------------------------
-# 3. PROTECTED APP ROUTES (Marimo)
-# ---------------------------------------------------------
+# Protected Marimo Routes
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -87,10 +85,14 @@ spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
-        - marimo.local.dev
+        - marimo.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: marimo-tls-prod
+      {{- else }}
       secretName: custom-ingress-cert
+      {{- end }}
   rules:
-    - host: marimo.local.dev
+    - host: marimo.{{ .Values.global.domain }}
       http:
         paths:
           - path: /
@@ -102,9 +104,7 @@ spec:
                   number: 80
 
 ---
-# ---------------------------------------------------------
-# 4. PROTECTED APP ROUTES (Quarto)
-# ---------------------------------------------------------
+# Protected Quato Routes
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -116,10 +116,14 @@ spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
-        - quarto.local.dev
+        - quarto.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: quarto-tls-prod
+      {{- else }}
       secretName: custom-ingress-cert
+      {{- end }}
   rules:
-    - host: quarto.local.dev
+    - host: quarto.{{ .Values.global.domain }}
       http:
         paths:
           - path: /

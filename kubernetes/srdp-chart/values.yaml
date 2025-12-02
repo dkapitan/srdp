@@ -1,7 +1,10 @@
-# ----------------------------------------------------------------
-# TRAEFIK
-# ----------------------------------------------------------------
+# Global settings
+global:
+  domain: "local.dev"
+
+# Traefik
 traefik:
+  enabled: true
   service:
     spec:
       clusterIP: 10.96.0.50
@@ -10,15 +13,10 @@ traefik:
       nodePort: 30080
     websecure:
       nodePort: 30443
-  tlsStore:
-    default:
-      defaultCertificate:
-        secretName: custom-ingress-cert
 
-# ----------------------------------------------------------------
-# POSTGRESQL
-# ----------------------------------------------------------------
+# Local PostgreSQL
 zitadel-db:
+  enabled: true
   fullnameOverride: "db-postgresql"
   auth:
     database: zitadel
@@ -44,12 +42,11 @@ zitadel-db:
     certFilename: "tls.crt"
     certKeyFilename: "tls.key"
 
-# ----------------------------------------------------------------
-# ZITADEL
-# ----------------------------------------------------------------
+# Zitadel auth service
 zitadel:
+  enabled: true
   zitadel:
-    masterkey: "51a69a373f45c60d2ae08c48bb89d03e"
+    masterkey: "51a69a373f45c60d2ae08c48bb89d03e" # Must be 32 characaters
     secretConfig:
       Database:
         Postgres:
@@ -66,7 +63,7 @@ zitadel:
         Org:
           Human:
             Password: "srdpTest123!"
-            PasswordChangeRequired: false 
+            PasswordChangeRequired: false
       Database:
         Postgres:
           Host: db-postgresql
@@ -105,7 +102,8 @@ zitadel:
           - -c
           - |
             echo "Waiting for PostgreSQL at db-postgresql:5432..."
-            until nc -z -v -w 2 db-postgresql 5432; do 
+            until nc -z -v -w 2 db-postgresql 5432; do
+              echo "Waiting for DB..." 
               sleep 2; 
             done
             echo "PostgreSQL is up!"
@@ -123,19 +121,19 @@ zitadel:
           - -c
           - |
             echo "Waiting for PostgreSQL at db-postgresql:5432..."
-            until nc -z -v -w 2 db-postgresql 5432; do 
+            until nc -z -v -w 2 db-postgresql 5432; do
+              echo "Waiting for DB..." 
               sleep 2; 
             done
             echo "PostgreSQL is up!"
 
-# ----------------------------------------------------------------
-# OAUTH2 PROXY
-# ----------------------------------------------------------------
+# O-Auth2 Proxy
 oauth2-proxy:
+  enabled: true
   config:
     clientID: "348868471498539436"
     clientSecret: "VQMve4Thh857uplEKmN5nlcgSedaGyYQySSDYyoMgfk4d1PS8k6zUDSdhOdo3IVW"
-    cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE"
+    cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE" # Must be 32 characters
 
   service:
     portNumber: 80
@@ -166,20 +164,16 @@ oauth2-proxy:
       hostnames:
         - "auth.local.dev"
 
-# ----------------------------------------------------------------
-# MARIMO
-# ----------------------------------------------------------------
+# Marimo app
 marimo:
   image:
-    repository: rg.fr-par.scw.cloud/srdp-registry/marimo # Replace with your registry URL
+    repository: rg.fr-par.scw.cloud/srdp-registry/marimo
     tag: "v1.0"
     pullPolicy: IfNotPresent
 
-# ----------------------------------------------------------------
-# QUARTO
-# ----------------------------------------------------------------
+# Quarto app
 quarto:
   image:
-    repository: rg.fr-par.scw.cloud/srdp-registry/quarto # Replace with your registry URL
+    repository: rg.fr-par.scw.cloud/srdp-registry/quarto
     tag: "v1.0"
     pullPolicy: IfNotPresent

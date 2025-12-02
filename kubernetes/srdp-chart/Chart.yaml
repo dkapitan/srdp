@@ -9,16 +9,20 @@ dependencies:
   - name: traefik
     version: 37.4.0
     repository: https://traefik.github.io/charts
+    condition: traefik.enabled
   
   - name: zitadel
     version: 9.13.0
     repository: https://charts.zitadel.com
+    condition: zitadel.enabled
 
   - name: postgresql
     version: 18.1.11
     repository: https://charts.bitnami.com/bitnami
     alias: zitadel-db
+    condition: zitadel-db.enabled
     
   - name: oauth2-proxy
     version: 9.0.0
     repository: https://oauth2-proxy.github.io/manifests
+    condition: oauth2-proxy.enabled

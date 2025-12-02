@@ -79,7 +79,7 @@ resource "scaleway_k8s_cluster" "srdp_cluster" {
 resource "scaleway_k8s_pool" "srdp_pool" {
   cluster_id  = scaleway_k8s_cluster.srdp_cluster.id
   name        = "${var.cluster_name}-default-pool"
-  node_type   = "PLAY2-NANO"
+  node_type   = "PLAY2-MICRO"
   size        = 2
   min_size    = 1 # TODO: Maybe reduce to 0?
   max_size    = 3
@@ -89,48 +89,29 @@ resource "scaleway_k8s_pool" "srdp_pool" {
 }
 
 # ----------------------------------------------------------------
-# Serverless SQL Database
+# Managed Database
 # ----------------------------------------------------------------
-resource "scaleway_sdb_sql_database" "zitadel_db" {
-  name = var.database_name
-
-  # CPU limits (0-15)
-  min_cpu = 0
-  max_cpu = 15
-
-  region = var.region
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  min_upper        = 1
+  min_lower        = 1
+  min_numeric      = 1
+  min_special      = 1
+  override_special = "_%@"
 }
 
-# ----------------------------------------------------------------
-# IAM Application for Database Access
-# ----------------------------------------------------------------
-resource "scaleway_iam_application" "zitadel_app" {
-  name        = "zitadel-serverless-db"
-  description = "IAM application for Zitadel to access Serverless SQL Database"
-  
-  organization_id = data.scaleway_account_project.current.organization_id
-}
-
-# Grant database access permissions
-resource "scaleway_iam_policy" "zitadel_db_policy" {
-  name           = "zitadel-db-access"
-  description    = "Policy allowing Zitadel app to access the serverless database"
-  application_id = scaleway_iam_application.zitadel_app.id
-
-  organization_id = data.scaleway_account_project.current.organization_id
-
-  rule {
-    project_ids = [scaleway_sdb_sql_database.zitadel_db.project_id]
-    permission_set_names = [
-      "ServerlessSQLDatabaseReadWrite"
-    ]
-  }
-}
-
-# Create API key for database authentication
-resource "scaleway_iam_api_key" "zitadel_app_key" {
-  application_id = scaleway_iam_application.zitadel_app.id
-  description    = "API key for Zitadel to connect to Serverless SQL Database"
+resource "scaleway_rdb_instance" "zitadel_rdb" {
+  name           = "zitadel-postgres"
+  node_type      = "DB-PLAY2-PICO"
+  engine         = "PostgreSQL-16"
+  is_ha_cluster  = false
+  disable_backup = true
+  user_name      = "scw_admin" 
+  password       = random_password.db_password.result
+  region         = var.region
+  volume_type       = "sbs_5k" 
+  volume_size_in_gb = 10
 }
 
 # ----------------------------------------------------------------
@@ -163,51 +144,30 @@ output "kubeconfig" {
   description = "Kubernetes configuration file content"
 }
 
-output "db_endpoint" {
-  value       = scaleway_sdb_sql_database.zitadel_db.endpoint
-  description = "Serverless SQL Database endpoint"
+output "rdb_host" {
+  value       = scaleway_rdb_instance.zitadel_rdb.endpoint_ip
+  description = "Database Host IP"
 }
 
-output "db_name" {
-  value       = scaleway_sdb_sql_database.zitadel_db.name
-  description = "Database name"
+output "rdb_port" {
+  value       = scaleway_rdb_instance.zitadel_rdb.endpoint_port
+  description = "Database Port"
 }
 
-# Connection information for Zitadel
-output "db_connection_string" {
-  value = format(
-    "postgres://%s:%s@%s/%s?sslmode=require",
-    scaleway_iam_application.zitadel_app.id,
-    scaleway_iam_api_key.zitadel_app_key.secret_key,
-    replace(scaleway_sdb_sql_database.zitadel_db.endpoint, "postgres://", ""),
-    scaleway_sdb_sql_database.zitadel_db.name
-  )
+output "rdb_password" {
+  value       = random_password.db_password.result
   sensitive   = true
-  description = "PostgreSQL connection string with IAM credentials"
+  description = "Database Password"
 }
 
-output "db_host" {
-  value       = replace(scaleway_sdb_sql_database.zitadel_db.endpoint, "postgres://", "")
-  description = "Database host (for separate config)"
-}
-
-output "db_user" {
-  value       = scaleway_iam_application.zitadel_app.id
-  description = "Database username (IAM Application ID)"
-}
-
-output "db_password" {
-  value       = scaleway_iam_api_key.zitadel_app_key.secret_key
-  sensitive   = true
-  description = "Database password (IAM API Key)"
-}
-
-# Kubernetes configuration
+# ----------------------------------------------------------------
+# Instructions
+# ----------------------------------------------------------------
 output "instructions" {
   value = <<-EOT
   
   ========================================
-  Infrastructure Created Successfully!
+  Infrastructure Updated Successfully!
   ========================================
   
   1. Get Kubeconfig:
@@ -215,20 +175,15 @@ output "instructions" {
      export KUBECONFIG=./kubeconfig.yaml
      kubectl get nodes
   
-  2. Get Database Connection Info:
-     DB_HOST:     ${replace(scaleway_sdb_sql_database.zitadel_db.endpoint, "postgres://", "")}
-     DB_NAME:     ${scaleway_sdb_sql_database.zitadel_db.name}
-     DB_USER:     ${scaleway_iam_application.zitadel_app.id}
-     DB_PASSWORD: (run: tofu output -raw db_password)
+  2. Update values-prod.yaml with DB Info:
+     DB HOST:     ${scaleway_rdb_instance.zitadel_rdb.endpoint_ip}
+     DB PORT:     ${scaleway_rdb_instance.zitadel_rdb.endpoint_port}
      
-     Full connection string:
-     tofu output -raw db_connection_string
+     Get Password:
+     tofu output -raw rdb_password
   
   3. Registry:
      ${data.scaleway_registry_namespace.srdp_registry.endpoint}
-  
-  4. Private Network:
-     ID: ${scaleway_vpc_private_network.k8s_network.id}
   
   ========================================
   EOT
