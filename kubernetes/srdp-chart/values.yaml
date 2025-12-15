@@ -81,7 +81,7 @@ zitadel:
     dbSslAdminCrtSecret: postgres-cert
     dbSslUserCrtSecret: zitadel-cert
   image:
-    tag: "v4.7.2"
+    tag: "v4.7.5"
 
   ingress:
     enabled: false
@@ -91,7 +91,7 @@ zitadel:
     ingress:
       enabled: false
     image:
-      tag: "v4.7.2"
+      tag: "v4.7.5"
 
   initJob:
     annotations:
