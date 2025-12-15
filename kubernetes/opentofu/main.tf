@@ -65,7 +65,7 @@ resource "scaleway_vpc_private_network" "k8s_network" {
 }
 
 # ----------------------------------------------------------------
-# 3. Kubernetes Cluster
+# Kubernetes Cluster
 # ----------------------------------------------------------------
 resource "scaleway_k8s_cluster" "srdp_cluster" {
   name = var.cluster_name
