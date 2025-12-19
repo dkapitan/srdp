@@ -26,30 +26,4 @@ Here's the lineup of our chosen champions:
 |📜 Quarto	|The Storyteller / Scientific Publishing	| Turns your brilliant analysis into beautiful reports, presentations, and websites. Because data that isn't shared is just sad, lonely numbers.|
 
 ---
-
-## Sprint One: getting the Bouncer and the Cop on the streets
-
-![](https://www.authelia.com/overview/prologue/architecture/architecture-diagram_hu_5cc1768bd04afb0a.webp)
-
-Without oversight and security we can't have a SRDP, therefore the first sprint focuses on the core authentication and authorization components. We follow the standard solution design of an IAM + reverse proxy as shown above (in this case with Authelia).
-
-### Requirements
-- Deployment via Terraform for cloud providers should be supported. Azure, Google Cloud, OVHcloud and Scaleway are the preferred hosting providers.
-- Local deployment via Docker Compose for development should be supported
-- IAM component should support
-  - Relying Party to Azure EntraID (LDAP), Google and GitHub
-  - Multi-Factor Authentication
-
-### Nice-to-haves
-- Easy to switch between between Zitadel/Authelia/Authentik
-
-### Open questions
-- Use simple folder/repo structure (like cookiecutter) or go with Git submodules?
-- Use Zitadel which supports Relying Party, but is more heavy, or a more lightweight
-- Authelia and Authentik are more lightweigth
-
-
-
-
-
-  
+<img width="4550" height="3044" alt="image" src="https://github.com/user-attachments/assets/0764267f-9c31-4412-af47-5cc6fbad7031" />
