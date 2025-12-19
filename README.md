@@ -26,4 +26,5 @@ Here's the lineup of our chosen champions:
 |📜 Quarto	|The Storyteller / Scientific Publishing	| Turns your brilliant analysis into beautiful reports, presentations, and websites. Because data that isn't shared is just sad, lonely numbers.|
 
 ---
-<img width="4550" height="3044" alt="image" src="https://github.com/user-attachments/assets/0764267f-9c31-4412-af47-5cc6fbad7031" />
+
+![](architecture.png)
