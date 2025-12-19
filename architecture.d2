@@ -1,0 +1,76 @@
+# default styling
+**.icon.near: outside-top-right
+**.style.border-radius: 5
+
+direction: down
+
+k8s: Kubernetes cluster {
+  icon: https://icons.terrastruct.com/azure%2F_Companies%2FKubernetes.svg
+  label.near: outside-top-left
+  Dagster: {
+    icon: https://dagster-website.vercel.app/images/brand/logos/dagster-primary-mark.svg
+    label.near: outside-top-left
+    tooltip: See https://www.scaleway.com/en/docs/tutorials/dagster-serverless-jobs/ and https://docs.dagster.io/deployment/oss/oss-deployment-architecture for more details.
+    Web server
+    daemon
+    code-location: code location
+    s3: s3 bucket
+  }
+  PostgreSQL: {
+    icon: https://icons.terrastruct.com/dev%2Fpostgresql.svg
+    icon.near: center-center
+    label.near: outside-top-left
+    ducklake-catalog: {
+      shape: image
+      icon: https://icons.terrastruct.com/essentials%2F117-database.svg
+    }
+    dagster-database: {
+      shape: image
+      icon: https://icons.terrastruct.com/essentials%2F117-database.svg
+    }
+    zitadel: {
+      shape: image
+      icon: https://icons.terrastruct.com/essentials%2F117-database.svg
+    }
+  }
+  traefik: Traefik Proxy {
+    shape: image
+    icon: https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Traefik.logo.png/500px-Traefik.logo.png
+  }
+  Zitadel: {
+    label.near: outside-top-left
+    UI
+    database
+  }
+}
+DuckLake: {
+  label.near: outside-top-left
+  catalog
+  storage
+}
+
+DuckDB: {
+  icon: https://icon-icons.com/download-file?file=https%3A%2F%2Fimages.icon-icons.com%2F3914%2FSVG%2Fduckdb_logo_icon_248992.svg&id=248992&pack_or_individual=pack
+  label.near: outside-top-left
+  client
+  UI
+}
+
+s3: Object storage {
+  label.near: outside-top-left
+}
+
+functions: Serverless Jobs {
+  label.near: outside-top-left
+  executor-1
+  executor-2
+}
+
+k8s.Dagster <-> DuckDB.client: IOManager
+DuckDB <-> DuckLake: client
+DuckLake.catalog <- k8s.PostgreSQL.ducklake-catalog: realizes
+k8s.Dagster.database <- k8s.PostgreSQL.dagster-database: realizes
+k8s.Zitadel.database <- k8s.PostgreSQL.zitadel: realizes
+s3.ducklake-bucket -> DuckLake.storage: realizes
+s3.dagster-bucket -> k8s.dagster.s3: realizes
+k8s.Dagster -> functions: RunLauncher
