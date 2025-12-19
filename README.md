@@ -27,4 +27,4 @@ Here's the lineup of our chosen champions:
 
 ---
 
-![](architecture.svg)
+![](architecture.png)
