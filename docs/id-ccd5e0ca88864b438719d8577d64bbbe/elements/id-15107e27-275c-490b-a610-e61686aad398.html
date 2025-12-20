@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Implementeren veranderingen</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Implementeren veranderingen</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-BusinessProcess"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-BusinessProcess" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Het daadwerkelijk doorvoeren van een voorgenomen verandering.</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>Beschrijving</td><td class="convertlinks no-margin" style="white-space:pre-wrap"></td></tr><tr><td>Domein</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Sturing</td></tr><tr><td>Trigger</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Een veranderingstraject is voorbereid en er wordt gestart met implementatie van de verandering.</td></tr><tr><td>Preconditie</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Veranderingsinitiatieven zijn gedefinieerd en het veranderingstraject is voorbereid en opgestart (al dan niet in tijdelijk verband).</td></tr><tr><td>Postconditie</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Gedefinieerde veranderingen zijn doorgevoerd (incl. overdracht aan lijnorganisatie) en blijvende werking en effect zijn geborgd.</td></tr><tr><td>Type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Deelbedrijfsproces</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-4475b81d-5a8d-4dd8-b498-24857394beea">
+																	<td><a href="../views/id-4475b81d-5a8d-4dd8-b498-24857394beea.html" target="view" title="Bedrijfsprocessen-Bedrijfsfuncties overig"> Bedrijfsprocessen-Bedrijfsfuncties overig </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-6c03a8b2-c56e-483a-b7a1-1e762d6e87dd">
+																	<td><a href="../views/id-6c03a8b2-c56e-483a-b7a1-1e762d6e87dd.html" target="view" title="Bedrijfsprocessen Sturing"> Bedrijfsprocessen Sturing </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-6cf38454-9fc6-40e4-af0d-7a7c75f0449e.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-b182b2be-035c-4e7d-a0d1-4702203921f6.html" target="element"> Enterprise architectuur</a></td>
+											<td><a href="../elements/id-15107e27-275c-490b-a610-e61686aad398.html" target="element"> Implementeren veranderingen</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-80e6df23-62ba-461c-bdcc-21f771d6fd18.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-bb64fe23-233c-4ba9-83ef-7b3ebf2d0b70.html" target="element"> Programmamanagement</a></td>
+											<td><a href="../elements/id-15107e27-275c-490b-a610-e61686aad398.html" target="element"> Implementeren veranderingen</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-825aa393-7a15-45f5-a80d-95ff4b1eef9f.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-1b4fd559-d243-40bb-bda3-be7dbf3ae369.html" target="element"> Doorvoeren veranderingen</a></td>
+											<td><a href="../elements/id-15107e27-275c-490b-a610-e61686aad398.html" target="element"> Implementeren veranderingen</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-97bea3d5-7c11-4880-8f46-9198a9dcec61.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-c6840a20-a266-48a2-8e1b-095fe1a1f810.html" target="element"> Programma en projectportfoliomanagement</a></td>
+											<td><a href="../elements/id-15107e27-275c-490b-a610-e61686aad398.html" target="element"> Implementeren veranderingen</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-9fa1644c-9797-4d2e-914c-9f27cc98d909.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-887b3fdc-8b38-4470-8afe-22e535771c32.html" target="element"> Operationeel management</a></td>
+											<td><a href="../elements/id-15107e27-275c-490b-a610-e61686aad398.html" target="element"> Implementeren veranderingen</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-f5c23ef8-ee13-4e01-8804-09cb527ff9e3.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-c00ba2ea-4d2b-4821-bdb3-ddc5bf13d147.html" target="element"> Projectmanagement</a></td>
+											<td><a href="../elements/id-15107e27-275c-490b-a610-e61686aad398.html" target="element"> Implementeren veranderingen</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Service Discovery and Registry</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Service Discovery and Registry</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-ApplicationService"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-ApplicationService" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Definition: Service Discovery and Registry ABB is an Application Service that enables the process of automatically locating network services within distributed digital systems.
+
+Source: Inspired in INSPIRE
+
+Source reference: https://inspire.ec.europa.eu/glossary/DiscoveryService
+
+Last modification: 2024-01-28
+
+Identifier: http://data.europa.eu/dr8/ServiceDiscoveryAndRegistryApplicationService
+
+LOST view: Technical view - application
+
+EIRA concept: eira:ArchitectureBuildingBlock
+
+ABB name: eira:ServiceDiscoveryAndRegistryApplicationService
+
+Example: The following implementation is an example on how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB): ZooKeeper - ZooKeeper is a centralized service registry for maintaining configuration information, naming, providing distributed synchronization, and providing group services. All of these kinds of services are used in some form or another by distributed applications. Each time they are implemented there is a lot of work that goes into fixing the bugs and race conditions that are inevitable. Because of the difficulty of implementing these kinds of services, applications initially usually skimp on them, which make them brittle in the presence of change and difficult to manage. Even when done correctly, different implementations of these services lead to management complexity when the applications are deployed. https://zookeeper.apache.org/
+
+Interoperability Saliency: Service Discovery and Registry Service ABB is a key interoperability enabler (*) for structural and behavioural interoperability by enabling access rights for data that is necessary for accessing public administration components to target fast and easy communication and data exchange.
+
+Interoperability Dimension: Structural IoP
+
+Viewpoint: Key Interoperability Enablers viewpoint
+
+Additional identifier: http://data.europa.eu/dr8/ServiceDiscoveryAndRegistryApplicationService
+
+EIF Layer: TechnicalApplication
+
+</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>eira:PURI</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/ServiceDiscoveryAndRegistryApplicationService</td></tr><tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ServiceDiscoveryAndRegistryApplicationService</td></tr><tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2024-01-28</td></tr><tr><td>eira:synonym</td><td class="convertlinks no-margin" style="white-space:pre-wrap"></td></tr><tr><td>skos:definition</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Service Discovery and Registry ABB is an Application Service that enables the process of automatically locating network services within distributed digital systems.</td></tr><tr><td>eira:definitionSource</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Inspired in INSPIRE</td></tr><tr><td>eira:definitionSourceReference</td><td class="convertlinks no-margin" style="white-space:pre-wrap">https://inspire.ec.europa.eu/glossary/DiscoveryService</td></tr><tr><td>skos:example</td><td class="convertlinks no-margin" style="white-space:pre-wrap">The following implementation is an example on how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB): ZooKeeper - ZooKeeper is a centralized service registry for maintaining configuration information, naming, providing distributed synchronization, and providing group services. All of these kinds of services are used in some form or another by distributed applications. Each time they are implemented there is a lot of work that goes into fixing the bugs and race conditions that are inevitable. Because of the difficulty of implementing these kinds of services, applications initially usually skimp on them, which make them brittle in the presence of change and difficult to manage. Even when done correctly, different implementations of these services lead to management complexity when the applications are deployed. https://zookeeper.apache.org/</td></tr><tr><td>eira:iopSaliency</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Service Discovery and Registry Service ABB is a key interoperability enabler (*) for structural and behavioural interoperability by enabling access rights for data that is necessary for accessing public administration components to target fast and easy communication and data exchange.</td></tr><tr><td>skos:note</td><td class="convertlinks no-margin" style="white-space:pre-wrap"></td></tr><tr><td>eira:concept</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ArchitectureBuildingBlock</td></tr><tr><td>eira:iopDimension</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Structural IoP</td></tr><tr><td>eira:view</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Technical view - application</td></tr><tr><td>eira:viewpoint</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Key Interoperability Enablers viewpoint</td></tr><tr><td>dct:identifier</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/ServiceDiscoveryAndRegistryApplicationService</td></tr><tr><td>eira:eifLayer</td><td class="convertlinks no-margin" style="white-space:pre-wrap">TechnicalApplication</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-6a8b3a5a">
+																	<td><a href="../views/id-6a8b3a5a.html" target="view" title="Technical view - application"> Technical view - application </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-fcfb8e9b6d5546f9b785871557fd523a">
+																	<td><a href="../views/id-fcfb8e9b6d5546f9b785871557fd523a.html" target="view" title="Interoperability Structural viewpoint"> Interoperability Structural viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-9eb984cb">
+																	<td><a href="../views/id-9eb984cb.html" target="view" title="Key Interoperability Enablers viewpoint"> Key Interoperability Enablers viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-c85385c8cd4048b2a5fa274e0bef875c.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-ServingRelationship" /></td>
+											<td><a href="../elements/id-d355753b35884da891212316e72b00d6.html" target="element"> Service Discovery and Registry</a></td>
+											<td><a href="../elements/id-f29ba44a.html" target="element"> Service Registry</a></td>
+										</tr>
+									<tr>
+											<td><a href="../elements/id-fde54fb2b63e4f8b952c8dbdd1dd8ba5.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-ab9a2e3951014292909495f6eacf9fac.html" target="element"> Shared Application Content</a></td>
+											<td><a href="../elements/id-d355753b35884da891212316e72b00d6.html" target="element"> Service Discovery and Registry</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-4d86008dd4244ec2bd01f2330d574575.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AssociationRelationship" /></td>
+											<td><a href="../elements/id-01b395b610234c1cb965cf99652fd1b1.html" target="element"> Service Registry</a></td>
+											<td><a href="../elements/id-d355753b35884da891212316e72b00d6.html" target="element"> Service Discovery and Registry</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-d34614f7fc064673a5e026902e4a830b.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-CompositionRelationship" /></td>
+											<td><a href="../elements/id-42a1e1239dfa46aba77db9c824279cb2.html" target="element"> API Enablers</a></td>
+											<td><a href="../elements/id-d355753b35884da891212316e72b00d6.html" target="element"> Service Discovery and Registry</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

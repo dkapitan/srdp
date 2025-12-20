@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>e-Archiving</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>e-Archiving</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-ApplicationService"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-ApplicationService" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Definition: e-Archiving ABB is an Application Service enabling the permanent or long-term storage of selected (by an authority) electronic documents or information for preservation purposes like their enduring research value and memory aid. 
+
+Source: ISA2 - EIA Action
+
+Source reference: https://ec.europa.eu/isa2/actions/towards-european-interoperability-architecture_en/
+
+Last modification: 2024-01-28
+
+Identifier: http://data.europa.eu/dr8/E-ArchivingApplicationService
+
+LOST view: Technical view - application
+
+EIRA concept: eira:ArchitectureBuildingBlock
+
+ABB name: eira:E-ArchivingApplicationService
+
+Synonym: Preservation Service
+
+Example: The following implementation is an example on how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB): CEF eArchiving: eArchiving provides the core specifications, software, training and knowledge to tackle the challenge of short, medium and long-term data management and reuse in a sustainable, authentic, cost-efficient, manageable and interoperable way. https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/eArchiving
+
+Interoperability Saliency: The e-Archiving Service ABB &#160;is salient for technical interoperability because it provides and shares the functionality for the long-term or permanent preservation of records and information in electronic form in order to ensure their temporal egibility, reliability and integrity as stated in the EIF: "Legislation requires that decisions and data are stored and can be accessed for a specified time. This means that records and information in electronic form held by public administrations for the purpose of documenting procedures and decisions must be preserved and be converted, where necessary, to new media when old media become obsolete. The goal is to ensure that records and other forms of information keep their legibility, reliability and integrity and can be accessed as long as needed subject to security and privacy provisions."
+
+Additional information: The EIRA(c) differentiates between document management, record management and e-archiving as follows: - Document management is primarily about day-to-day use of electronic documents (create/update/delete/versioning) within the operational environment; - Record management is primarily about ensuring that information (e.g. in form of an electronic document or database record) is available for business and legal purposes (e.g. to proof and track the handling of contracts). If an electronic document or information is becoming a record (an authority declares it as a record) that electronic document or information needs to be handled by the record management service (based on specific business or legal reasons (e.g. contract negotiation)); - e-Archiving is primarily about storing records which have been selected (by an authority) for permanent or long-term preservation due to their enduring research value and as a memory aid. An electronic document or information which a) is managed by the document management service or the record management service and b) is no longer needed for business or legal purposes or day-to-day activities, and c) still has value for research purposes or as a memory aid, the electronic document should be managed by the e-archiving service&#8221;.
+
+Interoperability Dimension: Structural IoP
+
+Viewpoint: Interoperability Privacy viewpoint
+
+Additional identifier: http://data.europa.eu/dr8/E-ArchivingApplicationService
+
+EIF Layer: TechnicalApplication
+
+</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>eira:PURI</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/E-ArchivingApplicationService</td></tr><tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:E-ArchivingApplicationService</td></tr><tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2024-01-28</td></tr><tr><td>eira:synonym</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Preservation Service</td></tr><tr><td>skos:definition</td><td class="convertlinks no-margin" style="white-space:pre-wrap">e-Archiving ABB is an Application Service enabling the permanent or long-term storage of selected (by an authority) electronic documents or information for preservation purposes like their enduring research value and memory aid. </td></tr><tr><td>eira:definitionSource</td><td class="convertlinks no-margin" style="white-space:pre-wrap">ISA2 - EIA Action</td></tr><tr><td>eira:definitionSourceReference</td><td class="convertlinks no-margin" style="white-space:pre-wrap">https://ec.europa.eu/isa2/actions/towards-european-interoperability-architecture_en/</td></tr><tr><td>skos:example</td><td class="convertlinks no-margin" style="white-space:pre-wrap">The following implementation is an example on how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB): CEF eArchiving: eArchiving provides the core specifications, software, training and knowledge to tackle the challenge of short, medium and long-term data management and reuse in a sustainable, authentic, cost-efficient, manageable and interoperable way. https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/eArchiving</td></tr><tr><td>eira:iopSaliency</td><td class="convertlinks no-margin" style="white-space:pre-wrap">The e-Archiving Service ABB &#160;is salient for technical interoperability because it provides and shares the functionality for the long-term or permanent preservation of records and information in electronic form in order to ensure their temporal egibility, reliability and integrity as stated in the EIF: "Legislation requires that decisions and data are stored and can be accessed for a specified time. This means that records and information in electronic form held by public administrations for the purpose of documenting procedures and decisions must be preserved and be converted, where necessary, to new media when old media become obsolete. The goal is to ensure that records and other forms of information keep their legibility, reliability and integrity and can be accessed as long as needed subject to security and privacy provisions."</td></tr><tr><td>skos:note</td><td class="convertlinks no-margin" style="white-space:pre-wrap">The EIRA(c) differentiates between document management, record management and e-archiving as follows: - Document management is primarily about day-to-day use of electronic documents (create/update/delete/versioning) within the operational environment; - Record management is primarily about ensuring that information (e.g. in form of an electronic document or database record) is available for business and legal purposes (e.g. to proof and track the handling of contracts). If an electronic document or information is becoming a record (an authority declares it as a record) that electronic document or information needs to be handled by the record management service (based on specific business or legal reasons (e.g. contract negotiation)); - e-Archiving is primarily about storing records which have been selected (by an authority) for permanent or long-term preservation due to their enduring research value and as a memory aid. An electronic document or information which a) is managed by the document management service or the record management service and b) is no longer needed for business or legal purposes or day-to-day activities, and c) still has value for research purposes or as a memory aid, the electronic document should be managed by the e-archiving service&#8221;.</td></tr><tr><td>eira:concept</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ArchitectureBuildingBlock</td></tr><tr><td>eira:iopDimension</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Structural IoP</td></tr><tr><td>eira:view</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Technical view - application</td></tr><tr><td>eira:viewpoint</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Interoperability Privacy viewpoint</td></tr><tr><td>eira:viewpoint</td><td class="convertlinks no-margin" style="white-space:pre-wrap">REST API viewpoint</td></tr><tr><td>dct:identifier</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/E-ArchivingApplicationService</td></tr><tr><td>eira:eifLayer</td><td class="convertlinks no-margin" style="white-space:pre-wrap">TechnicalApplication</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-6a8b3a5a">
+																	<td><a href="../views/id-6a8b3a5a.html" target="view" title="Technical view - application"> Technical view - application </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-ec936997e732423aab7892a80dbe1aed">
+																	<td><a href="../views/id-ec936997e732423aab7892a80dbe1aed.html" target="view" title="REST API viewpoint"> REST API viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-3ef335df-07d2-4df9-a530-6fc6b81c2fa6">
+																	<td><a href="../views/id-3ef335df-07d2-4df9-a530-6fc6b81c2fa6.html" target="view" title="Interoperability Privacy viewpoint"> Interoperability Privacy viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-fcfb8e9b6d5546f9b785871557fd523a">
+																	<td><a href="../views/id-fcfb8e9b6d5546f9b785871557fd523a.html" target="view" title="Interoperability Structural viewpoint"> Interoperability Structural viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-34168f32-4976-4fd8-92da-a4aa1bcaaa41.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AccessRelationship" /></td>
+											<td><a href="../elements/id-4a50086f.html" target="element"> e-Archiving</a></td>
+											<td><a href="../elements/id-c682a79a.html" target="element"> Data</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-57f42d2ab88641e49b82a861a83aebb8.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-ServingRelationship" /></td>
+											<td><a href="../elements/id-4a50086f.html" target="element"> e-Archiving</a></td>
+											<td><a href="../elements/id-4e3b6956.html" target="element"> e-Archiving</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-4d6d342b90584049b313db00dc24be21.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-TriggeringRelationship" /></td>
+											<td><a href="../elements/id-4a50086f.html" target="element"> e-Archiving</a></td>
+											<td><a href="../elements/id-0c2b5682.html" target="element"> Audit</a></td>
+										</tr>
+									<tr>
+											<td><a href="../elements/id-9066085f31624126897ef8ed0a0d1f86.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-354a04c65718439995b6f09f173af9f6.html" target="element"> Data Management</a></td>
+											<td><a href="../elements/id-4a50086f.html" target="element"> e-Archiving</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

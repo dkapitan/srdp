@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Choreography Service</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Choreography Service</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-ApplicationService"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-ApplicationService" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Shares the functionality of modelling a sequence of operations, states, and conditions that control the interactions involved in the participating services. The interaction prescribed by a choreography results in the completion of some useful function.
+
+A choreography can be distinguished from an orchestration. An orchestration defines the sequence and conditions in which one service invokes other services in order to realize some useful function.
+
+Based on W3C
+https://www.w3.org/TR/ws-arch/  
+
+The following implementation is an example on how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB):
+
+Camunda
+The core of Camunda BPM is a model execution engine that supports the OMG standards BPMN 2.0 for process automation, CMMN 1.1 for case management and DMN 1.1 for decision management.
+Camunda BPM ships with a set of applications to help you model, execute and administer process applications running on the Camunda core engine. Those applications interact with the core engine's public REST API. You can also create your own applications that may also use the core engine's public Java API. It is lightweight and requires less than 3MB of disk space. It can run in any Java Virtual Machine (JVM) and comes with extended integration for different runtime containers.
+The engine can be accessed via the REST API, or via the Java API and existing integrations with Spring and Java EE can be used. BPMN service tasks can be implemented in Java code, or the built-in REST and SOAP connectors can be used. Scripts, expressions and templates can also be applied for process implementation. Clustering for horizontal scalability is straightforward as the engine is stateless: multiple instances can share the same database.
+BPMN 2.0 Processes permits the fully automated service orchestration and human workflow management. 
+https://camunda.org/features/</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ChoreographyService</td></tr><tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2023-05-25</td></tr><tr><td>eira:ID</td><td class="convertlinks no-margin" style="white-space:pre-wrap">ABB44</td></tr><tr><td>adms:status</td><td class="convertlinks no-margin" style="white-space:pre-wrap">deprecated</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

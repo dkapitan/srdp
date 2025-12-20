@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Authorisation</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Authorisation</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-ApplicationService"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-ApplicationService" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Definition: Authorisation ABB is an Application Service that enables processes to formalise the electronic identification of a natural or legal person, or the origin and integrity of data in the electronic form to be confirmed
+
+Source: Joinup
+
+Source reference: https://joinup.ec.europa.eu/taxonomy/term/http_e_f_fdata_ceuropa_ceu_fdr8_fIdentityManagementService
+
+Last modification: 2024-01-28
+
+Identifier: http://data.europa.eu/dr8/AuthorisationApplicationService
+
+LOST view: Technical view - application
+
+EIRA concept: eira:ArchitectureBuildingBlock
+
+ABB name: eira:AuthorisationApplicationService
+
+Example: The following implementation is an example of how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB): Users roles are managed and linked to EU Login accounts (https://ec.europa.eu/research/participants/docs/h2020-funding-guide/user-account-and-roles/roles-and-access-rights_en.htm). EU Login is the entry gate to sign in to different European Commission services and/or other systems. EU Login verifies your identity and allows recovering your personal settings, history and access rights in a secure way. You can sign in using social media accounts or the EU Login account.
+
+Interoperability Saliency: The Authorisation Application Service ABB is salient for interoperability because it represents the identifications of actors (natural or legal persons) involved in system interactions, ensuring that the service and the data contained are accessed by actors with granted permissions. Additionally, this can be used as part of the data integrity process to identify the origin of certain data. In general, authorisation services allow for the maintenance of control and integrity of the available data, ensuring its quality when exchanged. 
+
+Interoperability Dimension: Structural IoP
+
+Additional identifier: http://data.europa.eu/dr8/AuthorisationApplicationService
+
+EIF Layer: TechnicalApplication
+
+</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>eira:PURI</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/AuthorisationApplicationService</td></tr><tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:AuthorisationApplicationService</td></tr><tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2024-01-28</td></tr><tr><td>eira:synonym</td><td class="convertlinks no-margin" style="white-space:pre-wrap"></td></tr><tr><td>skos:definition</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Authorisation ABB is an Application Service that enables processes to formalise the electronic identification of a natural or legal person, or the origin and integrity of data in the electronic form to be confirmed</td></tr><tr><td>eira:definitionSource</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Joinup</td></tr><tr><td>eira:definitionSourceReference</td><td class="convertlinks no-margin" style="white-space:pre-wrap">https://joinup.ec.europa.eu/taxonomy/term/http_e_f_fdata_ceuropa_ceu_fdr8_fIdentityManagementService</td></tr><tr><td>skos:example</td><td class="convertlinks no-margin" style="white-space:pre-wrap">The following implementation is an example of how this specific Architecture Building Block (ABB) can be instantiated as a Solution Building Block (SBB): Users roles are managed and linked to EU Login accounts (https://ec.europa.eu/research/participants/docs/h2020-funding-guide/user-account-and-roles/roles-and-access-rights_en.htm). EU Login is the entry gate to sign in to different European Commission services and/or other systems. EU Login verifies your identity and allows recovering your personal settings, history and access rights in a secure way. You can sign in using social media accounts or the EU Login account.</td></tr><tr><td>eira:iopSaliency</td><td class="convertlinks no-margin" style="white-space:pre-wrap">The Authorisation Application Service ABB is salient for interoperability because it represents the identifications of actors (natural or legal persons) involved in system interactions, ensuring that the service and the data contained are accessed by actors with granted permissions. Additionally, this can be used as part of the data integrity process to identify the origin of certain data. In general, authorisation services allow for the maintenance of control and integrity of the available data, ensuring its quality when exchanged. </td></tr><tr><td>skos:note</td><td class="convertlinks no-margin" style="white-space:pre-wrap"></td></tr><tr><td>eira:concept</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ArchitectureBuildingBlock</td></tr><tr><td>eira:iopDimension</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Structural IoP</td></tr><tr><td>eira:view</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Technical view - application</td></tr><tr><td>dct:identifier</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/AuthorisationApplicationService</td></tr><tr><td>eira:eifLayer</td><td class="convertlinks no-margin" style="white-space:pre-wrap">TechnicalApplication</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-fd057a34c3ae4b0db86b78e7b513b4f0">
+																	<td><a href="../views/id-fd057a34c3ae4b0db86b78e7b513b4f0.html" target="view" title="sketching"> sketching </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-fcfb8e9b6d5546f9b785871557fd523a">
+																	<td><a href="../views/id-fcfb8e9b6d5546f9b785871557fd523a.html" target="view" title="Interoperability Structural viewpoint"> Interoperability Structural viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-6a8b3a5a">
+																	<td><a href="../views/id-6a8b3a5a.html" target="view" title="Technical view - application"> Technical view - application </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-fe3ff4746a9844a48e72c8cd496c4fab.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-ServingRelationship" /></td>
+											<td><a href="../elements/id-47e43bdd77c648a4b6fcdcf07037b9d2.html" target="element"> Authorisation</a></td>
+											<td><a href="../elements/id-8aced68986b04c9a93918b8d1fc9964d.html" target="element"> Central Federation Server</a></td>
+										</tr>
+									<tr>
+											<td><a href="../elements/id-938438e38462440da295c128c1e8d95b.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-CompositionRelationship" /></td>
+											<td><a href="../elements/id-b2277944c9764e57a655b3e78dfba414.html" target="element"> Identification and Access Enablers</a></td>
+											<td><a href="../elements/id-47e43bdd77c648a4b6fcdcf07037b9d2.html" target="element"> Authorisation</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-80788f5df487473396541fc59f0b6675.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-SpecializationRelationship" /></td>
+											<td><a href="../elements/id-e01cc8db.html" target="element"> Access Management</a></td>
+											<td><a href="../elements/id-47e43bdd77c648a4b6fcdcf07037b9d2.html" target="element"> Authorisation</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

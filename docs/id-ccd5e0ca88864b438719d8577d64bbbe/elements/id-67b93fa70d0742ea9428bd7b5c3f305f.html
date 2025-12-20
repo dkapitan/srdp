@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Replication</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Replication</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-Requirement"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-Requirement" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Definition: Replication is an IT non-functional requirement that refers to the ability of a system to duplicate or copy data or processes across multiple servers or locations. This is important for ensuring high availability and reliability of the system, as well as for disaster recovery purposes. Replication can be achieved through various techniques such as database replication, file replication, or server replication. The system should be able to handle replication in a seamless and efficient manner, without compromising performance or security.
+
+Source: TOGAF
+
+Source reference: https://pubs.opengroup.org/architecture/togaf9-doc/arch/chap03.html
+
+Additional information: According to the TOGAF specification, Replication is a non-functional requirement that refers to the ability of a system to duplicate or copy data, processes, or services across multiple locations or instances. This requirement is important for ensuring high availability, fault tolerance, and disaster recovery capabilities.
+
+The Replication requirement can be further broken down into several sub-requirements, including:
+
+1. Data Replication: This refers to the ability of a system to replicate data across multiple locations or instances. This can be achieved through various techniques such as database replication, file replication, or object replication.
+
+2. Process Replication: This refers to the ability of a system to replicate processes or services across multiple locations or instances. This can be achieved through techniques such as load balancing, clustering, or virtualization.
+
+3. Synchronization: This refers to the ability of a system to ensure that replicated data, processes, or services are kept in sync across all instances. This can be achieved through techniques such as data synchronization, process synchronization, or service synchronization.
+
+4. Performance: This refers to the ability of a system to maintain performance levels even when replicating data, processes, or services across multiple locations or instances. This can be achieved through techniques such as caching, compression, or optimization.
+
+Overall, the Replication requirement is critical for ensuring that a system can provide high availability, fault tolerance, and disaster recovery capabilities. It is important to carefully consider the specific sub-requirements and techniques that will be used to achieve this requirement in order to ensure that the system is able to meet its performance and reliability goals.
+
+Example: One example of the IT non-functional requirement 'Replication' is in a database system where data needs to be replicated across multiple servers for redundancy and fault tolerance. This ensures that if one server fails, the data can still be accessed from another server without any disruption to the system. The replication process should be seamless and transparent to the end-users, ensuring that they can access the data without any delay or interruption. Additionally, the replication process should be efficient and scalable, allowing for easy addition of new servers as the system grows.
+
+LOST view: Digital Solution Non-Functional Requirements Catalogue view
+
+Identifier: http://data.europa.eu/dr8/egovera/ReplicationRequirement
+
+EIRA traceability: eira:DigitalSolutionNonFunctionalRequirementRequirement
+
+ABB name: egovera:ReplicationRequirement
+
+EIRA concept: eira:ArchitectureBuildingBlock
+
+Last modification: 2023-05-16
+
+dct:identifier: http://data.europa.eu/dr8/egovera/ReplicationRequirement
+
+dct:title: Replication Non-Functional Requirement
+
+</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2024-01-28</td></tr><tr><td>dct:identifier</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/ReplicationRequirement</td></tr><tr><td>dct:title</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Replication Non-Functional Requirement</td></tr><tr><td>skos:example</td><td class="convertlinks no-margin" style="white-space:pre-wrap">One example of the IT non-functional requirement 'Replication' is in a database system where data needs to be replicated across multiple servers for redundancy and fault tolerance. This ensures that if one server fails, the data can still be accessed from another server without any disruption to the system. The replication process should be seamless and transparent to the end-users, ensuring that they can access the data without any delay or interruption. Additionally, the replication process should be efficient and scalable, allowing for easy addition of new servers as the system grows.</td></tr><tr><td>skos:definition</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Replication is an IT non-functional requirement that refers to the ability of a system to duplicate or copy data or processes across multiple servers or locations. This is important for ensuring high availability and reliability of the system, as well as for disaster recovery purposes. Replication can be achieved through various techniques such as database replication, file replication, or server replication. The system should be able to handle replication in a seamless and efficient manner, without compromising performance or security.</td></tr><tr><td>eira:concept</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ArchitectureBuildingBlock</td></tr><tr><td>eira:definitionSource</td><td class="convertlinks no-margin" style="white-space:pre-wrap">TOGAF</td></tr><tr><td>eira:definitionSourceReference</td><td class="convertlinks no-margin" style="white-space:pre-wrap">https://pubs.opengroup.org/architecture/togaf9-doc/arch/chap03.html</td></tr><tr><td>skos:note</td><td class="convertlinks no-margin" style="white-space:pre-wrap">According to the TOGAF specification, Replication is a non-functional requirement that refers to the ability of a system to duplicate or copy data, processes, or services across multiple locations or instances. This requirement is important for ensuring high availability, fault tolerance, and disaster recovery capabilities.
+
+								The Replication requirement can be further broken down into several sub-requirements, including:
+
+								1. Data Replication: This refers to the ability of a system to replicate data across multiple locations or instances. This can be achieved through various techniques such as database replication, file replication, or object replication.
+
+								2. Process Replication: This refers to the ability of a system to replicate processes or services across multiple locations or instances. This can be achieved through techniques such as load balancing, clustering, or virtualization.
+
+								3. Synchronization: This refers to the ability of a system to ensure that replicated data, processes, or services are kept in sync across all instances. This can be achieved through techniques such as data synchronization, process synchronization, or service synchronization.
+
+								4. Performance: This refers to the ability of a system to maintain performance levels even when replicating data, processes, or services across multiple locations or instances. This can be achieved through techniques such as caching, compression, or optimization.
+
+								Overall, the Replication requirement is critical for ensuring that a system can provide high availability, fault tolerance, and disaster recovery capabilities. It is important to carefully consider the specific sub-requirements and techniques that will be used to achieve this requirement in order to ensure that the system is able to meet its performance and reliability goals.</td></tr><tr><td>eira:PURI</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/ReplicationRequirement</td></tr><tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ReplicationRequirement</td></tr><tr><td>eira:view</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Digital Solution Non-Functional Requirements Catalogue view</td></tr><tr><td>eira:eifLayer</td><td class="convertlinks no-margin" style="white-space:pre-wrap">N/A</td></tr><tr><td>skos:broader</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/DigitalSolutionNonFunctionalRequirementRequirement</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-6c49159b1883466fa2335b8d893b5580">
+																	<td><a href="../views/id-6c49159b1883466fa2335b8d893b5580.html" target="view" title="Digital Solution Non-Functional Requirements Catalogue viewpoint"> Digital Solution Non-Functional Requirements Catalogue viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-950446d8d4ac46289bda5ac3bfbc157c.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-CompositionRelationship" /></td>
+											<td><a href="../elements/id-8b43bc0448914efcb69accd3c97c4e0b.html" target="element"> Durability Requirements Catalogue</a></td>
+											<td><a href="../elements/id-67b93fa70d0742ea9428bd7b5c3f305f.html" target="element"> Replication</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

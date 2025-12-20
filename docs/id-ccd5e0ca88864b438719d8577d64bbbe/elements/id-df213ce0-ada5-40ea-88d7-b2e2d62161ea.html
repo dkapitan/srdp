@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Examineren</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Examineren</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-BusinessProcess"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-BusinessProcess" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Het toetsen of alle noodzakelijke competenties zijn behaald en het verstrekken van een waardedocument daarvoor.</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>Beschrijving</td><td class="convertlinks no-margin" style="white-space:pre-wrap"></td></tr><tr><td>Domein</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Onderwijs</td></tr><tr><td>Trigger</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Er zijn voldoende studiepunten behaald om te voldoen aan de uitstroomkwalificatie.</td></tr><tr><td>Preconditie</td><td class="convertlinks no-margin" style="white-space:pre-wrap">De deelnemer heeft alle noodzakelijke onderwijseenheden afgerond.</td></tr><tr><td>Postconditie</td><td class="convertlinks no-margin" style="white-space:pre-wrap">De deelnemer heeft wel of niet een waardedocument ontvangen.</td></tr><tr><td>Type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Deelbedrijfsproces</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-02c2fe4f">
+																	<td><a href="../views/id-02c2fe4f.html" target="view" title="Bedrijfsprocesmodel"> Bedrijfsprocesmodel </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr><tr id="used-in-views-id-4475b81d-5a8d-4dd8-b498-24857394beea">
+																	<td><a href="../views/id-4475b81d-5a8d-4dd8-b498-24857394beea.html" target="view" title="Bedrijfsprocessen-Bedrijfsfuncties overig"> Bedrijfsprocessen-Bedrijfsfuncties overig </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-13c78066-e36f-454b-a53d-7febbd387a67.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-54b4897e-4ad6-48de-ae13-7d72f19a06ba.html" target="element"> Vaststelling verworven competenties</a></td>
+											<td><a href="../elements/id-df213ce0-ada5-40ea-88d7-b2e2d62161ea.html" target="element"> Examineren</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-4978b936-f0e0-4a9f-ad75-7b14a7ae5b3c.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-650a8347-d81f-4ad9-88c3-aebe273eb19e.html" target="element"> Afhandeling bezwaren en beroepen</a></td>
+											<td><a href="../elements/id-df213ce0-ada5-40ea-88d7-b2e2d62161ea.html" target="element"> Examineren</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-7a90d664-ad1f-4d5e-98d9-bc56d70c490e.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-0e334eba-5acf-42b3-bd13-369641b85899.html" target="element"> Waardedocumentverstrekking</a></td>
+											<td><a href="../elements/id-df213ce0-ada5-40ea-88d7-b2e2d62161ea.html" target="element"> Examineren</a></td>
+										</tr><tr>
+											<td><a href="../elements/id-a1548a86-5b32-4238-a083-cac1aa72cb65.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-AggregationRelationship" /></td>
+											<td><a href="../elements/id-311c2062-5154-4b4a-a1cf-3f7b25dc61c3.html" target="element"> Kwalificatiecontrole</a></td>
+											<td><a href="../elements/id-df213ce0-ada5-40ea-88d7-b2e2d62161ea.html" target="element"> Examineren</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

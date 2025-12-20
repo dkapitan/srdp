@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Auditability</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Auditability</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-Requirement"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-Requirement" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Definition: Auditability is an IT non-functional requirement that refers to the ability of a system to provide a complete and accurate record of all activities and transactions that occur within it. This includes the ability to track changes made to data, monitor user access and permissions, and generate reports that can be used for compliance, regulatory, or legal purposes. The audit trail should be secure, tamper-proof, and easily accessible to authorized personnel. The purpose of auditability is to ensure accountability, transparency, and integrity of the system's operations.
+
+Source: TOGAF
+
+Source reference: https://pubs.opengroup.org/architecture/togaf9-doc/arch/chap03.html
+
+Additional information: According to the TOGAF specification, Auditability is a non-functional requirement that refers to the ability of a system to provide a complete and accurate record of all transactions and activities that occur within the system. This includes the ability to track and record all user actions, system events, and data changes, as well as the ability to generate reports and alerts based on this information.
+
+The Auditability requirement is important for ensuring the integrity and security of a system, as well as for compliance with regulatory and legal requirements. It also helps to identify and investigate any potential security breaches or fraudulent activities.
+
+To meet the Auditability requirement, a system must have the following capabilities:
+
+1. Logging and tracking: The system must be able to log and track all user actions, system events, and data changes, including the date, time, and user responsible for each action.
+
+2. Reporting and analysis: The system must be able to generate reports and alerts based on the logged information, allowing administrators to identify and investigate any suspicious activity.
+
+3. Security and access control: The system must have robust security and access control mechanisms in place to prevent unauthorized access to the audit logs and to ensure the integrity of the logged information.
+
+4. Retention and archiving: The system must be able to retain and archive audit logs for a specified period of time, in accordance with regulatory and legal requirements.
+
+Overall, the Auditability requirement is an essential aspect of any system design, ensuring that the system is secure, compliant, and transparent in its operations.
+
+Example: One example of the IT non-functional requirement 'Auditability' could be for a financial management system to track and record all changes made to financial data, including who made the change, when it was made, and what the previous and new values were. This would allow for auditing and compliance purposes, as well as ensuring the accuracy and integrity of financial data.
+
+LOST view: Digital Solution Non-Functional Requirements Catalogue view
+
+Identifier: http://data.europa.eu/dr8/egovera/AuditabilityRequirement
+
+EIRA traceability: eira:DigitalSolutionNonFunctionalRequirementRequirement
+
+ABB name: egovera:AuditabilityRequirement
+
+EIRA concept: eira:ArchitectureBuildingBlock
+
+Last modification: 2023-05-16
+
+dct:identifier: http://data.europa.eu/dr8/egovera/AuditabilityRequirement
+
+dct:title: Auditability Non-Functional Requirement
+
+</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2024-01-28</td></tr><tr><td>dct:identifier</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/AuditabilityRequirement</td></tr><tr><td>dct:title</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Auditability Non-Functional Requirement</td></tr><tr><td>skos:example</td><td class="convertlinks no-margin" style="white-space:pre-wrap">One example of the IT non-functional requirement 'Auditability' could be for a financial management system to track and record all changes made to financial data, including who made the change, when it was made, and what the previous and new values were. This would allow for auditing and compliance purposes, as well as ensuring the accuracy and integrity of financial data.</td></tr><tr><td>skos:definition</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Auditability is an IT non-functional requirement that refers to the ability of a system to provide a complete and accurate record of all activities and transactions that occur within it. This includes the ability to track changes made to data, monitor user access and permissions, and generate reports that can be used for compliance, regulatory, or legal purposes. The audit trail should be secure, tamper-proof, and easily accessible to authorized personnel. The purpose of auditability is to ensure accountability, transparency, and integrity of the system's operations.</td></tr><tr><td>eira:concept</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ArchitectureBuildingBlock</td></tr><tr><td>eira:definitionSource</td><td class="convertlinks no-margin" style="white-space:pre-wrap">TOGAF</td></tr><tr><td>eira:definitionSourceReference</td><td class="convertlinks no-margin" style="white-space:pre-wrap">https://pubs.opengroup.org/architecture/togaf9-doc/arch/chap03.html</td></tr><tr><td>skos:note</td><td class="convertlinks no-margin" style="white-space:pre-wrap">According to the TOGAF specification, Auditability is a non-functional requirement that refers to the ability of a system to provide a complete and accurate record of all transactions and activities that occur within the system. This includes the ability to track and record all user actions, system events, and data changes, as well as the ability to generate reports and alerts based on this information.
+
+								The Auditability requirement is important for ensuring the integrity and security of a system, as well as for compliance with regulatory and legal requirements. It also helps to identify and investigate any potential security breaches or fraudulent activities.
+
+								To meet the Auditability requirement, a system must have the following capabilities:
+
+								1. Logging and tracking: The system must be able to log and track all user actions, system events, and data changes, including the date, time, and user responsible for each action.
+
+								2. Reporting and analysis: The system must be able to generate reports and alerts based on the logged information, allowing administrators to identify and investigate any suspicious activity.
+
+								3. Security and access control: The system must have robust security and access control mechanisms in place to prevent unauthorized access to the audit logs and to ensure the integrity of the logged information.
+
+								4. Retention and archiving: The system must be able to retain and archive audit logs for a specified period of time, in accordance with regulatory and legal requirements.
+
+								Overall, the Auditability requirement is an essential aspect of any system design, ensuring that the system is secure, compliant, and transparent in its operations.</td></tr><tr><td>eira:PURI</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/AuditabilityRequirement</td></tr><tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:AuditabilityRequirement</td></tr><tr><td>eira:view</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Digital Solution Non-Functional Requirements Catalogue view</td></tr><tr><td>eira:eifLayer</td><td class="convertlinks no-margin" style="white-space:pre-wrap">N/A</td></tr><tr><td>skos:broader</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/DigitalSolutionNonFunctionalRequirementRequirement</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-6c49159b1883466fa2335b8d893b5580">
+																	<td><a href="../views/id-6c49159b1883466fa2335b8d893b5580.html" target="view" title="Digital Solution Non-Functional Requirements Catalogue viewpoint"> Digital Solution Non-Functional Requirements Catalogue viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-d1fb0d9e7f284ba4b02e7f6c70d94fc8.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-CompositionRelationship" /></td>
+											<td><a href="../elements/id-f1e562b0493d4373a124c34c1e1b4019.html" target="element"> Security Requirements Catalogue</a></td>
+											<td><a href="../elements/id-65e929ed30f941d8aad20c73a122366d.html" target="element"> Auditability</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>

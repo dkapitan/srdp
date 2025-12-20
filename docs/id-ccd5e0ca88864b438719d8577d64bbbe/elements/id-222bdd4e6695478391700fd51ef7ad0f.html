@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="frame" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<title>Authentication</title>
+
+	<!-- JQUERY -->
+	<script type="text/javascript" src="../../lib/jquery/jquery.min.js"></script>
+	<!-- BOOTSTRAP -->
+	<link type="text/css" rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.yeti.css">
+	<script type="text/javascript" src="../../lib/bootstrap/js/bootstrap-3.4.1.min.js"></script>
+	<!-- REPORT SPECIFIC -->
+	<link type="text/css" rel="stylesheet" href="../../css/model.css">
+	<link type="text/css" rel="stylesheet" href="../../css/i18n.css">
+	<script type="text/javascript" src="../../js/frame.js"></script>
+	<script type="text/javascript" src="../../js/imageMapResizer.min.js"></script>
+</head>
+
+<body>
+	<div class="panel panel-default root-panel">
+
+		<div class="panel-heading root-panel-heading">
+            <!-- Name -->
+               <b>Authentication</b>
+
+            <!-- If a View with Viewpoint -->
+			   (<span class="i18n-elementtype-Requirement"></span>)
+			   <a class="glyphicon glyphicon-info-sign" id="hint-Requirement" target="hint"></a>
+		</div>
+
+		<div class="panel-body root-panel-body">
+		    <!-- If this is a digram model (has children and no bounds) show the image -->
+
+			<div role="tabpanel">
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+                    <!-- Purpose / Documentation / Content -->
+					   <li role="presentation" class="active"><a href="#documentation" aria-controls="documentation" role="tab" data-toggle="tab" class="i18n-documentation"></a></li>
+
+                    <!-- Properties -->
+                    <li role="presentation"><a href="#properties" aria-controls="properties" role="tab" data-toggle="tab" class="i18n-properties"></a></li>
+
+                    <!-- Analysis -->
+                    	<li role="presentation"><a href="#analysis" aria-controls="analysis" role="tab" data-toggle="tab" class="i18n-analysis"></a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="documentation">
+						<div class="convertlinks documentation" style="white-space:pre-wrap">Definition: Authentication is a non-functional requirement that ensures that only authorized users can access a system or application. It involves verifying the identity of the user through various means such as passwords, biometric identification, or security tokens. Authentication is crucial for maintaining the security and integrity of a system, as it prevents unauthorized access and protects sensitive information from being compromised. It also helps to ensure accountability and traceability by keeping a record of user activities.
+
+Source: TOGAF
+
+Source reference: https://pubs.opengroup.org/architecture/togaf9-doc/arch/chap03.html
+
+Additional information: According to the TOGAF specification, Authentication is a non-functional requirement that refers to the process of verifying the identity of a user or system. It is a critical aspect of security and is necessary to ensure that only authorized users or systems can access the system or application.
+
+The Authentication non-functional requirement can be further broken down into several sub-requirements, including:
+
+1. Identification - The process of identifying a user or system based on a unique identifier such as a username, email address, or IP address.
+
+2. Authentication Mechanisms - The methods used to verify the identity of a user or system, such as passwords, biometric authentication, or two-factor authentication.
+
+3. Authorization - The process of granting or denying access to specific resources or functions based on the authenticated user's permissions.
+
+4. Audit Trail - The ability to track and record all authentication attempts and actions taken by authenticated users or systems.
+
+5. Security - The requirement to ensure that authentication mechanisms are secure and cannot be easily bypassed or compromised.
+
+Overall, the Authentication non-functional requirement is critical to ensuring the security and integrity of a system or application and should be carefully considered and implemented in accordance with industry best practices and standards.
+
+Example: An example of the IT non-functional requirement 'Authentication' could be that a user must provide a valid username and password to access a secure system or application. This ensures that only authorized users are able to access sensitive information or perform certain actions within the system. Additionally, the system may require multi-factor authentication, such as a security token or biometric verification, to further enhance security and prevent unauthorized access.
+
+LOST view: Digital Solution Non-Functional Requirements Catalogue view
+
+Identifier: http://data.europa.eu/dr8/egovera/AuthenticationRequirement
+
+EIRA traceability: eira:DigitalSolutionNonFunctionalRequirementRequirement
+
+ABB name: egovera:AuthenticationRequirement
+
+EIRA concept: eira:ArchitectureBuildingBlock
+
+Last modification: 2023-05-16
+
+dct:identifier: http://data.europa.eu/dr8/egovera/AuthenticationRequirement
+
+dct:title: Authentication Non-Functional Requirement
+
+</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="properties">
+						<table class="table table-striped table-hover table-condensed">
+							<thead>
+								<tr>
+									<th class="i18n-key"></th>
+									<th class="i18n-value"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td>dct:modified</td><td class="convertlinks no-margin" style="white-space:pre-wrap">2024-01-28</td></tr><tr><td>dct:identifier</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/AuthenticationRequirement</td></tr><tr><td>dct:title</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Authentication Non-Functional Requirement</td></tr><tr><td>skos:example</td><td class="convertlinks no-margin" style="white-space:pre-wrap">An example of the IT non-functional requirement 'Authentication' could be that a user must provide a valid username and password to access a secure system or application. This ensures that only authorized users are able to access sensitive information or perform certain actions within the system. Additionally, the system may require multi-factor authentication, such as a security token or biometric verification, to further enhance security and prevent unauthorized access.</td></tr><tr><td>skos:definition</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Authentication is a non-functional requirement that ensures that only authorized users can access a system or application. It involves verifying the identity of the user through various means such as passwords, biometric identification, or security tokens. Authentication is crucial for maintaining the security and integrity of a system, as it prevents unauthorized access and protects sensitive information from being compromised. It also helps to ensure accountability and traceability by keeping a record of user activities.</td></tr><tr><td>eira:concept</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:ArchitectureBuildingBlock</td></tr><tr><td>eira:definitionSource</td><td class="convertlinks no-margin" style="white-space:pre-wrap">TOGAF</td></tr><tr><td>eira:definitionSourceReference</td><td class="convertlinks no-margin" style="white-space:pre-wrap">https://pubs.opengroup.org/architecture/togaf9-doc/arch/chap03.html</td></tr><tr><td>skos:note</td><td class="convertlinks no-margin" style="white-space:pre-wrap">According to the TOGAF specification, Authentication is a non-functional requirement that refers to the process of verifying the identity of a user or system. It is a critical aspect of security and is necessary to ensure that only authorized users or systems can access the system or application.
+
+								The Authentication non-functional requirement can be further broken down into several sub-requirements, including:
+
+								1. Identification - The process of identifying a user or system based on a unique identifier such as a username, email address, or IP address.
+
+								2. Authentication Mechanisms - The methods used to verify the identity of a user or system, such as passwords, biometric authentication, or two-factor authentication.
+
+								3. Authorization - The process of granting or denying access to specific resources or functions based on the authenticated user's permissions.
+
+								4. Audit Trail - The ability to track and record all authentication attempts and actions taken by authenticated users or systems.
+
+								5. Security - The requirement to ensure that authentication mechanisms are secure and cannot be easily bypassed or compromised.
+
+								Overall, the Authentication non-functional requirement is critical to ensuring the security and integrity of a system or application and should be carefully considered and implemented in accordance with industry best practices and standards.</td></tr><tr><td>eira:PURI</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/AuthenticationRequirement</td></tr><tr><td>dct:type</td><td class="convertlinks no-margin" style="white-space:pre-wrap">eira:AuthenticationRequirement</td></tr><tr><td>eira:view</td><td class="convertlinks no-margin" style="white-space:pre-wrap">Digital Solution Non-Functional Requirements Catalogue view</td></tr><tr><td>eira:eifLayer</td><td class="convertlinks no-margin" style="white-space:pre-wrap">N/A</td></tr><tr><td>skos:broader</td><td class="convertlinks no-margin" style="white-space:pre-wrap">http://data.europa.eu/dr8/DigitalSolutionNonFunctionalRequirementRequirement</td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="analysis">
+						<table class="table table-striped table-hover table-condensed" id="used-in-views">
+							<thead>
+								<tr><th colspan="2" class="i18n-used-in-views" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-viewpoint"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="used-in-views-id-6c49159b1883466fa2335b8d893b5580">
+																	<td><a href="../views/id-6c49159b1883466fa2335b8d893b5580.html" target="view" title="Digital Solution Non-Functional Requirements Catalogue viewpoint"> Digital Solution Non-Functional Requirements Catalogue viewpoint </a></td>
+																	<td><span class="i18n-viewpoint-" /></td>
+																</tr>
+							</tbody>
+						</table>
+						<table class="table table-striped table-hover table-condensed" id="model-relations">
+							<thead>
+								<tr><th colspan="4" class="i18n-model-relations" /></tr>
+								<tr>
+									<th class="i18n-name"></th>
+									<th class="i18n-type"></th>
+									<th class="i18n-source"></th>
+									<th class="i18n-target"></th>
+								</tr>
+							</thead>
+							<tbody>
+									<tr>
+											<td><a href="../elements/id-9edf0fa10a354c468a8292a19eae70db.html" target="element" title=""></a></td>
+											<td><span class="i18n-elementtype-CompositionRelationship" /></td>
+											<td><a href="../elements/id-f1e562b0493d4373a124c34c1e1b4019.html" target="element"> Security Requirements Catalogue</a></td>
+											<td><a href="../elements/id-222bdd4e6695478391700fd51ef7ad0f.html" target="element"> Authentication</a></td>
+										</tr>
+							</tbody>
+						</table>
+					</div>
+			  </div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">imageMapResize();</script>
+</body>
+</html>
