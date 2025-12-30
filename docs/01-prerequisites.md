@@ -2,13 +2,15 @@
 
 Before you begin, ensure you have the following software installed on your local machine. This guide assumes you have a basic understanding of using the command line.
 
-### Core Tools
+Required tools
+- Git
+- Container runtime (Docker/Podman) for building the Marimo/Quarto images
+- Kubernetes cluster + `kubectl` (tested with 1.27+). For local work, `kind`, `minikube`, or `k3d` with LoadBalancer/NodePort access all work.
+- Helm 3.x
+- [`just`](https://github.com/casey/just) as a task runner for the common Helm/OpenTofu commands in this repo
+- [`mkcert`](https://github.com/FiloSottile/mkcert) to generate local TLS certificates for `*.local.dev`
+- [OpenTofu](https://opentofu.org/docs/intro/install/) for demo/production infrastructure, plus your cloud provider CLI (Scaleway in the provided examples)
 
-*   **Git:** The project is managed with Git. You will need it to clone the repository.
-    *   [Install Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-
-*   **Docker and Docker Compose:** All services in this project are containerized using Docker. Docker Compose is used to orchestrate and run the multi-container setup.
-    *   The easiest way to get both is by installing **Docker Desktop** for your operating system. It includes Docker Engine, Docker CLI, and Docker Compose.
-    *   [Install Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-*   **A Code Editor:** You will need an editor to view and modify files.
+Notes
+- The `just` recipes use a Bash-compatible shell; on Windows, run them from Git Bash or WSL.
+- You need permission to create namespaces/secrets and, for cloud runs, to provision load balancers and databases.

@@ -1,164 +1,86 @@
-# 5. Cloud Deployment (GCP)
+# 4. Demo / Cloud Deployment (OpenTofu + Helm)
 
-This guide covers the entire process of deploying the application stack to Google Cloud Platform using OpenTofu. It includes provisioning the infrastructure, configuring the services, and verifying the deployment.
+This runbook uses OpenTofu to provision infrastructure and Helm to deploy the chart. Commands assume you run them from `kubernetes/`.
 
-## Phase 1: Prerequisites & Initial Setup
+## 1) Prepare cloud credentials
+- Copy `kubernetes/secrets.sh.example` to `kubernetes/secrets.sh` and fill in your Scaleway credentials.
+- Load them before running OpenTofu:
+  ```bash
+  cd kubernetes
+  source ./secrets.sh
+  ```
 
-Before deploying, ensure your local environment is configured and your project's variable file is prepared.
-
-### System Prerequisites
-
-You must have the following tools installed and configured on your local machine:
-
-*   **OpenTofu:** Follow the [official installation guide](https://opentofu.org/docs/intro/install/).
-*   **Google Cloud SDK (`gcloud`):** Follow the [official installation guide](https://cloud.google.com/sdk/docs/install).
-
-Once installed, authenticate with Google Cloud by running the following command in your terminal:
+## 2) Provision infrastructure with OpenTofu
 ```bash
-gcloud auth application-default login
+cd kubernetes/opentofu
+tofu init -upgrade        # first run only
+tofu apply -auto-approve
 ```
 
-### Optional: Using a Custom Domain
+## 3) Export kubeconfig and DB outputs
+```bash
+tofu output -raw kubeconfig > kubeconfig.yaml
+export KUBECONFIG=$(pwd)/kubeconfig.yaml
 
-While this guide uses a free `nip.io` domain for quick testing, you can easily use your own registered domain.
+echo "DB_HOST: $(tofu output -raw rdb_host)"
+echo "DB_PORT: $(tofu output -raw rdb_port)"
+echo "DB_PASS: $(tofu output -raw rdb_password)"
+```
 
-1.  **Get a Domain:** If you don't have one, purchase a domain from a registrar like Google Domains or Namecheap.
+## 4) Prepare production Helm values
+- Copy `kubernetes/srdp-chart/values-prod.example.yaml` to `kubernetes/srdp-chart/values-prod.yaml` if you are starting fresh.
+- Fill in:
+  - `global.domain` and `oauth2-proxy` cookie/whitelist domains (use a real domain or `<lb-ip>.nip.io` once you know the load balancer IP).
+  - Zitadel master key, admin/user DB passwords, and OAuth2 client credentials.
+  - ACME email for Traefik if using Let's Encrypt.
+  - Cloud DB host/port/password from the OpenTofu outputs above.
 
-2.  **Create a DNS Record:** After you complete **Phase 2, Step A** of this guide and have your static IP address, go to your domain registrar's DNS management panel and create the following record:
-    *   **Type:** `A`
-    *   **Name / Host:** `*.srdp` (This is a wildcard record that will cover `auth.srdp.yourdomain.com`, `marimo.srdp.yourdomain.com`, etc.)
-    *   **Value:** The static IP address you get from the `tofu apply` output.
-    *   **TTL:** Set a low value (e.g., 300 seconds) for faster updates.
+## 5) Deploy with Helm
+All Helm commands below can be run from `kubernetes/` (or use the `just` recipes).
 
-    > **Note:** It can take anywhere from a few minutes to an hour for DNS changes to propagate across the internet.
+### A. Bring up Traefik only (to get the LB IP)
+```bash
+helm upgrade --install srdp srdp-chart \
+  --namespace srdp --create-namespace \
+  -f srdp-chart/values-prod.yaml \
+  --set zitadel.enabled=false \
+  --set oauth2-proxy.enabled=false \
+  --set marimo.enabled=false \
+  --set quarto.enabled=false
+```
 
-### Project Configuration (`tofu.tfvars`)
+### B. Update domains once the LB IP exists
+- Check the IP: `kubectl get svc srdp-traefik -n srdp`
+- Set `global.domain`, `zitadel.zitadel.configmapConfig.ExternalDomain`, and the `oauth2-proxy.extraArgs` domain fields in `values-prod.yaml`, then re-run Helm.
 
-The deployment is driven by a variables file.
+### C. Enable Zitadel + OAuth2-Proxy
+```bash
+helm upgrade srdp srdp-chart \
+  --namespace srdp \
+  -f srdp-chart/values-prod.yaml \
+  --set zitadel.enabled=true \
+  --set oauth2-proxy.enabled=true \
+  --set marimo.enabled=false \
+  --set quarto.enabled=false
+```
 
-1.  Navigate to the OpenTofu directory for this project:
-    ```bash
-    cd path/to/your/project/opentofu/providers/gcp
-    ```
-2.  In this directory, you will find a template file. Make a copy of it and name it **`tofu.tfvars`**.
+### D. Configure Zitadel apps
+- In Zitadel, create the OIDC apps for Marimo and Quarto with redirect URIs:
+  - `https://marimo.<your-domain>/oauth2/callback`
+  - `https://quarto.<your-domain>/oauth2/callback`
+- Update the client ID/secret in `values-prod.yaml` (oauth2-proxy config section).
 
-3.  Open your new `tofu.tfvars` file and fill in the values. For the first run, use a placeholder IP for the domain name.
+### E. Final deploy with apps enabled
+```bash
+helm upgrade srdp srdp-chart \
+  --namespace srdp \
+  -f srdp-chart/values-prod.yaml
+```
 
-    ```hcl
-    gcp_project_id = "single-repo-data-platform"
-    repo_url       = "https://github.com/dkapitan/srdp.git"
-    acme_email     = "email@example.nl"
-    domain_name    = "1.1.1.1.nip.io" # Placeholder for the first run
-
-    # --- Secrets ---
-    # Generate a long, random string (e.g., using `openssl rand -base64 32`)
-    zitadel_masterkey  = "YOUR_ZITADEL_MASTERKEY_HERE"
-    oidc_cookie_secret = "YOUR_OIDC_COOKIE_SECRET_HERE"
-
-    # Use placeholders for now; we will get the real values later.
-    oidc_client_id     = "placeholder-id"
-    oidc_client_secret = "placeholder-secret"
-    ```
-
-## Phase 2: Infrastructure Provisioning (Two-Step Apply)
-
-This is a two-step process because we first need to reserve a static IP address, and then use that IP to configure the final virtual machine.
-
-### Step A: First Apply (Reserve IP)
-
-1.  Initialize your OpenTofu project. This downloads the necessary cloud provider plugins.
-    ```bash
-    tofu init -upgrade
-    ```
-2.  Run the `apply` command to create the initial resources, including the static IP.
-    ```bash
-    tofu apply -var-file="tofu.tfvars"
-    ```
-    When prompted, review the plan and type `yes` to confirm.
-
-3.  After the command completes, copy the **real static IP address** from the output.
-    ```
-    Outputs:
-
-    instance_name = "srdp-main"
-    static_ip_address = "34.90.31.51"  <-- COPY THIS VALUE
-    ```
-    > **Custom Domain User?** Now is the time to go to your DNS provider and create the `*.srdp` A record pointing to this IP.
-
-### Step B: Second Apply (Deploy Final VM)
-
-1.  Update your `tofu.tfvars` file. Replace the placeholder `domain_name` with your public domain.
-    *   **For `nip.io`:** `domain_name = "34.90.31.51.nip.io"` (Use your copied IP)
-    *   **For a Custom Domain:** `domain_name = "srdp.yourdomain.com"`
-
-2.  Run the `apply` command a second time.
-    ```bash
-    tofu apply -var-file="tofu.tfvars"
-    ```
-    OpenTofu will plan to replace the VM. This is expected. Type `yes` to confirm.
-
-3.  **Wait approximately 5-10 minutes** for the VM to boot and for the startup script to download and start all the containers.
-
-## Phase 3: Application Configuration
-
-The VM is running with a fresh Zitadel instance. This is a one-time manual setup to create the OIDC application and synchronize the secrets.
-
-### Step A: Create the OIDC Application in Zitadel
-
-1.  **Access the Cloud Zitadel UI:**
-    *   URL: `https://auth.<your-public-domain>` (e.g., `https://auth.34.90.31.51.nip.io` or `https://auth.srdp.yourdomain.com`)
-
-2.  **Log In as Administrator:**
-    *   **Username:** `zitadel-admin@auth.<your-public-domain>`
-    *   **Password:** `Password1!`
-
-3.  **Create the OIDC Application:**
-    *   Navigate to **Projects** and create a **New Project**.
-    *   Inside the project, create a new **Application** of type **OIDC**.
-    *   Give it a name (e.g., `Traefik Middleware`).
-    *   For **Redirect URIs**, add an entry for each application you are protecting, using your public domain:
-        *   `https://marimo.<your-public-domain>/oauth2/callback`
-        *   `https://quarto.<your-public-domain>/oauth2/callback`
-    *   Click **Continue** and then **Create**.
-
-4.  **Copy the New Secrets:** On the success screen, copy the auto-generated **Client ID** and **Client Secret** to a temporary text file.
-
-### Step B: Update the VM via SSH
-
-1.  **Connect to the VM:**
-    ```bash
-    gcloud compute ssh srdp-main --zone "europe-west4-a"
-    ```
-2.  **Navigate to the Application Directory:**
-    ```bash
-    cd /opt/app/local/
-    ```
-3.  **Edit the `.env` File:**
-    ```bash
-    sudo nano .env
-    ```
-4.  **Update the Secrets:**
-    *   Inside the `nano` editor, find the `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` lines.
-    *   Delete the old placeholder values and paste in the correct values you copied from the Zitadel UI.
-    *   Save and exit: `Ctrl+X`, then `Y`, then `Enter`.
-
-5.  **Restart the Application Services:** This command applies the new secrets by restarting the affected containers.
-    ```bash
-    sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-    ```
-
-## Phase 4: Verification
-
-Your deployment is now complete and correctly configured.
-
-### Accessing Cloud Services
-
-Open a new **incognito/private browser window** to test the full authentication flow. Use the following URLs, replacing `<your-public-domain>` with your actual domain.
-
-*   **Marimo Dashboard:**
-    *   URL: `https://marimo.<your-public-domain>`
-    *   You should be redirected to the Zitadel login page, and after authenticating, see the interactive dashboard.
-
-*   **Quarto Static Site:**
-    *   URL: `https://quarto.<your-public-domain>`
-    *   You should have access immediately without needing to log in again (Single Sign-On).
+## 6) Clean up
+```bash
+helm uninstall srdp -n srdp
+kubectl delete jobs --all -n srdp
+kubectl delete pvc --all -n srdp
+cd kubernetes/opentofu && source ../secrets.sh && tofu destroy -auto-approve
+```

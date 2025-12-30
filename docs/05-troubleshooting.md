@@ -1,22 +1,20 @@
-# 6. Troubleshooting
+# 5. Troubleshooting
 
-This section covers common issues you might encounter and how to solve them.
+### Ingress returns 404 or invalid cert
+- Make sure the TLS secret `custom-ingress-cert` exists in the `srdp` namespace (`kubectl get secret custom-ingress-cert -n srdp`).
+- Regenerate it with `mkcert` if the hostnames or IP changed.
+- Confirm your hosts file points `auth/marimo/quarto.<domain>` to the Traefik IP.
 
-### Issue: `marimo.local.dev` shows an "Apache Default Page" or "It Works!"
+### Pods stuck in `Pending`
+- Check storage and DB connectivity: `kubectl describe pod <name> -n srdp`.
+- For cloud deployments, verify the external DB host/port/password in `values-prod.yaml` match the OpenTofu outputs.
 
-*   **Symptom:** You see a default web server page instead of the Marimo app.
-*   **Cause:** Another web server (like Apache or Nginx) is running directly on your host machine and is using port 80 or 443.
-*   **Solution 1 (Recommended):** Stop the conflicting service. On Linux/WSL, you can check with `sudo lsof -i :80` and stop it with `sudo systemctl stop apache2`.
-*   **Solution 2:** Change the ports used by Traefik in `docker-compose.yml` if you cannot stop the conflicting service.
+### LoadBalancer stays in `Pending`
+- Traefik needs a LoadBalancer-capable environment. Verify your cloud account quotas and that the service type is `LoadBalancer` (see `values-prod.yaml`).
 
-### Issue: The `quarto` container fails to build with `"/app/_site": not found`
+### OAuth login loops or 401s
+- Ensure `global.domain`, `zitadel.zitadel.configmapConfig.ExternalDomain`, and the `oauth2-proxy` cookie/whitelist domains all match the URL you are using.
+- Re-check the Zitadel client ID/secret and redirect URIs.
 
-*   **Symptom:** `docker-compose build` fails with an error during the `COPY --from=builder` step.
-*   **Cause:** Quarto did not generate its output into an `_site` directory.
-*   **Solution:** Ensure your `apps/quarto` directory is a proper Quarto project by including a `_quarto.yml` file. Then, use the command `RUN quarto render .` in your Dockerfile to render the entire project, which will correctly create the `_site` output directory.
-
-### Issue: Zitadel data lost after restart
-
-*   **Symptom:** Your Zitadel project and apps are missing after restarting the containers.
-*   **Cause:** You ran `docker compose down -v`, which removes all persistent volumes.
-*   **Solution:** Only use `docker compose down` to stop the containers. Do **not** use the `-v` flag unless you intend to reset all data.
+### Browser rejects the self-signed cert
+- Import the `mkcert` root CA (printed during `mkcert -install`) or trust `kubernetes/certs/selfsigned.crt` locally while developing.
