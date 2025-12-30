@@ -1,3 +1,4 @@
+{{- if .Values.quarto.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,3 +33,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+{{- end }}

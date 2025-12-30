@@ -170,6 +170,7 @@ oauth2-proxy:
 
 # Marimo app
 marimo:
+  enabled: true
   image:
     repository: rg.nl-ams.scw.cloud/srdp-registry/marimo
     tag: "v1.0"
@@ -177,6 +178,7 @@ marimo:
 
 # Quarto app
 quarto:
+  enabled: true
   image:
     repository: rg.nl-ams.scw.cloud/srdp-registry/quarto
     tag: "v1.0"

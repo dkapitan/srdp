@@ -122,3 +122,11 @@ oauth2-proxy:
   
   # Remove hardcoded local aliases
   hostAliases: []
+
+# Marimo app
+marimo:
+  enabled: true
+
+# Quarto app
+quarto:
+  enabled: true
