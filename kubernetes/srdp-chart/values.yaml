@@ -171,13 +171,13 @@ oauth2-proxy:
 # Marimo app
 marimo:
   image:
-    repository: rg.fr-par.scw.cloud/srdp-registry/marimo
+    repository: rg.nl-ams.scw.cloud/srdp-registry/marimo
     tag: "v1.0"
     pullPolicy: IfNotPresent
 
 # Quarto app
 quarto:
   image:
-    repository: rg.fr-par.scw.cloud/srdp-registry/quarto
+    repository: rg.nl-ams.scw.cloud/srdp-registry/quarto
     tag: "v1.0"
     pullPolicy: IfNotPresent

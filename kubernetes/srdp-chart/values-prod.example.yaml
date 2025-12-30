@@ -35,7 +35,7 @@ zitadel-db:
 # Zitadel auth service
 zitadel:
   zitadel:
-    masterkey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS, must be 32 characaters
+    masterkey: "XXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS, must be 32 characaters
     secretConfig:
       Database:
         Postgres:
