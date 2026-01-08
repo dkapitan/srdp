@@ -57,11 +57,20 @@ data "scaleway_account_project" "current" {
 }
 
 # ----------------------------------------------------------------
+# Private Cloud (required for the private network)
+# ----------------------------------------------------------------
+resource "scaleway_vpc" "vpc01" {
+  name = "${var.cluster_name}-vpc"
+  tags = ["kubernetes", "srdp"]
+}
+
+# ----------------------------------------------------------------
 # Private Network (required for Kubernetes)
 # ----------------------------------------------------------------
 resource "scaleway_vpc_private_network" "k8s_network" {
   name = "${var.cluster_name}-network"
   tags = ["kubernetes", "srdp"]
+  vpc_id = scaleway_vpc.vpc01.id
 }
 
 # ----------------------------------------------------------------
