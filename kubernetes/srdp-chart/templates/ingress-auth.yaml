@@ -1,4 +1,4 @@
-{{- if and .Values.oauth2-proxy.enabled (or .Values.marimo.enabled .Values.quarto.enabled) }}
+{{- if and (index .Values "oauth2-proxy" "enabled") (or .Values.marimo.enabled .Values.quarto.enabled) }}
 # Middlewares
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
