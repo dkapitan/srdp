@@ -73,6 +73,27 @@ resource "scaleway_vpc_private_network" "k8s_network" {
   vpc_id = scaleway_vpc.vpc01.id
 }
 
+# Security group for Traefik LoadBalancer traffic (inline rules)
+resource "scaleway_instance_security_group" "srdp_lb" {
+  name                   = "${var.cluster_name}-lb"
+  description            = "Allow HTTP/HTTPS to Traefik LB"
+  inbound_default_policy = "drop"
+
+  inbound_rule {
+    action   = "accept"
+    ip_range = "0.0.0.0/0"
+    protocol = "TCP"
+    port     = 80
+  }
+
+  inbound_rule {
+    action   = "accept"
+    ip_range = "0.0.0.0/0"
+    protocol = "TCP"
+    port     = 443
+  }
+}
+
 # ----------------------------------------------------------------
 # Kubernetes Cluster
 # ----------------------------------------------------------------
@@ -95,6 +116,7 @@ resource "scaleway_k8s_pool" "srdp_pool" {
   autoscaling = true
   autohealing = true
   wait_for_pool_ready = true
+  security_group_id = scaleway_instance_security_group.srdp_lb.id
 }
 
 # ----------------------------------------------------------------
