@@ -3,12 +3,13 @@
 This runbook uses OpenTofu to provision infrastructure and Helm to deploy the chart. Commands assume you run them from `kubernetes/`.
 
 ## 1) Prepare cloud credentials
-- Copy `kubernetes/secrets.sh.example` to `kubernetes/secrets.sh` and fill in your Scaleway credentials.
+- Copy `kubernetes/opentofu/secrets.sh.example` to `kubernetes/opentofu/secrets.sh` and fill in your Scaleway credentials (SCW_ACCESS_KEY, SCW_SECRET_KEY, SCW_DEFAULT_PROJECT_ID, etc.).
 - Load them before running OpenTofu:
   ```bash
-  cd kubernetes
+  cd kubernetes/opentofu
   source ./secrets.sh
   ```
+- The `just prod-*` targets read secrets from `kubernetes/opentofu/`; the image build script lives at `kubernetes/opentofu/build-and-push.sh` - run it after `source ./secrets.sh` so the registry credentials are loaded.
 
 ## 2) Provision infrastructure with OpenTofu
 ```bash
@@ -77,10 +78,21 @@ helm upgrade srdp srdp-chart \
   -f srdp-chart/values-prod.yaml
 ```
 
+## Example production flow with `just`
+- `just prod-apply`
+- `just prod-use-kubeconfig`
+- `just prod-traefik-only` (bring up Traefik to obtain the LB IP)
+- `just prod-get-values` (prints `LOAD_BALANCER_IP`, `DB_HOST`, `DB_PORT`, `DB_PASS`)
+- Update `kubernetes/srdp-chart/values-prod.yaml` with the dynamic values above plus your secrets (`ZITADEL_MASTER_KEY`, `PG_USER_PASS`, `ZITADEL_ADMIN_FIRST_PASS`, `OAUTH_COOKIE_SECRET`)
+- `just prod-auth-only`
+- In Zitadel (`https://auth.<LOAD_BALANCER_IP>.nip.io/`), create the Marimo and Quarto apps with redirects `https://marimo.<LOAD_BALANCER_IP>.nip.io/oauth2/callback` and `https://quarto.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, then copy the client ID/secret into `values-prod.yaml`
+- `just prod-full`
+- Clean up when finished: `just prod-uninstall` then `just prod-destroy`
+
 ## 6) Clean up
 ```bash
 helm uninstall srdp -n srdp
 kubectl delete jobs --all -n srdp
 kubectl delete pvc --all -n srdp
-cd kubernetes/opentofu && source ../secrets.sh && tofu destroy -auto-approve
+cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 ```

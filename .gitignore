@@ -13,6 +13,5 @@ terraform.tfstate.backup
 kubeconfig.yaml
 
 # Kubernetes
-values-secrets.yaml
 values-prod.yaml
 charts/

@@ -5,3 +5,24 @@ traefik:
     default:
       defaultCertificate:
         secretName: custom-ingress-cert
+
+zitadel-db:
+  auth:
+    postgresPassword: "srdpTest123"
+
+zitadel:
+  zitadel:
+    masterkey: "51a69a373f45c60d2ae08c48bb89d03e" # Must be 32 chars
+    secretConfig:
+      Database:
+        Postgres:
+          User:
+            Password: srdpTest123
+          Admin:
+            Password: srdpTest123
+
+oauth2-proxy:
+  config:
+    clientID: "XXXXXXXXXXXXXXXXXXXXXX"
+    clientSecret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE"

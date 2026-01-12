@@ -2,6 +2,7 @@ set shell := ["bash", "-c"]
 set dotenv-load := false
 
 namespace := "srdp"
+kubeconfig := justfile_directory() + "/kubernetes/opentofu/kubeconfig.yaml"
 
 default: help
 
@@ -17,28 +18,53 @@ local-tls:
 
 local-deploy:
 	cd kubernetes/srdp-chart && helm dependency update
-	cd kubernetes/srdp-chart && helm upgrade --install srdp . --namespace {{namespace}} --create-namespace -f values.yaml -f values-secrets.yaml -f values-local.yaml
+	cd kubernetes/srdp-chart && helm upgrade --install srdp . --namespace {{namespace}} --create-namespace -f values.yaml -f values-local.yaml
 
 local-delete:
 	helm uninstall srdp -n {{namespace}} || true
 	kubectl delete pvc --all -n {{namespace}} || true
 
-# Demo / infra
-demo-apply:
-	cd kubernetes/opentofu && source ../secrets.sh && tofu apply -auto-approve
+# Prod / infra
+prod-apply:
+	cd kubernetes/opentofu && source ./secrets.sh && tofu apply -auto-approve
 
-demo-destroy:
-	cd kubernetes/opentofu && source ../secrets.sh && tofu destroy -auto-approve
+prod-destroy:
+	cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 
-demo-kubeconfig:
-	cd kubernetes/opentofu && tofu output -raw kubeconfig > kubeconfig.yaml && echo "export KUBECONFIG=$(pwd)/kubeconfig.yaml"
+prod-use-kubeconfig:
+	cd kubernetes/opentofu && tofu output -raw kubeconfig > "{{kubeconfig}}" && echo "kubeconfig written to {{kubeconfig}}"
 
-# Production-style Helm flows
+prod-get-values:
+	@echo "Fetching dynamic values..."
+	@if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi
+	@KUBECONFIG="{{kubeconfig}}" kubectl get svc srdp-traefik -n {{namespace}} -o jsonpath='{.status.loadBalancer.ingress[0].ip}' | xargs -I{} printf "LOAD_BALANCER_IP:\t%s\n" "{}"
+	@cd kubernetes/opentofu && \
+		printf "DB_HOST:\t\t%s\n" "$(tofu output -raw rdb_host)" && \
+		printf "DB_PORT:\t\t%s\n" "$(tofu output -raw rdb_port)" && \
+		printf "DB_PASS:\t\t%s\n" "$(tofu output -raw rdb_password)"
+
 prod-traefik-only:
-	cd kubernetes && helm upgrade --install srdp srdp-chart --namespace {{namespace}} --create-namespace -f srdp-chart/values-prod.yaml --set zitadel.enabled=false --set oauth2-proxy.enabled=false --set marimo.enabled=false --set quarto.enabled=false
+	cd kubernetes && \
+		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
+		export KUBECONFIG="{{kubeconfig}}"; \
+		helm upgrade --install srdp srdp-chart --namespace {{namespace}} --create-namespace -f srdp-chart/values-prod.yaml --set zitadel.enabled=false --set oauth2-proxy.enabled=false --set marimo.enabled=false --set quarto.enabled=false
 
 prod-auth-only:
-	cd kubernetes && helm upgrade srdp srdp-chart --namespace {{namespace}} --reset-values -f srdp-chart/values-prod.yaml --set zitadel.enabled=true --set oauth2-proxy.enabled=true --set marimo.enabled=false --set quarto.enabled=false
+	cd kubernetes && \
+		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
+		export KUBECONFIG="{{kubeconfig}}"; \
+		helm upgrade srdp srdp-chart --namespace {{namespace}} --reset-values -f srdp-chart/values-prod.yaml --set zitadel.enabled=true --set oauth2-proxy.enabled=true --set marimo.enabled=false --set quarto.enabled=false
 
 prod-full:
-	cd kubernetes && helm upgrade srdp srdp-chart --namespace {{namespace}} --reset-values -f srdp-chart/values-prod.yaml
+	cd kubernetes && \
+		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
+		export KUBECONFIG="{{kubeconfig}}"; \
+		helm upgrade srdp srdp-chart --namespace {{namespace}} --reset-values -f srdp-chart/values-prod.yaml
+
+prod-uninstall:
+	cd kubernetes && \
+		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
+		export KUBECONFIG="{{kubeconfig}}"; \
+		kubectl delete jobs --all -n {{namespace}} && \
+		kubectl delete pvc --all -n {{namespace}} && \
+		helm uninstall srdp -n {{namespace}} || true

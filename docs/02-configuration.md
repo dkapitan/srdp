@@ -39,9 +39,9 @@ kubectl create secret tls custom-ingress-cert \
 
 ## 4) Fill in secrets and local values
 
-Update the following before installing:
-- `kubernetes/srdp-chart/values-secrets.yaml`: set your own Zitadel master key, DB passwords, OAuth2 client values, and cookie secret.
-- `kubernetes/srdp-chart/values-local.yaml`: keep `custom-ingress-cert` (created above) or point to another TLS secret if you prefer.
+Update `kubernetes/srdp-chart/values-local.yaml` before installing:
+- set your own Zitadel master key, DB passwords, OAuth2 client values, and cookie secret
+- keep `custom-ingress-cert` (created above) or point to another TLS secret if you prefer.
 
 ## 5) Install the chart locally
 
@@ -51,7 +51,6 @@ helm dependency update
 helm upgrade --install srdp . \
   --namespace srdp --create-namespace \
   -f values.yaml \
-  -f values-secrets.yaml \
   -f values-local.yaml
 ```
 

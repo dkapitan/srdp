@@ -1,6 +1,6 @@
 # Global settings
 global:
-  domain: "XXX.XXX.XXX.XXX" # CHANGE THIS to the dedicated domain
+  domain: "LOAD_BALANCER_IP.nip.io" # CHANGE THIS to the dedicated domain
 
 # Traefik
 traefik:
@@ -50,23 +50,23 @@ zitadel-db:
 # Zitadel auth service
 zitadel:
   zitadel:
-    masterkey: "XXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS, must be 32 characaters
+    masterkey: "ZITADEL_MASTER_KEY" # CHANGE THIS, must be 32 characaters
     secretConfig:
       Database:
         Postgres:
           User:
-            Password: "XXXXXXXXXXXX" # CHANGE THIS
+            Password: "PG_USER_PASS" # CHANGE THIS
           Admin:
-            Password: "XXXXXXXXXXXX" # CHANGE  THIS. From Terraform Output
+            Password: "DB_PASS" # CHANGE  THIS. From Terraform Output
     configmapConfig:
-      ExternalDomain: "auth.XXX.XXX.XXX.XXX" # CHANGE THIS (must match global.domain)
+      ExternalDomain: "auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS (must match global.domain)
       ExternalPort: 443
       TLS:
         Enabled: false
       Database:
         Postgres:
-          Host: "XXX.XXX.XXX.XXX" # From Terraform Output
-          Port: 1234 # CHANGE THIS. From Terraform Output
+          Host: "DB_HOST" # From Terraform Output
+          Port: 1234 # DB_PORT - CHANGE THIS. From Terraform Output
           Database: "zitadel-db"
           User:
             Username: "zitadel"
@@ -81,9 +81,9 @@ zitadel:
           Human:
             UserName: zitadel-admin
             Email:
-              Address: zitadel-admin@auth.XXX.XXX.XXX.XXX
+              Address: zitadel-admin@auth.LOAD_BALANCER_IP.nip.io
               Verified: true
-            Password: "XXXXXXXXXX" # CHANGE THIS
+            Password: "ZITADEL_ADMIN_FIRST_PASS" # CHANGE THIS
             PasswordChangeRequired: false
     dbSslCaCrtSecret: ""
     dbSslAdminCrtSecret: ""
@@ -98,8 +98,8 @@ zitadel:
           - sh
           - -c
           - |
-            HOST="XXX.XXX.XXX.XXX"
-            PORT="1234"
+            HOST="DB_HOST"
+            PORT="DB_PORT"
             echo "Waiting for $HOST:$PORT..."
             until nc -z -v -w 5 $HOST $PORT; do sleep 2; done
             echo "Cloud DB is reachable!"
@@ -112,8 +112,8 @@ zitadel:
           - sh
           - -c
           - |
-            HOST="XXX.XXX.XXX.XXX"
-            PORT="1234"
+            HOST="DB_HOST"
+            PORT="DB_PORT"
             echo "Waiting for $HOST:$PORT..."
             until nc -z -v -w 5 $HOST $PORT; do sleep 2; done
             echo "Cloud DB is reachable!"
@@ -123,7 +123,7 @@ zitadel:
     customConfigmapConfig: |
       ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
       ZITADEL_API_URL="http://srdp-zitadel:8080"
-      CUSTOM_REQUEST_HEADERS="Host:auth.XXX.XXX.XXX.XXX,X-Zitadel-Public-Host:auth.XXX.XXX.XXX.XXX" # CHANGE THIS
+      CUSTOM_REQUEST_HEADERS="Host:auth.LOAD_BALANCER_IP.nip.io,X-Zitadel-Public-Host:auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS
 
 # O-Auth2 Proxy
 oauth2-proxy:
@@ -131,16 +131,16 @@ oauth2-proxy:
     clientID: "XXXXXXXXXXXXXXXXXX" # CHANGE THIS
     clientSecret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS
     # Generate a random string: python3 -c 'import os,base64; print(base64.b64encode(os.urandom(16)).decode())'
-    cookieSecret: "XXXXXXXXXXXXXXXXXXXXXXXX" # Must be 32 characters
+    cookieSecret: "OAUTH_COOKIE_SECRET" # Must be 32 characters
   
   extraArgs:
-    cookie-domain: ".XXX.XXX.XXX.XXX" # CHANGE THIS
-    whitelist-domain: ".XXX.XXX.XXX.XXX" # CHANGE THIS
-    oidc-issuer-url: "https://auth.XXX.XXX.XXX.XXX" # CHANGE THIS
+    cookie-domain: ".LOAD_BALANCER_IP.nip.io" # CHANGE THIS
+    whitelist-domain: ".LOAD_BALANCER_IP.nip.io" # CHANGE THIS
+    oidc-issuer-url: "https://auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS
     cookie-secure: "false"
   
   customRequestHeaders:
-    - "Host:auth.XXX.XXX.XXX.XXX"
+    - "Host:auth.LOAD_BALANCER_IP.nip.io"
   
   # Remove hardcoded local aliases
   hostAliases: []
