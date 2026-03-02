@@ -41,6 +41,13 @@ zitadel-db:
     certificatesSecret: postgres-cert
     certFilename: "tls.crt"
     certKeyFilename: "tls.key"
+  backup:
+    enabled: true
+    cronjob:
+      schedule: "0 2 * * *"
+      storage:
+        size: 8Gi
+        resourcePolicy: "keep"
 
 # Zitadel auth service
 zitadel:

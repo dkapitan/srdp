@@ -43,9 +43,28 @@ traefik:
     path: /data
     size: 1Gi
 
-# Disable the local Postgres container
+# In-cluster PostgreSQL with replication
 zitadel-db:
-  enabled: false
+  enabled: true
+  architecture: replication
+
+  auth:
+    postgresPassword: "CHANGE_ME"
+    password: "CHANGE_ME"
+
+  readReplicas:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 4Gi
+
+  backup:
+    enabled: true
+    cronjob:
+      schedule: "0 2 * * *"
+      storage:
+        size: 8Gi
+        resourcePolicy: "keep"
 
 # Zitadel auth service
 zitadel:
@@ -65,17 +84,17 @@ zitadel:
         Enabled: false
       Database:
         Postgres:
-          Host: "DB_HOST" # From Terraform Output
-          Port: 1234 # DB_PORT - CHANGE THIS. From Terraform Output
-          Database: "zitadel-db"
+          Host: "db-postgresql"
+          Port: 5432
+          Database: "zitadel"
           User:
             Username: "zitadel"
             SSL:
-              Mode: require
+              Mode: verify-full
           Admin:
-            Username: "scw_admin"
+            Username: "postgres"
             SSL:
-              Mode: require
+              Mode: verify-full
       FirstInstance:
         Org:
           Human:
@@ -85,38 +104,9 @@ zitadel:
               Verified: true
             Password: "ZITADEL_ADMIN_FIRST_PASS" # CHANGE THIS
             PasswordChangeRequired: false
-    dbSslCaCrtSecret: ""
-    dbSslAdminCrtSecret: ""
-    dbSslUserCrtSecret: ""
-
-  initJob:
-    command: ""
-    initContainers:
-      - name: wait-for-cloud-db
-        image: busybox:1.36
-        command: 
-          - sh
-          - -c
-          - |
-            HOST="DB_HOST"
-            PORT="DB_PORT"
-            echo "Waiting for $HOST:$PORT..."
-            until nc -z -v -w 5 $HOST $PORT; do sleep 2; done
-            echo "Cloud DB is reachable!"
-
-  setupJob:
-    initContainers:
-      - name: wait-for-cloud-db
-        image: busybox:1.36
-        command: 
-          - sh
-          - -c
-          - |
-            HOST="DB_HOST"
-            PORT="DB_PORT"
-            echo "Waiting for $HOST:$PORT..."
-            until nc -z -v -w 5 $HOST $PORT; do sleep 2; done
-            echo "Cloud DB is reachable!"
+    dbSslCaCrtSecret: postgres-cert
+    dbSslAdminCrtSecret: postgres-cert
+    dbSslUserCrtSecret: zitadel-cert
 
   # Source: https://github.com/zitadel/zitadel/issues/11163
   login:
