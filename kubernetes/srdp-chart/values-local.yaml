@@ -1,6 +1,11 @@
 traefik:
   service:
-    type: ClusterIP
+    type: LoadBalancer
+  ports:
+    web:
+      nodePort: null
+    websecure:
+      nodePort: null
   tlsStore:
     default:
       defaultCertificate:
@@ -20,9 +25,15 @@ zitadel:
             Password: srdpTest123
           Admin:
             Password: srdpTest123
+  # Source: https://github.com/zitadel/zitadel/issues/11163
+  login:
+    customConfigmapConfig: |
+      ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+      ZITADEL_API_URL="http://srdp-zitadel:8080"
+      CUSTOM_REQUEST_HEADERS="Host:auth.local.dev,X-Zitadel-Public-Host:auth.local.dev"
 
 oauth2-proxy:
   config:
-    clientID: "XXXXXXXXXXXXXXXXXXXXXX"
-    clientSecret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    clientID: "XXXXXX"
+    clientSecret: "XXXXXX"
     cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE"

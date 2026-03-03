@@ -94,7 +94,7 @@ zitadel:
     dbSslAdminCrtSecret: postgres-cert
     dbSslUserCrtSecret: zitadel-cert
   image:
-    tag: "v4.7.5"
+    tag: "v4.11.1"
 
   ingress:
     enabled: false
@@ -104,13 +104,14 @@ zitadel:
     ingress:
       enabled: false
     image:
-      tag: "v4.7.5"
+      tag: "v4.11.1"
 
   initJob:
     annotations:
       "helm.sh/hook": post-install,post-upgrade
       "helm.sh/hook-weight": "-5"
       "helm.sh/hook-delete-policy": before-hook-creation
+    activeDeadlineSeconds: 900
     initContainers:
       - name: wait-for-db
         image: busybox:1.36
@@ -130,6 +131,7 @@ zitadel:
       "helm.sh/hook": post-install,post-upgrade
       "helm.sh/hook-weight": "5"
       "helm.sh/hook-delete-policy": before-hook-creation
+    activeDeadlineSeconds: 900
     initContainers:
       - name: wait-for-db
         image: busybox:1.36
