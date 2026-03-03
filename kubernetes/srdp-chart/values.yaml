@@ -24,18 +24,24 @@ zitadel-db:
     username: zitadel
     password: srdpTest123
   image:
-    repository: bitnamilegacy/postgresql
+    repository: bitnami/postgresql
   metrics:
     image:
-      repository: bitnamilegacy/postgres-exporter
+      repository: bitnami/postgres-exporter
   primary:
+    initdb:
+      scripts:
+        01-create-dagster.sql: |
+          CREATE USER dagster WITH PASSWORD 'srdpTest123';
+          CREATE DATABASE dagster OWNER dagster;
+          GRANT ALL PRIVILEGES ON DATABASE dagster TO dagster;
     persistence:
       enabled: true
       size: 4Gi
   volumePermissions:
     enabled: true
     image:
-      repository: bitnamilegacy/os-shell
+      repository: bitnami/os-shell
   tls:
     enabled: true
     certificatesSecret: postgres-cert
