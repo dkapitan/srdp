@@ -12,7 +12,7 @@ help:
 # Local development
 local-tls:
 	mkdir -p kubernetes/certs
-	mkcert -cert-file kubernetes/certs/selfsigned.crt -key-file kubernetes/certs/selfsigned.key "auth.local.dev" "marimo.local.dev" "quarto.local.dev"
+	mkcert -cert-file kubernetes/certs/selfsigned.crt -key-file kubernetes/certs/selfsigned.key "auth.local.dev" "marimo.local.dev" "quarto.local.dev" "dagster.local.dev"
 	kubectl create namespace {{namespace}} --dry-run=client -o yaml | kubectl apply -f -
 	kubectl create secret tls custom-ingress-cert --namespace {{namespace}} --key kubernetes/certs/selfsigned.key --cert kubernetes/certs/selfsigned.crt --dry-run=client -o yaml | kubectl apply -f -
 

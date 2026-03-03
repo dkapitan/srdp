@@ -66,9 +66,10 @@ helm upgrade srdp srdp-chart \
 ```
 
 ### D. Configure Zitadel apps
-- In Zitadel, create the OIDC apps for Marimo and Quarto with redirect URIs:
+- In Zitadel, create the OIDC apps for Marimo, Quarto, and Dagster with redirect URIs:
   - `https://marimo.<your-domain>/oauth2/callback`
   - `https://quarto.<your-domain>/oauth2/callback`
+  - `https://dagster.<your-domain>/oauth2/callback`
 - Update the client ID/secret in `values-prod.yaml` (oauth2-proxy config section).
 
 ### E. Final deploy with apps enabled
@@ -85,7 +86,7 @@ helm upgrade srdp srdp-chart \
 - `just prod-get-values` (prints `LOAD_BALANCER_IP`, `DB_HOST`, `DB_PORT`, `DB_PASS`)
 - Update `kubernetes/srdp-chart/values-prod.yaml` with the dynamic values above plus your secrets (`ZITADEL_MASTER_KEY`, `PG_USER_PASS`, `ZITADEL_ADMIN_FIRST_PASS`, `OAUTH_COOKIE_SECRET`)
 - `just prod-auth-only`
-- In Zitadel (`https://auth.<LOAD_BALANCER_IP>.nip.io/`), create the Marimo and Quarto apps with redirects `https://marimo.<LOAD_BALANCER_IP>.nip.io/oauth2/callback` and `https://quarto.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, then copy the client ID/secret into `values-prod.yaml`
+- In Zitadel (`https://auth.<LOAD_BALANCER_IP>.nip.io/`), create the Marimo, Quarto, and Dagster apps with redirects `https://marimo.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, `https://quarto.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, and `https://dagster.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, then copy the client ID/secret into `values-prod.yaml`
 - `just prod-full`
 - Clean up when finished: `just prod-uninstall` then `just prod-destroy`
 

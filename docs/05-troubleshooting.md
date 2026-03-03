@@ -3,7 +3,7 @@
 ### Ingress returns 404 or invalid cert
 - Make sure the TLS secret `custom-ingress-cert` exists in the `srdp` namespace (`kubectl get secret custom-ingress-cert -n srdp`).
 - Regenerate it with `mkcert` if the hostnames or IP changed.
-- Confirm your hosts file points `auth/marimo/quarto.<domain>` to the Traefik IP.
+- Confirm your hosts file points `auth/marimo/quarto/dagster.<domain>` to the Traefik IP.
 
 ### Pods stuck in `Pending`
 - Check storage and DB connectivity: `kubectl describe pod <name> -n srdp`.
@@ -24,6 +24,16 @@
 
 ### Zitadel login-client missing
 - If the Postgres DB already contains Zitadel data, the `login-client` PAT will not be recreated. Use a fresh database (or drop the existing schema) before re-running the chart.
+
+### Dagster webserver CrashLoopBackOff with `password authentication failed for user "dagster"`
+- Cause: `zitadel-db.primary.initdb.scripts` only run on first PostgreSQL initialization. If you reused an old PVC, the `dagster` role/database may be missing.
+- Quick fix (keeps existing data):
+  - `kubectl -n srdp exec -i db-postgresql-0 -- bash -lc "export PGPASSWORD='srdpTest123'; psql -h 127.0.0.1 -U postgres -d postgres"` and run:
+    - `CREATE ROLE dagster LOGIN PASSWORD 'srdpTest123';` (or `ALTER ROLE ...` if it exists)
+    - `CREATE DATABASE dagster OWNER dagster;` (if missing)
+    - `GRANT ALL PRIVILEGES ON DATABASE dagster TO dagster;`
+  - `kubectl -n srdp rollout restart deploy/srdp-dagster-webserver deploy/srdp-dagster-daemon`
+- Clean reset option (local dev): `just local-delete` to remove PVCs, then `just local-deploy` to let init scripts recreate databases from scratch.
 
 ### Traefik stuck in Init
 - The Traefik PVC is ReadWriteOnce; if an old pod still holds it, new pods stay in `Init` with a multi-attach warning. Delete the old Traefik pod (or the PVC if needed) so the new pod can mount `/data`.

@@ -17,7 +17,7 @@ The chart uses `*.local.dev` by default. Point those hostnames at the IP you wil
 
 Add one line to your hosts file:
 ```
-127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev
+127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev dagster.local.dev
 ```
 
 ## 3) Create a local TLS secret
@@ -26,7 +26,7 @@ Generate a certificate for the local domains and create the secret that the Helm
 ```bash
 mkdir -p kubernetes/certs
 mkcert -cert-file kubernetes/certs/selfsigned.crt -key-file kubernetes/certs/selfsigned.key \
-  "auth.local.dev" "marimo.local.dev" "quarto.local.dev"
+  "auth.local.dev" "marimo.local.dev" "quarto.local.dev" "dagster.local.dev"
 
 # Apply the secret into your target namespace (default here is srdp)
 kubectl create namespace srdp --dry-run=client -o yaml | kubectl apply -f -

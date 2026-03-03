@@ -14,6 +14,20 @@ traefik:
 zitadel-db:
   auth:
     postgresPassword: "srdpTest123"
+  primary:
+    # Local Docker Desktop can be noisy; relax probes to avoid unnecessary restarts.
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 120
+      periodSeconds: 20
+      timeoutSeconds: 10
+      failureThreshold: 12
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 12
 
 zitadel:
   zitadel:

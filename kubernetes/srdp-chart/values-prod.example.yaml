@@ -142,3 +142,18 @@ marimo:
 # Quarto app
 quarto:
   enabled: true
+
+# Dagster app
+dagster:
+  enabled: true
+  dagster-user-deployments:
+    deployments:
+      - name: srdp-etl
+        image:
+          repository: "rg.nl-ams.scw.cloud/srdp-registry/srdp-etl"
+          tag: "v1.0"
+          pullPolicy: IfNotPresent
+        dagsterApiGrpcArgs:
+          - "-m"
+          - "definitions"
+        port: 3030

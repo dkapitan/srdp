@@ -183,6 +183,39 @@ oauth2-proxy:
       hostnames:
         - "auth.local.dev"
 
+# Dagster orchestration
+dagster:
+  enabled: true
+  ingress:
+    enabled: false
+  postgresql:
+    enabled: false
+    postgresqlHost: db-postgresql
+    postgresqlUsername: dagster
+    postgresqlPassword: srdpTest123
+    postgresqlDatabase: dagster
+    service:
+      port: 5432
+  runLauncher:
+    type: K8sRunLauncher
+    config:
+      k8sRunLauncher:
+        loadInclusterConfig: true
+        imagePullPolicy: IfNotPresent
+  dagster-user-deployments:
+    enabled: true
+    enableSubchart: true
+    deployments:
+      - name: srdp-etl
+        image:
+          repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-etl
+          tag: "v1.0"
+          pullPolicy: IfNotPresent
+        dagsterApiGrpcArgs:
+          - "-m"
+          - "definitions"
+        port: 3030
+
 # Marimo app
 marimo:
   enabled: true

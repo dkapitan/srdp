@@ -26,3 +26,8 @@ dependencies:
     version: 9.0.0
     repository: https://oauth2-proxy.github.io/manifests
     condition: oauth2-proxy.enabled
+
+  - name: dagster
+    version: 1.12.17
+    repository: https://dagster-io.github.io/helm
+    condition: dagster.enabled

@@ -11,5 +11,8 @@ dependencies:
 - name: oauth2-proxy
   repository: https://oauth2-proxy.github.io/manifests
   version: 9.0.0
-digest: sha256:54b704848eef5b7fee6a7dae97f4fe4714f041e7fb25915a6d96b1ff4dfd3615
-generated: "2026-03-02T17:16:47.9635489+01:00"
+- name: dagster
+  repository: https://dagster-io.github.io/helm
+  version: 1.12.17
+digest: sha256:7b462a27667503bcc4909fb0edcaa4207cd362032e7ace3d1932f98fb879a9ae
+generated: "2026-03-03T15:57:11.2917948+01:00"

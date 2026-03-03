@@ -7,6 +7,7 @@
 ### Access services
 - Marimo: `https://marimo.local.dev`
 - Quarto: `https://quarto.local.dev`
+- Dagster: `https://dagster.local.dev`
 - Zitadel: `https://auth.local.dev`
 - Traefik dashboard (if enabled in values): `http://localhost:8080`
 
