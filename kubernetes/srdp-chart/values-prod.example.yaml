@@ -76,7 +76,7 @@ zitadel:
           User:
             Password: "PG_USER_PASS" # CHANGE THIS
           Admin:
-            Password: "DB_PASS" # CHANGE  THIS. From Terraform Output
+            Password: "DB_PASS" # CHANGE THIS
     configmapConfig:
       ExternalDomain: "auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS (must match global.domain)
       ExternalPort: 443

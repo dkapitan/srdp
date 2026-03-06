@@ -30,6 +30,8 @@ zitadel-db:
       repository: bitnami/postgres-exporter
   primary:
     initdb:
+      user: postgres
+      password: srdpTest123
       scripts:
         01-create-dagster.sql: |
           CREATE USER dagster WITH PASSWORD 'srdpTest123';

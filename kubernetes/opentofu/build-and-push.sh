@@ -4,11 +4,11 @@ SCRIPT_DIR="$(cd -- "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 
 # Configuration
-REGISTRY="rg.fr-par.scw.cloud/srdp-registry"
+REGISTRY="rg.nl-ams.scw.cloud/srdp-registry"
 VERSION="v1.0"
 
 echo "Logging into Scaleway Registry"
-echo "$SCW_SECRET_KEY" | docker login rg.fr-par.scw.cloud -u nologin --password-stdin
+echo "$SCW_SECRET_KEY" | docker login rg.nl-ams.scw.cloud -u nologin --password-stdin
 
 echo "Building and Pushing SRDP Images"
 echo "Target Registry: $REGISTRY"

@@ -19,12 +19,6 @@ variable "cluster_name" {
   default     = "srdp-cluster"
 }
 
-variable "database_name" {
-  description = "Serverless SQL Database name"
-  type        = string
-  default     = "zitadel-db"
-}
-
 terraform {
   required_providers {
     scaleway = {
@@ -99,6 +93,7 @@ resource "scaleway_instance_security_group" "srdp_lb" {
 # ----------------------------------------------------------------
 resource "scaleway_k8s_cluster" "srdp_cluster" {
   name = var.cluster_name
+  type = "kapsule"
   version = "1.31.12"
   cni = "cilium"
   private_network_id = scaleway_vpc_private_network.k8s_network.id
@@ -117,32 +112,6 @@ resource "scaleway_k8s_pool" "srdp_pool" {
   autohealing = true
   wait_for_pool_ready = true
   security_group_id = scaleway_instance_security_group.srdp_lb.id
-}
-
-# ----------------------------------------------------------------
-# Managed Database
-# ----------------------------------------------------------------
-resource "random_password" "db_password" {
-  length           = 16
-  special          = true
-  min_upper        = 1
-  min_lower        = 1
-  min_numeric      = 1
-  min_special      = 1
-  override_special = "_%@"
-}
-
-resource "scaleway_rdb_instance" "zitadel_rdb" {
-  name           = "zitadel-postgres"
-  node_type      = "DB-PLAY2-PICO"
-  engine         = "PostgreSQL-16"
-  is_ha_cluster  = false
-  disable_backup = true
-  user_name      = "scw_admin" 
-  password       = random_password.db_password.result
-  region         = var.region
-  volume_type       = "sbs_5k" 
-  volume_size_in_gb = 10
 }
 
 # ----------------------------------------------------------------
@@ -175,47 +144,27 @@ output "kubeconfig" {
   description = "Kubernetes configuration file content"
 }
 
-output "rdb_host" {
-  value       = scaleway_rdb_instance.zitadel_rdb.endpoint_ip
-  description = "Database Host IP"
-}
-
-output "rdb_port" {
-  value       = scaleway_rdb_instance.zitadel_rdb.endpoint_port
-  description = "Database Port"
-}
-
-output "rdb_password" {
-  value       = random_password.db_password.result
-  sensitive   = true
-  description = "Database Password"
-}
-
 # ----------------------------------------------------------------
 # Instructions
 # ----------------------------------------------------------------
 output "instructions" {
   value = <<-EOT
-  
+
   ========================================
   Infrastructure Updated Successfully!
   ========================================
-  
+
   1. Get Kubeconfig:
      tofu output -raw kubeconfig > kubeconfig.yaml
      export KUBECONFIG=./kubeconfig.yaml
      kubectl get nodes
-  
-  2. Update values-prod.yaml with DB Info:
-     DB HOST:     ${scaleway_rdb_instance.zitadel_rdb.endpoint_ip}
-     DB PORT:     ${scaleway_rdb_instance.zitadel_rdb.endpoint_port}
-     
-     Get Password:
-     tofu output -raw rdb_password
-  
-  3. Registry:
+
+  2. Registry:
      ${data.scaleway_registry_namespace.srdp_registry.endpoint}
-  
+
+  3. Deploy:
+     just prod-full
+
   ========================================
   EOT
 }

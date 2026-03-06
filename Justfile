@@ -38,10 +38,6 @@ prod-get-values:
 	@echo "Fetching dynamic values..."
 	@if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi
 	@KUBECONFIG="{{kubeconfig}}" kubectl get svc srdp-traefik -n {{namespace}} -o jsonpath='{.status.loadBalancer.ingress[0].ip}' | xargs -I{} printf "LOAD_BALANCER_IP:\t%s\n" "{}"
-	@cd kubernetes/opentofu && \
-		printf "DB_HOST:\t\t%s\n" "$(tofu output -raw rdb_host)" && \
-		printf "DB_PORT:\t\t%s\n" "$(tofu output -raw rdb_port)" && \
-		printf "DB_PASS:\t\t%s\n" "$(tofu output -raw rdb_password)"
 
 prod-traefik-only:
 	cd kubernetes && \

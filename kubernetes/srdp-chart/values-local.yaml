@@ -48,6 +48,26 @@ zitadel:
 
 oauth2-proxy:
   config:
-    clientID: "XXXXXX"
-    clientSecret: "XXXXXX"
+    clientID: "362914460869919313"
+    clientSecret: "6wdizcEbBnztdVvVoFwbSzHBfWYdBJshIOP6VlsxrDe5c1zSUQMvgDa6PfnA24BT"
     cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE"
+
+# Local overrides: use locally-built images (no registry pull)
+marimo:
+  image:
+    pullPolicy: Never
+
+quarto:
+  image:
+    pullPolicy: Never
+
+dagster:
+  dagster-user-deployments:
+    deployments:
+      - name: srdp-etl
+        image:
+          repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-etl
+          tag: "v1.0"
+          pullPolicy: Never
+        dagsterApiGrpcArgs: ["-m", "definitions"]
+        port: 3030
