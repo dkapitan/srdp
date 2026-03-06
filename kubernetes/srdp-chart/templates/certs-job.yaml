@@ -75,7 +75,7 @@ spec:
               [v3_req]
               keyUsage = keyEncipherment, dataEncipherment
               extendedKeyUsage = serverAuth
-              subjectAltName = DNS:postgres,DNS:zitadel,DNS:db-postgresql
+              subjectAltName = DNS:postgres,DNS:zitadel,DNS:db-postgresql,DNS:db-postgresql-primary,DNS:db-postgresql-read
             EOF
             }
 
