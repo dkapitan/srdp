@@ -27,4 +27,19 @@ Here's the lineup of our chosen champions:
 
 ---
 
+## Documentation
+
+Full documentation is available at **[srdp-hub.github.io/srdp](https://srdp-hub.github.io/srdp/)**.
+
+**Preview locally:**
+```bash
+uvx zensical serve
+```
+Opens the site at `localhost:8000` with live reload.
+
+**Deployment:**
+Documentation is built with [Zensical](https://zensical.org/) and deployed automatically to GitHub Pages on every push to `main` via the [Build and deploy Documentation](.github/workflows/docs.yml) GitHub Actions workflow.
+
+---
+
 ![](architecture.png)
