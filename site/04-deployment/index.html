@@ -1,0 +1,811 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://srdp-hub.github.io/srdp/04-deployment/">
+      
+      
+        <link rel="prev" href="../03-usage/">
+      
+      
+        <link rel="next" href="../05-troubleshooting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.24">
+    
+    
+      
+        <title>4. Cloud Deployment (GCP) - SRDP – Single Repo Data Platform</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.28978c9b.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cloud-deployment-gcp" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="SRDP – Single Repo Data Platform" class="md-header__button md-logo" aria-label="SRDP – Single Repo Data Platform" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SRDP – Single Repo Data Platform
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              4. Cloud Deployment (GCP)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="SRDP – Single Repo Data Platform" class="md-nav__button md-logo" aria-label="SRDP – Single Repo Data Platform" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    SRDP – Single Repo Data Platform
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    SRDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-prerequisites/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-list-todo" viewBox="0 0 24 24"><path d="M13 5h8M13 12h8M13 19h8M3 17l2 2 4-4"/><rect width="6" height="6" x="3" y="4" rx="1"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Prerequisites
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-configuration/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-locate-fixed" viewBox="0 0 24 24"><path d="M2 12h3M19 12h3M12 2v3M12 19v3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    2. Local Configuration & Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-usage/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-play" viewBox="0 0 24 24"><path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z"/><circle cx="12" cy="12" r="10"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Usage & Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-cloud-cog" viewBox="0 0 24 24"><path d="m10.852 19.772-.383.924M13.148 14.228l.383-.923M13.148 19.772a3 3 0 1 0-2.296-5.544l-.383-.923"/><path d="m13.53 20.696-.382-.924a3 3 0 1 1-2.296-5.544M14.772 15.852l.923-.383M14.772 18.148l.923.383"/><path d="M4.2 15.1a7 7 0 1 1 9.93-9.858A7 7 0 0 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.2M9.228 15.852l-.923-.383M9.228 18.148l-.923.383"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Cloud Deployment (GCP)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-cloud-cog" viewBox="0 0 24 24"><path d="m10.852 19.772-.383.924M13.148 14.228l.383-.923M13.148 19.772a3 3 0 1 0-2.296-5.544l-.383-.923"/><path d="m13.53 20.696-.382-.924a3 3 0 1 1-2.296-5.544M14.772 15.852l.923-.383M14.772 18.148l.923.383"/><path d="M4.2 15.1a7 7 0 1 1 9.93-9.858A7 7 0 0 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.2M9.228 15.852l-.923-.383M9.228 18.148l-.923.383"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Cloud Deployment (GCP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-prerequisites-initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Prerequisites &amp; Initial Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Prerequisites &amp; Initial Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-using-a-custom-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional: Using a Custom Domain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-configuration-tofutfvars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Configuration (tofu.tfvars)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-troubleshooting/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-life-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-references/" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    6. OSS Tool References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-prerequisites-initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Prerequisites &amp; Initial Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Prerequisites &amp; Initial Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional-using-a-custom-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional: Using a Custom Domain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-configuration-tofutfvars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Configuration (tofu.tfvars)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="cloud-deployment-gcp">Cloud Deployment (GCP)</h1>
+<p>This guide covers the entire process of deploying the application stack to Google Cloud Platform using OpenTofu. It includes provisioning the infrastructure, configuring the services, and verifying the deployment.</p>
+<h2 id="phase-1-prerequisites-initial-setup">Phase 1: Prerequisites &amp; Initial Setup</h2>
+<p>Before deploying, ensure your local environment is configured and your project's variable file is prepared.</p>
+<h3 id="system-prerequisites">System Prerequisites</h3>
+<p>You must have the following tools installed and configured on your local machine:</p>
+<ul>
+<li><strong>OpenTofu:</strong> Follow the <a href="https://opentofu.org/docs/intro/install/">official installation guide</a>.</li>
+<li><strong>Google Cloud SDK (<code>gcloud</code>):</strong> Follow the <a href="https://cloud.google.com/sdk/docs/install">official installation guide</a>.</li>
+</ul>
+<p>Once installed, authenticate with Google Cloud by running the following command in your terminal:
+<code>bash
+gcloud auth application-default login</code></p>
+<h3 id="optional-using-a-custom-domain">Optional: Using a Custom Domain</h3>
+<p>While this guide uses a free <code>nip.io</code> domain for quick testing, you can easily use your own registered domain.</p>
+<ol>
+<li>
+<p><strong>Get a Domain:</strong> If you don't have one, purchase a domain from a registrar like Google Domains or Namecheap.</p>
+</li>
+<li>
+<p><strong>Create a DNS Record:</strong> After you complete <strong>Phase 2, Step A</strong> of this guide and have your static IP address, go to your domain registrar's DNS management panel and create the following record:</p>
+<ul>
+<li><strong>Type:</strong> <code>A</code></li>
+<li><strong>Name / Host:</strong> <code>*.srdp</code> (This is a wildcard record that will cover <code>auth.srdp.yourdomain.com</code>, <code>marimo.srdp.yourdomain.com</code>, etc.)</li>
+<li><strong>Value:</strong> The static IP address you get from the <code>tofu apply</code> output.</li>
+<li><strong>TTL:</strong> Set a low value (e.g., 300 seconds) for faster updates.</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> It can take anywhere from a few minutes to an hour for DNS changes to propagate across the internet.</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="project-configuration-tofutfvars">Project Configuration (<code>tofu.tfvars</code>)</h3>
+<p>The deployment is driven by a variables file.</p>
+<ol>
+<li>Navigate to the OpenTofu directory for this project:
+    <code>bash
+    cd path/to/your/project/opentofu/providers/gcp</code></li>
+<li>
+<p>In this directory, you will find a template file. Make a copy of it and name it <strong><code>tofu.tfvars</code></strong>.</p>
+</li>
+<li>
+<p>Open your new <code>tofu.tfvars</code> file and fill in the values. For the first run, use a placeholder IP for the domain name.</p>
+<p>```hcl
+gcp_project_id = "single-repo-data-platform"
+repo_url       = "https://github.com/dkapitan/srdp.git"
+acme_email     = "email@example.nl"
+domain_name    = "1.1.1.1.nip.io" # Placeholder for the first run</p>
+<h1 id="-secrets-">--- Secrets ---</h1>
+<h1 id="generate-a-long-random-string-eg-using-openssl-rand-base64-32">Generate a long, random string (e.g., using <code>openssl rand -base64 32</code>)</h1>
+<p>zitadel_masterkey  = "YOUR_ZITADEL_MASTERKEY_HERE"
+oidc_cookie_secret = "YOUR_OIDC_COOKIE_SECRET_HERE"</p>
+<h1 id="use-placeholders-for-now-we-will-get-the-real-values-later">Use placeholders for now; we will get the real values later.</h1>
+<p>oidc_client_id     = "placeholder-id"
+oidc_client_secret = "placeholder-secret"
+```</p>
+</li>
+</ol>
+<h2 id="phase-2-infrastructure-provisioning-two-step-apply">Phase 2: Infrastructure Provisioning (Two-Step Apply)</h2>
+<p>This is a two-step process because we first need to reserve a static IP address, and then use that IP to configure the final virtual machine.</p>
+<h3 id="step-a-first-apply-reserve-ip">Step A: First Apply (Reserve IP)</h3>
+<ol>
+<li>Initialize your OpenTofu project. This downloads the necessary cloud provider plugins.
+    <code>bash
+    tofu init -upgrade</code></li>
+<li>
+<p>Run the <code>apply</code> command to create the initial resources, including the static IP.
+    <code>bash
+    tofu apply -var-file="tofu.tfvars"</code>
+    When prompted, review the plan and type <code>yes</code> to confirm.</p>
+</li>
+<li>
+<p>After the command completes, copy the <strong>real static IP address</strong> from the output.
+    ```
+    Outputs:</p>
+<p>instance_name = "srdp-main"
+static_ip_address = "34.90.31.51"  &lt;-- COPY THIS VALUE
+```</p>
+<blockquote>
+<p><strong>Custom Domain User?</strong> Now is the time to go to your DNS provider and create the <code>*.srdp</code> A record pointing to this IP.</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="step-b-second-apply-deploy-final-vm">Step B: Second Apply (Deploy Final VM)</h3>
+<ol>
+<li>
+<p>Update your <code>tofu.tfvars</code> file. Replace the placeholder <code>domain_name</code> with your public domain.</p>
+<ul>
+<li><strong>For <code>nip.io</code>:</strong> <code>domain_name = "34.90.31.51.nip.io"</code> (Use your copied IP)</li>
+<li><strong>For a Custom Domain:</strong> <code>domain_name = "srdp.yourdomain.com"</code></li>
+</ul>
+</li>
+<li>
+<p>Run the <code>apply</code> command a second time.
+    <code>bash
+    tofu apply -var-file="tofu.tfvars"</code>
+    OpenTofu will plan to replace the VM. This is expected. Type <code>yes</code> to confirm.</p>
+</li>
+<li>
+<p><strong>Wait approximately 5-10 minutes</strong> for the VM to boot and for the startup script to download and start all the containers.</p>
+</li>
+</ol>
+<h2 id="phase-3-application-configuration">Phase 3: Application Configuration</h2>
+<p>The VM is running with a fresh Zitadel instance. This is a one-time manual setup to create the OIDC application and synchronize the secrets.</p>
+<h3 id="step-a-create-the-oidc-application-in-zitadel">Step A: Create the OIDC Application in Zitadel</h3>
+<ol>
+<li>
+<p><strong>Access the Cloud Zitadel UI:</strong></p>
+<ul>
+<li>URL: <code>https://auth.&lt;your-public-domain&gt;</code> (e.g., <code>https://auth.34.90.31.51.nip.io</code> or <code>https://auth.srdp.yourdomain.com</code>)</li>
+</ul>
+</li>
+<li>
+<p><strong>Log In as Administrator:</strong></p>
+<ul>
+<li><strong>Username:</strong> <code>zitadel-admin@auth.&lt;your-public-domain&gt;</code></li>
+<li><strong>Password:</strong> <code>Password1!</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Create the OIDC Application:</strong></p>
+<ul>
+<li>Navigate to <strong>Projects</strong> and create a <strong>New Project</strong>.</li>
+<li>Inside the project, create a new <strong>Application</strong> of type <strong>OIDC</strong>.</li>
+<li>Give it a name (e.g., <code>Traefik Middleware</code>).</li>
+<li>For <strong>Redirect URIs</strong>, add an entry for each application you are protecting, using your public domain:<ul>
+<li><code>https://marimo.&lt;your-public-domain&gt;/oauth2/callback</code></li>
+<li><code>https://quarto.&lt;your-public-domain&gt;/oauth2/callback</code></li>
+</ul>
+</li>
+<li>Click <strong>Continue</strong> and then <strong>Create</strong>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Copy the New Secrets:</strong> On the success screen, copy the auto-generated <strong>Client ID</strong> and <strong>Client Secret</strong> to a temporary text file.</p>
+</li>
+</ol>
+<h3 id="step-b-update-the-vm-via-ssh">Step B: Update the VM via SSH</h3>
+<ol>
+<li><strong>Connect to the VM:</strong>
+    <code>bash
+    gcloud compute ssh srdp-main --zone "europe-west4-a"</code></li>
+<li><strong>Navigate to the Application Directory:</strong>
+    <code>bash
+    cd /opt/app/local/</code></li>
+<li><strong>Edit the <code>.env</code> File:</strong>
+    <code>bash
+    sudo nano .env</code></li>
+<li>
+<p><strong>Update the Secrets:</strong></p>
+<ul>
+<li>Inside the <code>nano</code> editor, find the <code>OIDC_CLIENT_ID</code> and <code>OIDC_CLIENT_SECRET</code> lines.</li>
+<li>Delete the old placeholder values and paste in the correct values you copied from the Zitadel UI.</li>
+<li>Save and exit: <code>Ctrl+X</code>, then <code>Y</code>, then <code>Enter</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Restart the Application Services:</strong> This command applies the new secrets by restarting the affected containers.
+    <code>bash
+    sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d</code></p>
+</li>
+</ol>
+<h2 id="phase-4-verification">Phase 4: Verification</h2>
+<p>Your deployment is now complete and correctly configured.</p>
+<h3 id="accessing-cloud-services">Accessing Cloud Services</h3>
+<p>Open a new <strong>incognito/private browser window</strong> to test the full authentication flow. Use the following URLs, replacing <code>&lt;your-public-domain&gt;</code> with your actual domain.</p>
+<ul>
+<li>
+<p><strong>Marimo Dashboard:</strong></p>
+<ul>
+<li>URL: <code>https://marimo.&lt;your-public-domain&gt;</code></li>
+<li>You should be redirected to the Zitadel login page, and after authenticating, see the interactive dashboard.</li>
+</ul>
+</li>
+<li>
+<p><strong>Quarto Static Site:</strong></p>
+<ul>
+<li>URL: <code>https://quarto.&lt;your-public-domain&gt;</code></li>
+<li>You should have access immediately without needing to log in again (Single Sign-On).</li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":[],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.16f8adc2.min.js"></script>
+      
+    
+  </body>
+</html>
