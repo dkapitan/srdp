@@ -1,4 +1,9 @@
-# 5. Cloud Deployment (GCP)
+---
+title: 4. Cloud Deployment (GCP)
+icon: lucide/cloud-cog
+---
+
+# Cloud Deployment (GCP)
 
 This guide covers the entire process of deploying the application stack to Google Cloud Platform using OpenTofu. It includes provisioning the infrastructure, configuring the services, and verifying the deployment.
 

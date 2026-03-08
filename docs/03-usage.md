@@ -1,4 +1,9 @@
-# 3. Usage & Verification
+---
+title: 3. Usage & Verification
+icon: lucide/circle-play
+---
+
+# Usage & Verification
 
 Once you have completed the setup, you can verify that all services are running correctly by accessing them in your web browser.
 

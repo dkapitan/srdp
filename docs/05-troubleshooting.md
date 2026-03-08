@@ -1,4 +1,9 @@
-# 6. Troubleshooting
+---
+title: 5. Troubleshooting
+icon: lucide/life-buoy
+---
+
+# Troubleshooting
 
 This section covers common issues you might encounter and how to solve them.
 

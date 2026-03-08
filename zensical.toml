@@ -1,0 +1,5 @@
+[project]
+site_name = "SRDP – Single Repo Data Platform"
+site_url = "https://srdp-hub.github.io/srdp/"
+
+[project.markdown_extensions.footnotes]

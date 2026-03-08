@@ -1,4 +1,9 @@
-# 2. Local Configuration & Setup
+---
+title: 2. Local Configuration & Setup
+icon: lucide/locate-fixed
+---
+
+# Local Configuration & Setup
 
 This guide will walk you through the steps to get the Single Repo Data Platform (SRDP) running on your local machine.
 
