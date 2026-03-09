@@ -1,4 +1,4 @@
-# 2. Local Kubernetes Setup
+# 2. Local Configuration & Setup
 
 This guide will walk you through the steps to get the Single Repo Data Platform (SRDP) running on your local machine.
 
@@ -37,13 +37,28 @@ kubectl create secret tls custom-ingress-cert \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-## 4) Fill in secrets and local values
+Or simply run:
+```bash
+just local-tls
+```
+
+## 4) Build local container images
+
+The Helm chart references three application images. For local development the pull policy is set to `Never`, so the images must exist in your local Docker/containerd cache:
+
+```bash
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/marimo:v1.0 local/apps/marimo
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/quarto:v1.0 local/apps/quarto
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 kubernetes/apps/srdp-etl
+```
+
+## 5) Fill in secrets and local values
 
 Update `kubernetes/srdp-chart/values-local.yaml` before installing:
 - set your own Zitadel master key, DB passwords, OAuth2 client values, and cookie secret
 - keep `custom-ingress-cert` (created above) or point to another TLS secret if you prefer.
 
-## 5) Install the chart locally
+## 6) Install the chart locally
 
 ```bash
 cd kubernetes/srdp-chart
@@ -54,4 +69,11 @@ helm upgrade --install srdp . \
   -f values-local.yaml
 ```
 
-To re-run with updated values, run the same `helm upgrade` command (or `just local-deploy` if you prefer the task runner).
+Or simply run:
+```bash
+just local-deploy
+```
+
+To re-run with updated values, run the same `helm upgrade` command (or `just local-deploy`).
+
+The chart deploys the full stack: Traefik, PostgreSQL (in-cluster via Bitnami Helm chart), Zitadel, OAuth2-Proxy, Dagster (webserver + daemon + user code), Marimo, and Quarto. PostgreSQL hosts both the `zitadel` and `dagster` databases, created automatically via `zitadel-db.primary.initdb.scripts`.
