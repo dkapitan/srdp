@@ -5,6 +5,9 @@
 certs/
 login-client.pat
 
+# Zensical build output
+site/
+
 # Terraform
 .terraform
 terraform.tfstate
