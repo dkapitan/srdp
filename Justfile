@@ -29,6 +29,7 @@ prod-apply:
 	cd kubernetes/opentofu && source ./secrets.sh && tofu apply -auto-approve
 
 prod-destroy:
+	just prod-uninstall || echo "Helm uninstall skipped (cluster may already be down)"
 	cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 
 prod-use-kubeconfig:
@@ -61,6 +62,9 @@ prod-uninstall:
 	cd kubernetes && \
 		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
 		export KUBECONFIG="{{kubeconfig}}"; \
+		echo "Deleting LoadBalancer service (releases Scaleway LB)..." && \
+		kubectl delete svc srdp-traefik -n {{namespace}} --ignore-not-found && \
+		echo "Waiting 30s for LB cleanup..." && sleep 30 && \
 		kubectl delete jobs --all -n {{namespace}} && \
 		kubectl delete pvc --all -n {{namespace}} && \
 		helm uninstall srdp -n {{namespace}} || true
