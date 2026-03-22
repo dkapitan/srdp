@@ -1,6 +1,6 @@
 # 4. Production Deployment on Scaleway Kapsule (OpenTofu + Helm)
 
-This runbook uses OpenTofu to provision infrastructure and Helm to deploy the chart on Scaleway Kapsule (mutualized). Commands assume you run them from the **repository root** unless otherwise noted.
+This runbook uses OpenTofu to provision infrastructure and Helm to deploy the chart on Scaleway Kapsule (mutualized). All `just` commands should be run from the **repository root**. Steps that require manual commands specify their working directory explicitly.
 
 ## What OpenTofu provisions
 
@@ -22,6 +22,7 @@ PostgreSQL runs **in-cluster** via the Bitnami Helm chart (not as a Scaleway man
 ## 2) Build and push container images
 Run the build script after sourcing credentials (it logs into the Scaleway registry):
 ```bash
+cd kubernetes/opentofu
 source ./secrets.sh
 ./build-and-push.sh
 ```
@@ -30,15 +31,14 @@ This builds and pushes Marimo, Quarto, and srdp-etl (Dagster user code) to `rg.n
 ## 3) Provision infrastructure with OpenTofu
 ```bash
 cd kubernetes/opentofu
-tofu init -upgrade        # first run only
-tofu apply -auto-approve
+tofu init -upgrade        # first run only, from kubernetes/opentofu/
+cd ../..                  # back to repo root
+just prod-apply
 ```
 
 ## 4) Export kubeconfig
 ```bash
-tofu output -raw kubeconfig > kubeconfig.yaml
-export KUBECONFIG=$(pwd)/kubeconfig.yaml
-kubectl get nodes          # verify connectivity
+just prod-use-kubeconfig   # from repo root
 ```
 
 ## 5) Prepare production Helm values
@@ -48,71 +48,83 @@ kubectl get nodes          # verify connectivity
   - Zitadel master key, admin/user DB passwords, and OAuth2 client credentials.
   - ACME email for Traefik (Let's Encrypt).
   - In-cluster PostgreSQL passwords (`zitadel-db.auth.postgresPassword`, `zitadel-db.auth.password`).
+- **Password complexity**: Zitadel enforces a password policy that requires uppercase, lowercase, digits, and at least one symbol. For example, use `SrdpTest123!` rather than `srdpTest123`.
 
 The production values template enables PostgreSQL replication (`architecture: replication`) with a read replica. Daily backups via a CronJob are already configured in the base `values.yaml`.
 
-## 6) Deploy with Helm
-All Helm commands below can be run from `kubernetes/` (or use the `just` recipes).
+## 6) Deploy with Helm (staged rollout)
 
 ### A. Bring up Traefik only (to get the LB IP)
 ```bash
-helm upgrade --install srdp srdp-chart \
-  --namespace srdp --create-namespace \
-  -f srdp-chart/values-prod.yaml \
-  --set zitadel.enabled=false \
-  --set oauth2-proxy.enabled=false \
-  --set dagster.enabled=false \
-  --set marimo.enabled=false \
-  --set quarto.enabled=false
+just prod-traefik-only
 ```
 
 ### B. Update domains once the LB IP exists
-- Check the IP: `kubectl get svc srdp-traefik -n srdp`
-- Set `global.domain`, `zitadel.zitadel.configmapConfig.ExternalDomain`, the `login.customConfigmapConfig` hosts, and the `oauth2-proxy.extraArgs` domain fields in `values-prod.yaml`, then re-run Helm.
+```bash
+just prod-get-values      # prints LOAD_BALANCER_IP
+```
+Replace every occurrence of the old LB IP in `values-prod.yaml` with `<LB_IP>.nip.io`. The fields that contain it are:
+- `global.domain`
+- `zitadel.zitadel.configmapConfig.ExternalDomain`
+- `zitadel.zitadel.configmapConfig.firstInstance.org.human.email.address` (the `zitadel-admin@auth.…` address)
+- `zitadel.login.customConfigmapConfig` — the `CUSTOM_REQUEST_HEADERS` value (`Host:auth.…` and `X-Zitadel-Public-Host:auth.…`)
+- `oauth2-proxy.extraArgs`: `cookie-domain`, `whitelist-domain`, `oidc-issuer-url`, and the `Host:auth.…` header
 
 ### C. Enable Zitadel + OAuth2-Proxy
 ```bash
-helm upgrade srdp srdp-chart \
-  --namespace srdp --reset-values \
-  -f srdp-chart/values-prod.yaml \
-  --set zitadel.enabled=true \
-  --set oauth2-proxy.enabled=true \
-  --set dagster.enabled=false \
-  --set marimo.enabled=false \
-  --set quarto.enabled=false
+just prod-auth-only
 ```
 
 ### D. Configure Zitadel apps
-- In Zitadel, create the OIDC apps for Marimo, Quarto, and Dagster with redirect URIs:
-  - `https://marimo.<your-domain>/oauth2/callback`
-  - `https://quarto.<your-domain>/oauth2/callback`
-  - `https://dagster.<your-domain>/oauth2/callback`
-- Update the client ID/secret in `values-prod.yaml` (oauth2-proxy config section).
+- In Zitadel (`https://auth.<LB_IP>.nip.io/`), create OIDC apps for Marimo, Quarto, and Dagster with redirect URIs:
+  - `https://marimo.<LB_IP>.nip.io/oauth2/callback`
+  - `https://quarto.<LB_IP>.nip.io/oauth2/callback`
+  - `https://dagster.<LB_IP>.nip.io/oauth2/callback`
+- Copy the client ID/secret into `values-prod.yaml` (oauth2-proxy config section).
 
-### E. Final deploy with apps enabled
+### E. Final deploy with all apps enabled
 ```bash
-helm upgrade srdp srdp-chart \
-  --namespace srdp --reset-values \
-  -f srdp-chart/values-prod.yaml
+just prod-full
 ```
 
-## Example production flow with `just`
-- `cd kubernetes/opentofu && source ./secrets.sh && tofu init -upgrade` (first time only)
-- `cd kubernetes/opentofu && source ./secrets.sh && ./build-and-push.sh` (build and push container images)
-- `just prod-apply`
-- `just prod-use-kubeconfig`
-- `just prod-traefik-only` (bring up Traefik to obtain the LB IP)
-- `just prod-get-values` (prints `LOAD_BALANCER_IP`)
-- Update `kubernetes/srdp-chart/values-prod.yaml` with the LB IP in domain fields plus your secrets (`ZITADEL_MASTER_KEY`, `PG_USER_PASS`, `ZITADEL_ADMIN_FIRST_PASS`, `OAUTH_COOKIE_SECRET`)
-- `just prod-auth-only`
-- In Zitadel (`https://auth.<LOAD_BALANCER_IP>.nip.io/`), create the Marimo, Quarto, and Dagster apps with redirects `https://marimo.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, `https://quarto.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, and `https://dagster.<LOAD_BALANCER_IP>.nip.io/oauth2/callback`, then copy the client ID/secret into `values-prod.yaml`
-- `just prod-full`
-- Clean up when finished: `just prod-uninstall` then `just prod-destroy`
+## Quick reference: full deployment flow
+
+```bash
+# 1. Prepare (first time only, from kubernetes/opentofu/)
+cd kubernetes/opentofu && source ./secrets.sh && tofu init -upgrade
+
+# 2. Build and push container images (from kubernetes/opentofu/)
+cd kubernetes/opentofu && source ./secrets.sh && ./build-and-push.sh
+
+# 3. Provision infrastructure (from repo root)
+just prod-apply
+just prod-use-kubeconfig
+
+# 4. Staged Helm rollout (from repo root)
+just prod-traefik-only
+just prod-get-values                    # note the LOAD_BALANCER_IP
+# → Update values-prod.yaml with LB IP in domain fields + secrets
+just prod-auth-only
+# → Configure Zitadel OIDC apps + copy client ID/secret into values-prod.yaml
+just prod-full
+```
 
 ## 7) Clean up
+
 ```bash
-helm uninstall srdp -n srdp
+just prod-destroy
+```
+
+This runs `prod-uninstall` first (which deletes the Traefik LoadBalancer service to release the Scaleway-managed LB, then removes jobs, PVCs, and the Helm release) before running `tofu destroy` to remove the cluster and network infrastructure.
+
+If you prefer manual commands:
+```bash
+# Delete the LB service first (Scaleway LB must be released before the private network can be destroyed)
+export KUBECONFIG=kubernetes/opentofu/kubeconfig.yaml
+kubectl delete svc srdp-traefik -n srdp --ignore-not-found
+sleep 30
 kubectl delete jobs --all -n srdp
 kubectl delete pvc --all -n srdp
+helm uninstall srdp -n srdp
 cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 ```

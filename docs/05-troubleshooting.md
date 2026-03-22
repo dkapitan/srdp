@@ -40,5 +40,20 @@
   - `kubectl -n srdp rollout restart deploy/srdp-dagster-webserver deploy/srdp-dagster-daemon`
 - Clean reset option (local dev): `just local-delete` to remove PVCs, then `just local-deploy` to let init scripts recreate databases from scratch.
 
+### Updated container image not picked up after rebuild
+- Cause: The default `imagePullPolicy` is `IfNotPresent`. If you rebuild an image with the same tag (e.g. `v1.0`), Kubernetes will keep using the cached version.
+- Fix: Bump the image tag (e.g. `v1.0` → `v1.1`) in both the build command and `values-prod.yaml`, then redeploy. Alternatively, set `imagePullPolicy: Always` in your values file, but this is slower for routine deployments.
+
+### Orphaned Scaleway Load Balancer blocks `tofu destroy`
+- Symptom: `tofu destroy` fails with `Private Network must be empty to be deleted`.
+- Cause: Kapsule creates a Scaleway-managed Load Balancer when a `type: LoadBalancer` service (Traefik) is deployed via Helm. This LB is not tracked by OpenTofu, so it remains attached to the private network after the cluster is deleted.
+- Fix: The updated `just prod-destroy` handles this automatically. If you already hit this error, delete the LB via the Scaleway API:
+  ```bash
+  source ./secrets.sh
+  curl -s -H "X-Auth-Token: $SCW_SECRET_KEY" "https://api.scaleway.com/lb/v1/zones/nl-ams-1/lbs" | python3 -m json.tool
+  curl -X DELETE -H "X-Auth-Token: $SCW_SECRET_KEY" "https://api.scaleway.com/lb/v1/zones/nl-ams-1/lbs/<LB_ID>?release_ip=true"
+  ```
+  Wait ~30 seconds, then retry `tofu destroy`.
+
 ### Traefik stuck in Init
 - The Traefik PVC is ReadWriteOnce; if an old pod still holds it, new pods stay in `Init` with a multi-attach warning. Delete the old Traefik pod (or the PVC if needed) so the new pod can mount `/data`.
