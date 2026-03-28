@@ -65,6 +65,6 @@ prod-uninstall:
 		echo "Deleting LoadBalancer service (releases Scaleway LB)..." && \
 		kubectl delete svc srdp-traefik -n {{namespace}} --ignore-not-found && \
 		echo "Waiting 30s for LB cleanup..." && sleep 30 && \
-		kubectl delete jobs --all -n {{namespace}} && \
-		kubectl delete pvc --all -n {{namespace}} && \
-		helm uninstall srdp -n {{namespace}} || true
+		helm uninstall srdp -n {{namespace}} || true && \
+		kubectl delete jobs --all -n {{namespace}} --ignore-not-found && \
+		kubectl delete pvc --all -n {{namespace}} --ignore-not-found

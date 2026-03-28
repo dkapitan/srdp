@@ -49,8 +49,21 @@ zitadel-db:
   architecture: replication
 
   auth:
-    postgresPassword: "CHANGE_ME"
-    password: "CHANGE_ME"
+    # Keep PostgreSQL admin/user passwords aligned with:
+    # - zitadel.zitadel.secretConfig.Database.Postgres
+    # - zitadel-db.primary.initdb.password
+    postgresPassword: "CHANGE_ME_POSTGRES_PASS"
+    password: "CHANGE_ME_ZITADEL_DB_PASS"
+
+  primary:
+    initdb:
+      user: postgres
+      password: "CHANGE_ME_POSTGRES_PASS"
+      scripts:
+        01-create-dagster.sql: |
+          CREATE USER dagster WITH PASSWORD 'CHANGE_ME_DAGSTER_DB_PASS';
+          CREATE DATABASE dagster OWNER dagster;
+          GRANT ALL PRIVILEGES ON DATABASE dagster TO dagster;
 
   readReplicas:
     replicaCount: 1
@@ -69,14 +82,14 @@ zitadel-db:
 # Zitadel auth service
 zitadel:
   zitadel:
-    masterkey: "ZITADEL_MASTER_KEY" # CHANGE THIS, must be 32 characaters
+    masterkey: "CHANGE_ME_ZITADEL_MASTERKEY_32CHARS" # CHANGE THIS, must be 32 characters
     secretConfig:
       Database:
         Postgres:
           User:
-            Password: "PG_USER_PASS" # CHANGE THIS
+            Password: "CHANGE_ME_ZITADEL_DB_PASS" # CHANGE THIS
           Admin:
-            Password: "DB_PASS" # CHANGE THIS
+            Password: "CHANGE_ME_POSTGRES_PASS" # CHANGE THIS
     configmapConfig:
       ExternalDomain: "auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS (must match global.domain)
       ExternalPort: 443
@@ -102,7 +115,7 @@ zitadel:
             Email:
               Address: zitadel-admin@auth.LOAD_BALANCER_IP.nip.io
               Verified: true
-            Password: "ZITADEL_ADMIN_FIRST_PASS" # CHANGE THIS
+            Password: "CHANGE_ME_ZITADEL_ADMIN_PASS" # CHANGE THIS
             PasswordChangeRequired: false
     dbSslCaCrtSecret: postgres-cert
     dbSslAdminCrtSecret: postgres-cert
@@ -151,7 +164,7 @@ oauth2-proxy:
     clientID: "XXXXXXXXXXXXXXXXXX" # CHANGE THIS
     clientSecret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS
     # Generate a random string: python3 -c 'import os,base64; print(base64.b64encode(os.urandom(16)).decode())'
-    cookieSecret: "OAUTH_COOKIE_SECRET" # Must be 32 characters
+    cookieSecret: "CHANGE_ME_OAUTH_COOKIE_SECRET_32" # Must be 32 characters
   
   extraArgs:
     cookie-domain: ".LOAD_BALANCER_IP.nip.io" # CHANGE THIS
@@ -179,6 +192,9 @@ dagster:
   postgresql:
     enabled: false
     postgresqlHost: db-postgresql-primary
+    postgresqlUsername: dagster
+    postgresqlPassword: "CHANGE_ME_DAGSTER_DB_PASS"
+    postgresqlDatabase: dagster
   dagster-user-deployments:
     deployments:
       - name: srdp-etl

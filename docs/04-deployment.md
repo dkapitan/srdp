@@ -45,10 +45,29 @@ just prod-use-kubeconfig   # from repo root
 - Copy `kubernetes/srdp-chart/values-prod.example.yaml` to `kubernetes/srdp-chart/values-prod.yaml` if you are starting fresh.
 - Fill in:
   - `global.domain` and `oauth2-proxy` cookie/whitelist domains (use a real domain or `<lb-ip>.nip.io` once you know the load balancer IP).
-  - Zitadel master key, admin/user DB passwords, and OAuth2 client credentials.
+  - Zitadel master key, admin/user DB passwords, Dagster DB password, and OAuth2 client credentials.
   - ACME email for Traefik (Let's Encrypt).
-  - In-cluster PostgreSQL passwords (`zitadel-db.auth.postgresPassword`, `zitadel-db.auth.password`).
-- **Password complexity**: Zitadel enforces a password policy that requires uppercase, lowercase, digits, and at least one symbol. For example, use `SrdpTest123!` rather than `srdpTest123`.
+  - Replace these placeholder values in `values-prod.yaml`:
+    - `CHANGE_ME_POSTGRES_PASS`
+    - `CHANGE_ME_ZITADEL_DB_PASS`
+    - `CHANGE_ME_DAGSTER_DB_PASS`
+    - `CHANGE_ME_ZITADEL_MASTERKEY_32CHARS`
+    - `CHANGE_ME_ZITADEL_ADMIN_PASS`
+    - `CHANGE_ME_OAUTH_COOKIE_SECRET_32`
+    - `XXXXXXXXXXXXXXXXXX` and `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` for the OAuth2 client ID/secret
+- **Keep DB credentials aligned**:
+  - `CHANGE_ME_POSTGRES_PASS` must be used consistently for:
+    - `zitadel-db.auth.postgresPassword`
+    - `zitadel-db.primary.initdb.password`
+    - `zitadel.zitadel.secretConfig.Database.Postgres.Admin.Password`
+  - `CHANGE_ME_ZITADEL_DB_PASS` must be used consistently for:
+    - `zitadel-db.auth.password`
+    - `zitadel.zitadel.secretConfig.Database.Postgres.User.Password`
+  - `CHANGE_ME_DAGSTER_DB_PASS` must be used consistently for:
+    - the Dagster password inside `zitadel-db.primary.initdb.scripts`
+    - `dagster.postgresql.postgresqlPassword`
+- **Master key format**: ZITADEL expects a 32-character master key string. Generate one, for example, with `tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32`.
+- **Password complexity**: Zitadel's first human/admin password must include uppercase, lowercase, digits, and at least one symbol. For example, use `SrdpTest123!` rather than `srdpTest123`.
 
 The production values template enables PostgreSQL replication (`architecture: replication`) with a read replica. Daily backups via a CronJob are already configured in the base `values.yaml`.
 
@@ -115,7 +134,7 @@ just prod-full
 just prod-destroy
 ```
 
-This runs `prod-uninstall` first (which deletes the Traefik LoadBalancer service to release the Scaleway-managed LB, then removes jobs, PVCs, and the Helm release) before running `tofu destroy` to remove the cluster and network infrastructure.
+This runs `prod-uninstall` first (which deletes the Traefik LoadBalancer service to release the Scaleway-managed LB, uninstalls the Helm release, and only then removes leftover jobs/PVCs) before running `tofu destroy` to remove the cluster and network infrastructure.
 
 If you prefer manual commands:
 ```bash
@@ -123,8 +142,8 @@ If you prefer manual commands:
 export KUBECONFIG=kubernetes/opentofu/kubeconfig.yaml
 kubectl delete svc srdp-traefik -n srdp --ignore-not-found
 sleep 30
+helm uninstall srdp -n srdp
 kubectl delete jobs --all -n srdp
 kubectl delete pvc --all -n srdp
-helm uninstall srdp -n srdp
 cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 ```
