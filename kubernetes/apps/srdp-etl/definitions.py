@@ -9,6 +9,65 @@ from dagster import (
 )
 
 
+# In this deployment, Dagster uses the K8sRunLauncher. That means job-level
+# `dagster-k8s/config` tags customize the Kubernetes Job/Pod that executes the
+# run. Queue ordering is controlled separately by the `dagster/priority` tag.
+BASE_RUN_K8S_CONFIG = {
+    "container_config": {
+        "resources": {
+            "requests": {"cpu": "250m", "memory": "256Mi"},
+            "limits": {"cpu": "500m", "memory": "512Mi"},
+        }
+    },
+    "job_metadata": {
+        "labels": {
+            "workload": "etl",
+            "team": "data-platform",
+        }
+    },
+}
+
+FAST_LANE_K8S_CONFIG = {
+    **BASE_RUN_K8S_CONFIG,
+    "container_config": {
+        "resources": {
+            "requests": {"cpu": "500m", "memory": "512Mi"},
+            "limits": {"cpu": "1", "memory": "1Gi"},
+        }
+    },
+    "job_spec_config": {
+        "ttl_seconds_after_finished": 600,
+        "active_deadline_seconds": 900,
+    },
+    "job_metadata": {
+        "labels": {
+            "workload": "etl-fast-lane",
+            "team": "data-platform",
+        }
+    },
+}
+
+BACKFILL_K8S_CONFIG = {
+    **BASE_RUN_K8S_CONFIG,
+    "container_config": {
+        "resources": {
+            "requests": {"cpu": "750m", "memory": "1Gi"},
+            "limits": {"cpu": "2", "memory": "2Gi"},
+        }
+    },
+    "job_spec_config": {
+        "ttl_seconds_after_finished": 3600,
+        "active_deadline_seconds": 7200,
+    },
+    "job_metadata": {
+        "labels": {
+            "workload": "etl-backfill",
+            "team": "data-platform",
+        }
+    },
+}
+
+
 @asset
 def raw_orders() -> Output[pl.DataFrame]:
     """Simulated order data from an e-commerce platform."""
@@ -123,11 +182,43 @@ def executive_summary(
     )
 
 
-srdp_etl_job = define_asset_job("srdp_etl_job")
+srdp_etl_job = define_asset_job(
+    "srdp_etl_job",
+    tags={
+        "dagster-k8s/config": BASE_RUN_K8S_CONFIG,
+        "dagster/priority": "0",
+        "team": "data-platform",
+        "workload_kind": "scheduled-etl",
+    },
+)
+
+# Higher queue priority and a slightly larger pod for a small, user-facing run.
+executive_summary_job = define_asset_job(
+    "executive_summary_job",
+    selection=["executive_summary", "top_country"],
+    tags={
+        "dagster-k8s/config": FAST_LANE_K8S_CONFIG,
+        "dagster/priority": "5",
+        "team": "data-platform",
+        "workload_kind": "fast-lane",
+    },
+)
+
+# Lower queue priority for heavier ad hoc work so it yields to operational jobs.
+srdp_etl_backfill_job = define_asset_job(
+    "srdp_etl_backfill_job",
+    tags={
+        "dagster-k8s/config": BACKFILL_K8S_CONFIG,
+        "dagster/priority": "-2",
+        "team": "data-platform",
+        "workload_kind": "backfill",
+    },
+)
 
 etl_schedule = ScheduleDefinition(
     job=srdp_etl_job,
     cron_schedule="*/5 * * * *",
+    tags={"dagster/priority": "-1"},
 )
 
 defs = Definitions(
@@ -138,6 +229,6 @@ defs = Definitions(
         top_country,
         executive_summary,
     ],
-    jobs=[srdp_etl_job],
+    jobs=[srdp_etl_job, executive_summary_job, srdp_etl_backfill_job],
     schedules=[etl_schedule],
 )
