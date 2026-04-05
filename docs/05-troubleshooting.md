@@ -1,4 +1,10 @@
 # 5. Troubleshooting
+---
+title: 5. Troubleshooting
+icon: lucide/life-buoy
+---
+
+# Troubleshooting
 
 ### Ingress returns 404 or invalid cert
 - Make sure the TLS secret `custom-ingress-cert` exists in the `srdp` namespace (`kubectl get secret custom-ingress-cert -n srdp`).
@@ -57,3 +63,6 @@
 
 ### Traefik stuck in Init
 - The Traefik PVC is ReadWriteOnce; if an old pod still holds it, new pods stay in `Init` with a multi-attach warning. Delete the old Traefik pod (or the PVC if needed) so the new pod can mount `/data`.
+*   **Symptom:** Your Zitadel project and apps are missing after restarting the containers.
+*   **Cause:** You ran `docker compose down -v`, which removes all persistent volumes.
+*   **Solution:** Only use `docker compose down` to stop the containers. Do **not** use the `-v` flag unless you intend to reset all data.

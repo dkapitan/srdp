@@ -1,4 +1,9 @@
-# 1. Prerequisites
+---
+title: 1. Prerequisites
+icon: lucide/list-todo
+---
+
+# Prerequisites
 
 Before you begin, ensure you have the following software installed on your local machine. This guide assumes you have a basic understanding of using the command line.
 

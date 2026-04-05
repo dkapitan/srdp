@@ -1,4 +1,9 @@
-# References
+---
+title: 6. OSS Tool References
+icon: lucide/link
+---
+
+# OSS Tool References
 
 This document holds references to the sources used in the creation of this project.
 

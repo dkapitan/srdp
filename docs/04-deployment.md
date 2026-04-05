@@ -1,4 +1,10 @@
 # 4. Production Deployment on Scaleway Kapsule (OpenTofu + Helm)
+---
+title: 4. Cloud Deployment (GCP)
+icon: lucide/cloud-cog
+---
+
+# Cloud Deployment (GCP)
 
 This runbook uses OpenTofu to provision infrastructure and Helm to deploy the chart on Scaleway Kapsule (mutualized). All `just` commands should be run from the **repository root**. Steps that require manual commands specify their working directory explicitly.
 
@@ -147,3 +153,6 @@ kubectl delete jobs --all -n srdp
 kubectl delete pvc --all -n srdp
 cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 ```
+*   **Quarto Static Site:**
+    *   URL: `https://quarto.<your-public-domain>`
+    *   You should have access immediately without needing to log in again (Single Sign-On).

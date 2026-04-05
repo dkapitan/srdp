@@ -1,4 +1,9 @@
-# 2. Local Configuration & Setup
+---
+title: 2. Local Configuration & Setup
+icon: lucide/locate-fixed
+---
+
+# Local Configuration & Setup
 
 This guide will walk you through the steps to get the Single Repo Data Platform (SRDP) running on your local machine.
 
@@ -77,3 +82,4 @@ just local-deploy
 To re-run with updated values, run the same `helm upgrade` command (or `just local-deploy`).
 
 The chart deploys the full stack: Traefik, PostgreSQL (in-cluster via Bitnami Helm chart), Zitadel, OAuth2-Proxy, Dagster (webserver + daemon + user code), Marimo, and Quarto. PostgreSQL hosts both the `zitadel` and `dagster` databases, created automatically via `zitadel-db.primary.initdb.scripts`.
+**Congratulations! The local environment should now be up and running.** Proceed to the next section, **Usage & Verification**, to confirm that everything is working correctly.

@@ -1,3 +1,6 @@
+# OSX
+.DS_Store
+
 # Environment variables
 .env
 secrets.sh
@@ -5,6 +8,9 @@ secrets.sh
 # Local certificates and PAT for Zitadel
 certs/
 login-client.pat
+
+# Zensical build output
+site/
 
 # Terraform
 .terraform
@@ -15,3 +21,4 @@ kubeconfig.yaml
 # Kubernetes
 values-prod.yaml
 charts/
+

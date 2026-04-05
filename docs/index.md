@@ -1,4 +1,9 @@
-# 🦋 The Single Repo Data Platform (SRDP aka serendipity) 🦋
+---
+title: SRDP
+icon: lucide/rocket
+---
+
+# 🚀 The Single Repo Data Platform (SRDP aka serendipity) 🚀
 Because your data stack shouldn't require a PhD in Kubernetes and a second mortgage.
 
 Welcome, weary data traveler. You've stumbled upon something serendipitous, a quixotic quest to build a sane, powerful, and actually usable data platform from the best open-source components we can find. All from the comfort of a single Git repository.[^1]
@@ -6,6 +11,7 @@ Welcome, weary data traveler. You've stumbled upon something serendipitous, a qu
 What's the big idea? To stop gluing together 87 different services with YAML, duct tape, and desperate Stack Overflow searches at 3 AM. We're assembling a dream team of data tools that play nicely together, so you can spend less time wrangling infrastructure and more time doing... well, whatever it is you data people do. Probably making fancy charts.📊
 
 [^1]: We take inspiration from [Instant OpenHIE](https://openhie.github.io/instant/) project who have done the same for open source health information exchange platforms.
+
 ---
 
 ## The Dream Team: Our All-Star Roster
@@ -27,19 +33,4 @@ Here's the lineup of our chosen champions:
 
 ---
 
-## Documentation
-
-Full documentation is available at **[srdp-hub.github.io/srdp](https://srdp-hub.github.io/srdp/)**.
-
-**Preview locally:**
-```bash
-uvx zensical serve
-```
-Opens the site at `localhost:8000` with live reload.
-
-**Deployment:**
-Documentation is built with [Zensical](https://zensical.org/) and deployed automatically to GitHub Pages on every push to `main` via the [Build and deploy Documentation](.github/workflows/docs.yml) GitHub Actions workflow.
-
----
-
-![](architecture.png)
+![](../architecture.png)
