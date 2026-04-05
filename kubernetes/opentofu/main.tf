@@ -1,0 +1,170 @@
+# ----------------------------------------------------------------
+# Variables
+# ----------------------------------------------------------------
+variable "region" {
+  description = "Scaleway region"
+  type        = string
+  default     = "nl-ams"
+}
+
+variable "zone" {
+  description = "Scaleway zone"
+  type        = string
+  default     = "nl-ams-2"
+}
+
+variable "cluster_name" {
+  description = "Kubernetes cluster name"
+  type        = string
+  default     = "srdp-cluster"
+}
+
+terraform {
+  required_providers {
+    scaleway = {
+      source  = "scaleway/scaleway"
+      version = "~> 2.60"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+# Provider will automatically use these environment variables:
+# - SCW_ACCESS_KEY
+# - SCW_SECRET_KEY
+# - SCW_DEFAULT_PROJECT_ID
+provider "scaleway" {
+  # No credentials needed here - reads from env vars
+  zone   = var.zone
+  region = var.region
+}
+
+# ----------------------------------------------------------------
+# Registry - must be created through Scaleway Console beforehand
+# ----------------------------------------------------------------
+data "scaleway_registry_namespace" "srdp_registry" {
+  name = "srdp-registry"
+}
+
+data "scaleway_account_project" "current" {
+  # This automatically uses the SCW_DEFAULT_PROJECT_ID from your environment variables
+}
+
+# ----------------------------------------------------------------
+# Private Cloud (required for the private network)
+# ----------------------------------------------------------------
+resource "scaleway_vpc" "vpc01" {
+  name = "${var.cluster_name}-vpc"
+  tags = ["kubernetes", "srdp"]
+}
+
+# ----------------------------------------------------------------
+# Private Network (required for Kubernetes)
+# ----------------------------------------------------------------
+resource "scaleway_vpc_private_network" "k8s_network" {
+  name = "${var.cluster_name}-network"
+  tags = ["kubernetes", "srdp"]
+  vpc_id = scaleway_vpc.vpc01.id
+}
+
+# Security group for Traefik LoadBalancer traffic (inline rules)
+resource "scaleway_instance_security_group" "srdp_lb" {
+  name                   = "${var.cluster_name}-lb"
+  description            = "Allow HTTP/HTTPS to Traefik LB"
+  inbound_default_policy = "drop"
+
+  inbound_rule {
+    action   = "accept"
+    ip_range = "0.0.0.0/0"
+    protocol = "TCP"
+    port     = 80
+  }
+
+  inbound_rule {
+    action   = "accept"
+    ip_range = "0.0.0.0/0"
+    protocol = "TCP"
+    port     = 443
+  }
+}
+
+# ----------------------------------------------------------------
+# Kubernetes Cluster
+# ----------------------------------------------------------------
+resource "scaleway_k8s_cluster" "srdp_cluster" {
+  name = var.cluster_name
+  type = "kapsule"
+  version = "1.32.13"
+  cni = "cilium"
+  private_network_id = scaleway_vpc_private_network.k8s_network.id
+  delete_additional_resources = false
+  depends_on = [scaleway_vpc_private_network.k8s_network]
+}
+
+resource "scaleway_k8s_pool" "srdp_pool" {
+  cluster_id  = scaleway_k8s_cluster.srdp_cluster.id
+  name        = "${var.cluster_name}-default-pool"
+  node_type   = "PLAY2-MICRO"
+  size        = 2
+  min_size    = 1 # TODO: Maybe reduce to 0?
+  max_size    = 3
+  autoscaling = true
+  autohealing = true
+  wait_for_pool_ready = true
+  security_group_id = scaleway_instance_security_group.srdp_lb.id
+}
+
+# ----------------------------------------------------------------
+# Outputs
+# ----------------------------------------------------------------
+
+output "registry_endpoint" {
+  value       = data.scaleway_registry_namespace.srdp_registry.endpoint
+  description = "Container registry endpoint"
+}
+
+output "private_network_id" {
+  value       = scaleway_vpc_private_network.k8s_network.id
+  description = "Private Network ID for Kubernetes cluster"
+}
+
+output "cluster_id" {
+  value       = scaleway_k8s_cluster.srdp_cluster.id
+  description = "Kubernetes cluster ID"
+}
+
+output "cluster_status" {
+  value       = scaleway_k8s_cluster.srdp_cluster.status
+  description = "Kubernetes cluster status"
+}
+
+output "kubeconfig" {
+  value       = scaleway_k8s_cluster.srdp_cluster.kubeconfig[0].config_file
+  sensitive   = true
+  description = "Kubernetes configuration file content"
+}
+
+# ----------------------------------------------------------------
+# Instructions
+# ----------------------------------------------------------------
+output "instructions" {
+  value = <<-EOT
+
+  ========================================
+  Infrastructure Updated Successfully!
+  ========================================
+
+  1. Get Kubeconfig:
+     tofu output -raw kubeconfig > kubeconfig.yaml
+     export KUBECONFIG=./kubeconfig.yaml
+     kubectl get nodes
+
+  2. Registry:
+     ${data.scaleway_registry_namespace.srdp_registry.endpoint}
+
+  3. Deploy:
+     just prod-full
+
+  ========================================
+  EOT
+}

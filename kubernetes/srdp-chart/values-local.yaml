@@ -1,0 +1,73 @@
+traefik:
+  service:
+    type: LoadBalancer
+  ports:
+    web:
+      nodePort: null
+    websecure:
+      nodePort: null
+  tlsStore:
+    default:
+      defaultCertificate:
+        secretName: custom-ingress-cert
+
+zitadel-db:
+  auth:
+    postgresPassword: "srdpTest123"
+  primary:
+    # Local Docker Desktop can be noisy; relax probes to avoid unnecessary restarts.
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 120
+      periodSeconds: 20
+      timeoutSeconds: 10
+      failureThreshold: 12
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 12
+
+zitadel:
+  zitadel:
+    masterkey: "51a69a373f45c60d2ae08c48bb89d03e" # Must be 32 chars
+    secretConfig:
+      Database:
+        Postgres:
+          User:
+            Password: srdpTest123
+          Admin:
+            Password: srdpTest123
+  # Source: https://github.com/zitadel/zitadel/issues/11163
+  login:
+    customConfigmapConfig: |
+      ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+      ZITADEL_API_URL="http://srdp-zitadel:8080"
+      CUSTOM_REQUEST_HEADERS="Host:auth.local.dev,X-Zitadel-Public-Host:auth.local.dev"
+
+oauth2-proxy:
+  config:
+    clientID: "362914460869919313"
+    clientSecret: "6wdizcEbBnztdVvVoFwbSzHBfWYdBJshIOP6VlsxrDe5c1zSUQMvgDa6PfnA24BT"
+    cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE"
+
+# Local overrides: use locally-built images (no registry pull)
+marimo:
+  image:
+    pullPolicy: Never
+
+quarto:
+  image:
+    pullPolicy: Never
+
+dagster:
+  dagster-user-deployments:
+    deployments:
+      - name: srdp-etl
+        image:
+          repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-etl
+          tag: "v1.0"
+          pullPolicy: Never
+        dagsterApiGrpcArgs: ["-m", "definitions"]
+        port: 3030

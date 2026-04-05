@@ -1,0 +1,36 @@
+{{- if .Values.marimo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marimo
+  labels:
+    app: marimo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: marimo
+  template:
+    metadata:
+      labels:
+        app: marimo
+    spec:
+      containers:
+        - name: marimo
+          image: "{{ .Values.marimo.image.repository }}:{{ .Values.marimo.image.tag }}"
+          imagePullPolicy: {{ .Values.marimo.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marimo
+spec:
+  selector:
+    app: marimo
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+{{- end }}

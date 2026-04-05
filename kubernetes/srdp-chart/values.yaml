@@ -1,0 +1,235 @@
+# Global settings
+global:
+  domain: "local.dev"
+
+# Traefik
+traefik:
+  enabled: true
+  service:
+    spec:
+      clusterIP: 10.96.0.50
+  ports:
+    web:
+      nodePort: 30080
+    websecure:
+      nodePort: 30443
+
+# Local PostgreSQL
+zitadel-db:
+  enabled: true
+  fullnameOverride: "db-postgresql"
+  auth:
+    database: zitadel
+    postgresPassword: "srdpTest123"
+    username: zitadel
+    password: srdpTest123
+  image:
+    repository: bitnami/postgresql
+  metrics:
+    image:
+      repository: bitnami/postgres-exporter
+  primary:
+    initdb:
+      user: postgres
+      password: srdpTest123
+      scripts:
+        01-create-dagster.sql: |
+          CREATE USER dagster WITH PASSWORD 'srdpTest123';
+          CREATE DATABASE dagster OWNER dagster;
+          GRANT ALL PRIVILEGES ON DATABASE dagster TO dagster;
+    persistence:
+      enabled: true
+      size: 4Gi
+  volumePermissions:
+    enabled: true
+    image:
+      repository: bitnami/os-shell
+  tls:
+    enabled: true
+    certificatesSecret: postgres-cert
+    certFilename: "tls.crt"
+    certKeyFilename: "tls.key"
+  backup:
+    enabled: true
+    cronjob:
+      schedule: "0 2 * * *"
+      storage:
+        size: 8Gi
+        resourcePolicy: "keep"
+
+# Zitadel auth service
+zitadel:
+  enabled: true
+  zitadel:
+    masterkey: "51a69a373f45c60d2ae08c48bb89d03e" # Must be 32 characaters
+    secretConfig:
+      Database:
+        Postgres:
+          User:
+            Password: srdpTest123
+          Admin:
+            Password: srdpTest123
+    configmapConfig:
+      ExternalDomain: auth.local.dev
+      ExternalPort: 443
+      TLS:
+        Enabled: false
+      FirstInstance:
+        Org:
+          Human:
+            Password: "srdpTest123!"
+            PasswordChangeRequired: false
+      Database:
+        Postgres:
+          Host: db-postgresql
+          Port: 5432
+          Database: zitadel
+          User:
+            Username: zitadel
+            SSL:
+              Mode: verify-full
+          Admin:
+            Username: postgres
+            SSL:
+              Mode: verify-full
+    dbSslCaCrtSecret: postgres-cert
+    dbSslAdminCrtSecret: postgres-cert
+    dbSslUserCrtSecret: zitadel-cert
+  image:
+    tag: "v4.11.1"
+
+  ingress:
+    enabled: false
+
+  login:
+    enabled: true
+    ingress:
+      enabled: false
+    image:
+      tag: "v4.11.1"
+
+  initJob:
+    annotations:
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-weight": "-5"
+      "helm.sh/hook-delete-policy": before-hook-creation
+    activeDeadlineSeconds: 900
+    initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            echo "Waiting for PostgreSQL at db-postgresql:5432..."
+            until nc -z -v -w 2 db-postgresql 5432; do
+              echo "Waiting for DB..." 
+              sleep 2; 
+            done
+            echo "PostgreSQL is up!"
+
+  setupJob:
+    annotations:
+      "helm.sh/hook": post-install,post-upgrade
+      "helm.sh/hook-weight": "5"
+      "helm.sh/hook-delete-policy": before-hook-creation
+    activeDeadlineSeconds: 900
+    initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            echo "Waiting for PostgreSQL at db-postgresql:5432..."
+            until nc -z -v -w 2 db-postgresql 5432; do
+              echo "Waiting for DB..." 
+              sleep 2; 
+            done
+            echo "PostgreSQL is up!"
+
+# O-Auth2 Proxy
+oauth2-proxy:
+  enabled: true
+  config:
+    clientID: "348868471498539436"
+    clientSecret: "VQMve4Thh857uplEKmN5nlcgSedaGyYQySSDYyoMgfk4d1PS8k6zUDSdhOdo3IVW"
+    cookieSecret: "VcZnfAWYCgMfNjRLvM1byUaAUs2jSvSE" # Must be 32 characters
+
+  service:
+    portNumber: 80
+
+  extraArgs:
+    skip-provider-button: "true"
+    http-address: "0.0.0.0:4180" 
+    cookie-secure: "false" 
+    cookie-domain: ".local.dev"
+    whitelist-domain: ".local.dev"
+    cookie-samesite: "lax"
+    cookie-expire: "168h"
+    provider: "oidc"
+    provider-display-name: "ZITADEL"
+    oidc-issuer-url: "https://auth.local.dev"
+    insecure-oidc-skip-issuer-verification: "true"
+    ssl-insecure-skip-verify: "true"
+    email-domain: "*"
+    upstream: "file:///dev/null"
+    reverse-proxy: "true"
+
+  customRequestHeaders:
+    - "Host:auth.local.dev"
+    - "X-Forwarded-Proto:https"
+  
+  hostAliases:
+    - ip: "10.96.0.50"
+      hostnames:
+        - "auth.local.dev"
+
+# Dagster orchestration
+dagster:
+  enabled: true
+  ingress:
+    enabled: false
+  postgresql:
+    enabled: false
+    postgresqlHost: db-postgresql
+    postgresqlUsername: dagster
+    postgresqlPassword: srdpTest123
+    postgresqlDatabase: dagster
+    service:
+      port: 5432
+  runLauncher:
+    type: K8sRunLauncher
+    config:
+      k8sRunLauncher:
+        loadInclusterConfig: true
+        imagePullPolicy: IfNotPresent
+  dagster-user-deployments:
+    enabled: true
+    enableSubchart: true
+    deployments:
+      - name: srdp-etl
+        image:
+          repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-etl
+          tag: "v1.0"
+          pullPolicy: IfNotPresent
+        dagsterApiGrpcArgs:
+          - "-m"
+          - "definitions"
+        port: 3030
+
+# Marimo app
+marimo:
+  enabled: true
+  image:
+    repository: rg.nl-ams.scw.cloud/srdp-registry/marimo
+    tag: "v1.0"
+    pullPolicy: IfNotPresent
+
+# Quarto app
+quarto:
+  enabled: true
+  image:
+    repository: rg.nl-ams.scw.cloud/srdp-registry/quarto
+    tag: "v1.0"
+    pullPolicy: IfNotPresent

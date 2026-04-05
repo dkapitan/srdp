@@ -1,0 +1,208 @@
+# Global settings
+global:
+  domain: "LOAD_BALANCER_IP.nip.io" # CHANGE THIS to the dedicated domain
+
+# Traefik
+traefik:
+  service:
+    spec:
+      type: LoadBalancer
+      clusterIP: ""
+
+  podSecurityContext:
+    fsGroup: 65532
+    runAsGroup: 65532
+    runAsNonRoot: true
+    runAsUser: 65532
+  
+  # Enable Let's Encrypt ACME
+  certResolver: "le"
+  additionalArguments:
+    - "--certificatesresolvers.le.acme.tlschallenge=true"
+    - "--certificatesresolvers.le.acme.email=john@doe.com" # CHANGE THIS
+    - "--certificatesresolvers.le.acme.storage=/data/acme.json"
+
+  deployment:
+    initContainers:
+      - name: fix-acme-perms
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            if [ -f /data/acme.json ]; then
+              chmod 600 /data/acme.json
+            fi
+        volumeMounts:
+          - name: data
+            mountPath: /data
+  
+  # Persistence for certificates (so they survive pod restarts)
+  persistence:
+    enabled: true
+    path: /data
+    size: 1Gi
+
+# In-cluster PostgreSQL with replication
+zitadel-db:
+  enabled: true
+  architecture: replication
+
+  auth:
+    # Keep PostgreSQL admin/user passwords aligned with:
+    # - zitadel.zitadel.secretConfig.Database.Postgres
+    # - zitadel-db.primary.initdb.password
+    postgresPassword: "CHANGE_ME_POSTGRES_PASS"
+    password: "CHANGE_ME_ZITADEL_DB_PASS"
+
+  primary:
+    initdb:
+      user: postgres
+      password: "CHANGE_ME_POSTGRES_PASS"
+      scripts:
+        01-create-dagster.sql: |
+          CREATE USER dagster WITH PASSWORD 'CHANGE_ME_DAGSTER_DB_PASS';
+          CREATE DATABASE dagster OWNER dagster;
+          GRANT ALL PRIVILEGES ON DATABASE dagster TO dagster;
+
+  readReplicas:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 4Gi
+
+  backup:
+    enabled: true
+    cronjob:
+      schedule: "0 2 * * *"
+      storage:
+        size: 8Gi
+        resourcePolicy: "keep"
+
+# Zitadel auth service
+zitadel:
+  zitadel:
+    masterkey: "CHANGE_ME_ZITADEL_MASTERKEY_32CHARS" # CHANGE THIS, must be 32 characters
+    secretConfig:
+      Database:
+        Postgres:
+          User:
+            Password: "CHANGE_ME_ZITADEL_DB_PASS" # CHANGE THIS
+          Admin:
+            Password: "CHANGE_ME_POSTGRES_PASS" # CHANGE THIS
+    configmapConfig:
+      ExternalDomain: "auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS (must match global.domain)
+      ExternalPort: 443
+      TLS:
+        Enabled: false
+      Database:
+        Postgres:
+          Host: "db-postgresql-primary"
+          Port: 5432
+          Database: "zitadel"
+          User:
+            Username: "zitadel"
+            SSL:
+              Mode: verify-full
+          Admin:
+            Username: "postgres"
+            SSL:
+              Mode: verify-full
+      FirstInstance:
+        Org:
+          Human:
+            UserName: zitadel-admin
+            Email:
+              Address: zitadel-admin@auth.LOAD_BALANCER_IP.nip.io
+              Verified: true
+            Password: "CHANGE_ME_ZITADEL_ADMIN_PASS" # CHANGE THIS
+            PasswordChangeRequired: false
+    dbSslCaCrtSecret: postgres-cert
+    dbSslAdminCrtSecret: postgres-cert
+    dbSslUserCrtSecret: zitadel-cert
+
+  initJob:
+    initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            echo "Waiting for PostgreSQL at db-postgresql-primary:5432..."
+            until nc -z -v -w 2 db-postgresql-primary 5432; do
+              echo "Waiting for DB..."
+              sleep 2;
+            done
+            echo "PostgreSQL is up!"
+
+  setupJob:
+    initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            echo "Waiting for PostgreSQL at db-postgresql-primary:5432..."
+            until nc -z -v -w 2 db-postgresql-primary 5432; do
+              echo "Waiting for DB..."
+              sleep 2;
+            done
+            echo "PostgreSQL is up!"
+
+  # Source: https://github.com/zitadel/zitadel/issues/11163
+  login:
+    customConfigmapConfig: |
+      ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+      ZITADEL_API_URL="http://srdp-zitadel:8080"
+      CUSTOM_REQUEST_HEADERS="Host:auth.LOAD_BALANCER_IP.nip.io,X-Zitadel-Public-Host:auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS
+
+# O-Auth2 Proxy
+oauth2-proxy:
+  config:
+    clientID: "XXXXXXXXXXXXXXXXXX" # CHANGE THIS
+    clientSecret: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" # CHANGE THIS
+    # Generate a random string: python3 -c 'import os,base64; print(base64.b64encode(os.urandom(16)).decode())'
+    cookieSecret: "CHANGE_ME_OAUTH_COOKIE_SECRET_32" # Must be 32 characters
+  
+  extraArgs:
+    cookie-domain: ".LOAD_BALANCER_IP.nip.io" # CHANGE THIS
+    whitelist-domain: ".LOAD_BALANCER_IP.nip.io" # CHANGE THIS
+    oidc-issuer-url: "https://auth.LOAD_BALANCER_IP.nip.io" # CHANGE THIS
+    cookie-secure: "false"
+  
+  customRequestHeaders:
+    - "Host:auth.LOAD_BALANCER_IP.nip.io"
+  
+  # Remove hardcoded local aliases
+  hostAliases: []
+
+# Marimo app
+marimo:
+  enabled: true
+
+# Quarto app
+quarto:
+  enabled: true
+
+# Dagster app
+dagster:
+  enabled: true
+  postgresql:
+    enabled: false
+    postgresqlHost: db-postgresql-primary
+    postgresqlUsername: dagster
+    postgresqlPassword: "CHANGE_ME_DAGSTER_DB_PASS"
+    postgresqlDatabase: dagster
+  dagster-user-deployments:
+    deployments:
+      - name: srdp-etl
+        image:
+          repository: "rg.nl-ams.scw.cloud/srdp-registry/srdp-etl"
+          tag: "v1.0"
+          pullPolicy: IfNotPresent
+        dagsterApiGrpcArgs:
+          - "-m"
+          - "definitions"
+        port: 3030

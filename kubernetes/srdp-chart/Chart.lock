@@ -1,0 +1,18 @@
+dependencies:
+- name: traefik
+  repository: https://traefik.github.io/charts
+  version: 37.4.0
+- name: zitadel
+  repository: https://charts.zitadel.com
+  version: 9.13.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.1.11
+- name: oauth2-proxy
+  repository: https://oauth2-proxy.github.io/manifests
+  version: 9.0.0
+- name: dagster
+  repository: https://dagster-io.github.io/helm
+  version: 1.12.17
+digest: sha256:7b462a27667503bcc4909fb0edcaa4207cd362032e7ace3d1932f98fb879a9ae
+generated: "2026-03-03T15:57:11.2917948+01:00"

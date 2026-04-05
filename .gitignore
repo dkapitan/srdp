@@ -1,5 +1,9 @@
+# OSX
+.DS_Store
+
 # Environment variables
 .env
+secrets.sh
 
 # Local certificates and PAT for Zitadel
 certs/
@@ -12,4 +16,9 @@ site/
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
-.DS_Store
+kubeconfig.yaml
+
+# Kubernetes
+values-prod.yaml
+charts/
+

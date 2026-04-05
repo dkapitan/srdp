@@ -1,0 +1,226 @@
+{{- if and (index .Values "oauth2-proxy" "enabled") (or .Values.marimo.enabled .Values.quarto.enabled .Values.dagster.enabled) }}
+# Middlewares
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth-auth
+  namespace: {{ .Release.Namespace }}
+spec:
+  forwardAuth:
+    address: "http://srdp-oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local:80/oauth2/auth"
+    trustForwardHeader: true
+    authResponseHeaders:
+      - "X-Auth-Request-User"
+      - "X-Auth-Request-Email"
+      - "X-Auth-Request-Token"
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: oauth-errors
+  namespace: {{ .Release.Namespace }}
+spec:
+  errors:
+    status:
+      - "401-403"
+    service:
+      name: srdp-oauth2-proxy
+      port: 80
+    query: "/oauth2/sign_in"
+    statusRewrites:
+      "401": 302
+
+---
+# Public Auth Routes
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-routes-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+{{- if .Values.marimo.enabled }}
+        - marimo.{{ .Values.global.domain }}
+{{- end }}
+{{- if .Values.quarto.enabled }}
+        - quarto.{{ .Values.global.domain }}
+{{- end }}
+{{- if .Values.dagster.enabled }}
+        - dagster.{{ .Values.global.domain }}
+{{- end }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: {{ .Values.global.domain | replace "." "-" }}-tls
+      {{- else }}
+      secretName: custom-ingress-cert
+      {{- end }}
+  rules:
+{{- if .Values.marimo.enabled }}
+    - host: marimo.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: srdp-oauth2-proxy
+                port:
+                  number: 80
+{{- end }}
+{{- if .Values.quarto.enabled }}
+    - host: quarto.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: srdp-oauth2-proxy
+                port:
+                  number: 80
+{{- end }}
+{{- if .Values.dagster.enabled }}
+    - host: dagster.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: srdp-oauth2-proxy
+                port:
+                  number: 80
+{{- end }}
+
+{{- if .Values.marimo.enabled }}
+---
+# Protected Marimo Routes
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: marimo-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - marimo.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: marimo-tls-prod
+      {{- else }}
+      secretName: custom-ingress-cert
+      {{- end }}
+  rules:
+    - host: marimo.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: marimo
+                port:
+                  number: 80
+{{- end }}
+
+{{- if .Values.quarto.enabled }}
+---
+# Protected Quarto Routes
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quarto-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - quarto.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: quarto-tls-prod
+      {{- else }}
+      secretName: custom-ingress-cert
+      {{- end }}
+  rules:
+    - host: quarto.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quarto
+                port:
+                  number: 80
+{{- end }}
+
+{{- if .Values.dagster.enabled }}
+---
+# Protected Dagster UI Routes
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dagster-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - dagster.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: dagster-tls-prod
+      {{- else }}
+      secretName: custom-ingress-cert
+      {{- end }}
+  rules:
+    - host: dagster.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-dagster-webserver
+                port:
+                  number: 80
+---
+# Dagster API/Websocket Routes
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dagster-graphql-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    # Keep auth protection but avoid 302 error-rewrite behavior on API/websocket requests.
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-auth@kubernetescrd
+spec:
+  ingressClassName: srdp-traefik
+  tls:
+    - hosts:
+        - dagster.{{ .Values.global.domain }}
+      {{- if .Values.traefik.certResolver }}
+      secretName: dagster-tls-prod
+      {{- else }}
+      secretName: custom-ingress-cert
+      {{- end }}
+  rules:
+    - host: dagster.{{ .Values.global.domain }}
+      http:
+        paths:
+          - path: /graphql
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-dagster-webserver
+                port:
+                  number: 80
+{{- end }}
+{{- end }}
