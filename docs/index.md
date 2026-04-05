@@ -1,14 +1,14 @@
 ---
 title: SRDP
-icon: lucide/rocket
+icon: material/butterfly-outline
 ---
 
-# 🚀 The Single Repo Data Platform (SRDP aka serendipity) 🚀
+# The Single Repo Data Platform (SRDP aka the serendipitious data platform)
 Because your data stack shouldn't require a PhD in Kubernetes and a second mortgage.
 
 Welcome, weary data traveler. You've stumbled upon something serendipitous, a quixotic quest to build a sane, powerful, and actually usable data platform from the best open-source components we can find. All from the comfort of a single Git repository.[^1]
 
-What's the big idea? To stop gluing together 87 different services with YAML, duct tape, and desperate Stack Overflow searches at 3 AM. We're assembling a dream team of data tools that play nicely together, so you can spend less time wrangling infrastructure and more time doing... well, whatever it is you data people do. Probably making fancy charts.📊
+What's the big idea? To stop gluing together 87 different services with YAML, duct tape, and desperate Stack Overflow searches at 3 AM. We're assembling a dream team of data tools that play nicely together, so you can spend less time wrangling infrastructure and more time doing... well, whatever it is you data people do. Probably making fancy charts.
 
 [^1]: We take inspiration from [Instant OpenHIE](https://openhie.github.io/instant/) project who have done the same for open source health information exchange platforms.
 
@@ -33,4 +33,4 @@ Here's the lineup of our chosen champions:
 
 ---
 
-![](../architecture.png)
+![](images/architecture.png)

@@ -42,4 +42,4 @@ Documentation is built with [Zensical](https://zensical.org/) and deployed autom
 
 ---
 
-![](architecture.png)
+![](./docs/iamges/architecture.png)
