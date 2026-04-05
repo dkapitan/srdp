@@ -1,4 +1,4 @@
-# 🚀 The Single Repo Data Platform (SRDP aka serendipity) 🚀
+# 🦋 The Single Repo Data Platform (SRDP aka serendipity) 🦋
 Because your data stack shouldn't require a PhD in Kubernetes and a second mortgage.
 
 Welcome, weary data traveler. You've stumbled upon something serendipitous, a quixotic quest to build a sane, powerful, and actually usable data platform from the best open-source components we can find. All from the comfort of a single Git repository.[^1]
