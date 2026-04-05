@@ -15,11 +15,11 @@ echo "Target Registry: $REGISTRY"
 echo "Version: $VERSION"
 
 echo "Building Marimo..."
-docker build --platform linux/amd64 -t "$REGISTRY/marimo:$VERSION" "$REPO_ROOT/local/apps/marimo"
+docker build --platform linux/amd64 -t "$REGISTRY/marimo:$VERSION" "$REPO_ROOT/docker/apps/marimo"
 docker push "$REGISTRY/marimo:$VERSION"
 
 echo "Building Quarto..."
-docker build --platform linux/amd64 -t "$REGISTRY/quarto:$VERSION" "$REPO_ROOT/local/apps/quarto"
+docker build --platform linux/amd64 -t "$REGISTRY/quarto:$VERSION" "$REPO_ROOT/docker/apps/quarto"
 docker push "$REGISTRY/quarto:$VERSION"
 
 echo "Building SRDP ETL (Dagster user code)..."

@@ -42,7 +42,7 @@ echo "--- Phase 3: Cloning Repository and Configuring Application ---"
 git clone "${REPO_URL}" "/opt/app"
 cd "/opt/app"
 git checkout dev
-cd "local"
+cd "docker"
 
 
 

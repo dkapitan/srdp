@@ -52,8 +52,8 @@ just local-tls
 The Helm chart references three application images. For local development the pull policy is set to `Never`, so the images must exist in your local Docker/containerd cache:
 
 ```bash
-docker build -t rg.nl-ams.scw.cloud/srdp-registry/marimo:v1.0 local/apps/marimo
-docker build -t rg.nl-ams.scw.cloud/srdp-registry/quarto:v1.0 local/apps/quarto
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/marimo:v1.0 docker/apps/marimo
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/quarto:v1.0 docker/apps/quarto
 docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 kubernetes/apps/srdp-etl
 ```
 

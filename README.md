@@ -30,6 +30,51 @@ Here's the lineup of our chosen champions:
 
 ---
 
+## Deployment Targets
+
+SRDP ships deployment scripts for two targets.
+
+### Docker Compose
+
+Located in `docker/`, this stack runs SRDP via Docker compose, but without Dagster. This was the first iteration of SRDP, focusing on the integration of Traefik and Zitadel.
+
+| File | Purpose |
+|:---|:---|
+| `docker/docker-compose.yml` | Main Compose definition for all services |
+| `docker/docker-compose.override.yml` | Local TLS: mounts self-signed mkcert certificates into Traefik |
+| `docker/docker-compose.prod.yml` | Production override: switches Traefik to Let's Encrypt ACME for TLS |
+| `docker/.env.example` | Template for required environment variables (secrets, OIDC client config) |
+| `docker/traefik/traefik.yml` | Traefik static configuration (entrypoints, TLS, ACME, dashboard) |
+
+An OpenTofu script is provided in `docker/opentofu/gcp/` to deploy this Docker
+Compose stack to a **Google Cloud Compute Engine** VM. It provisions a Debian
+`e2-medium` instance with a static IP and firewall rules for ports 80 and 443,
+then bootstraps Docker and Docker Compose via a startup script that clones the
+repository, injects secrets, and starts the production Compose stack with
+Let's Encrypt TLS.
+
+### Kubernetes + OpenTofu
+
+Located in `kubernetes/`, this target deploys the full platform on a managed
+Kubernetes cluster. Infrastructure is provisioned with [OpenTofu](https://opentofu.org/);
+applications are deployed via a Helm umbrella chart.
+
+| Directory / File | Purpose |
+|:---|:---|
+| `kubernetes/opentofu/` | OpenTofu configuration to provision a **Scaleway Kapsule** managed Kubernetes cluster, VPC, autoscaling node pool, and container registry |
+| `kubernetes/srdp-chart/` | Helm umbrella chart bundling Traefik, Zitadel, PostgreSQL, OAuth2-Proxy, and Dagster as upstream dependencies, plus custom templates for Marimo, Quarto, and TLS certificate bootstrapping |
+| `kubernetes/apps/srdp-etl/` | Dagster user code deployment (assets, jobs, schedules) built as a separate container image |
+
+A `Justfile` at the repository root provides convenience commands for both targets:
+
+```bash
+just local-deploy    # Deploy to a local Kubernetes cluster (e.g. kind/k3s)
+just prod-full       # Full production deploy on Scaleway
+just prod-apply      # Provision Scaleway infrastructure with OpenTofu
+```
+
+---
+
 ## Documentation
 
 Full documentation is available at **[srdp-hub.github.io/srdp](https://srdp-hub.github.io/srdp/)**.
