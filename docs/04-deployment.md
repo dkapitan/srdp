@@ -1,6 +1,5 @@
-# 4. Production Deployment on Scaleway Kapsule (OpenTofu + Helm)
 ---
-title: 4. Cloud Deployment (GCP)
+title: 4. Cloud Deployment
 icon: lucide/cloud-cog
 ---
 
@@ -18,6 +17,7 @@ OpenTofu creates the following resources on Scaleway (nl-ams region):
 PostgreSQL runs **in-cluster** via the Bitnami Helm chart (not as a Scaleway managed database). The container registry (`srdp-registry`) must be created beforehand via the Scaleway Console.
 
 ## 1) Prepare cloud credentials
+
 - Copy `kubernetes/opentofu/secrets.sh.example` to `kubernetes/opentofu/secrets.sh` and fill in your Scaleway credentials (SCW_ACCESS_KEY, SCW_SECRET_KEY, SCW_DEFAULT_PROJECT_ID).
 - Load them before running OpenTofu:
   ```bash
@@ -26,6 +26,7 @@ PostgreSQL runs **in-cluster** via the Bitnami Helm chart (not as a Scaleway man
   ```
 
 ## 2) Build and push container images
+
 Run the build script after sourcing credentials (it logs into the Scaleway registry):
 ```bash
 cd kubernetes/opentofu
@@ -35,6 +36,7 @@ source ./secrets.sh
 This builds and pushes Marimo, Quarto, and srdp-etl (Dagster user code) to `rg.nl-ams.scw.cloud/srdp-registry`.
 
 ## 3) Provision infrastructure with OpenTofu
+
 ```bash
 cd kubernetes/opentofu
 tofu init -upgrade        # first run only, from kubernetes/opentofu/
@@ -43,11 +45,13 @@ just prod-apply
 ```
 
 ## 4) Export kubeconfig
+
 ```bash
 just prod-use-kubeconfig   # from repo root
 ```
 
 ## 5) Prepare production Helm values
+
 - Copy `kubernetes/srdp-chart/values-prod.example.yaml` to `kubernetes/srdp-chart/values-prod.yaml` if you are starting fresh.
 - Fill in:
   - `global.domain` and `oauth2-proxy` cookie/whitelist domains (use a real domain or `<lb-ip>.nip.io` once you know the load balancer IP).
@@ -80,15 +84,18 @@ The production values template enables PostgreSQL replication (`architecture: re
 ## 6) Deploy with Helm (staged rollout)
 
 ### A. Bring up Traefik only (to get the LB IP)
+
 ```bash
 just prod-traefik-only
 ```
 
 ### B. Update domains once the LB IP exists
+
 ```bash
 just prod-get-values      # prints LOAD_BALANCER_IP
 ```
 Replace every occurrence of the old LB IP in `values-prod.yaml` with `<LB_IP>.nip.io`. The fields that contain it are:
+
 - `global.domain`
 - `zitadel.zitadel.configmapConfig.ExternalDomain`
 - `zitadel.zitadel.configmapConfig.firstInstance.org.human.email.address` (the `zitadel-admin@auth.…` address)
@@ -96,11 +103,13 @@ Replace every occurrence of the old LB IP in `values-prod.yaml` with `<LB_IP>.ni
 - `oauth2-proxy.extraArgs`: `cookie-domain`, `whitelist-domain`, `oidc-issuer-url`, and the `Host:auth.…` header
 
 ### C. Enable Zitadel + OAuth2-Proxy
+
 ```bash
 just prod-auth-only
 ```
 
 ### D. Configure Zitadel apps
+
 - In Zitadel (`https://auth.<LB_IP>.nip.io/`), create OIDC apps for Marimo, Quarto, and Dagster with redirect URIs:
   - `https://marimo.<LB_IP>.nip.io/oauth2/callback`
   - `https://quarto.<LB_IP>.nip.io/oauth2/callback`
@@ -108,6 +117,7 @@ just prod-auth-only
 - Copy the client ID/secret into `values-prod.yaml` (oauth2-proxy config section).
 
 ### E. Final deploy with all apps enabled
+
 ```bash
 just prod-full
 ```
@@ -143,6 +153,7 @@ just prod-destroy
 This runs `prod-uninstall` first (which deletes the Traefik LoadBalancer service to release the Scaleway-managed LB, uninstalls the Helm release, and only then removes leftover jobs/PVCs) before running `tofu destroy` to remove the cluster and network infrastructure.
 
 If you prefer manual commands:
+
 ```bash
 # Delete the LB service first (Scaleway LB must be released before the private network can be destroyed)
 export KUBECONFIG=kubernetes/opentofu/kubeconfig.yaml
@@ -153,6 +164,7 @@ kubectl delete jobs --all -n srdp
 kubectl delete pvc --all -n srdp
 cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 ```
+
 *   **Quarto Static Site:**
     *   URL: `https://quarto.<your-public-domain>`
     *   You should have access immediately without needing to log in again (Single Sign-On).

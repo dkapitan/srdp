@@ -17,10 +17,12 @@ cd srdp
 ## 2) Point DNS at your cluster
 
 The chart uses `*.local.dev` by default. Point those hostnames at the IP you will use to reach Traefik:
+
 - For NodePort/local clusters: `127.0.0.1` is usually fine.
 - For a LoadBalancer: use the external IP once Traefik comes up.
 
 Add one line to your hosts file:
+
 ```
 127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev dagster.local.dev
 ```
@@ -28,6 +30,7 @@ Add one line to your hosts file:
 ## 3) Create a local TLS secret
 
 Generate a certificate for the local domains and create the secret that the Helm chart expects.
+
 ```bash
 mkdir -p kubernetes/certs
 mkcert -cert-file kubernetes/certs/selfsigned.crt -key-file kubernetes/certs/selfsigned.key \
@@ -60,6 +63,7 @@ docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 kubernetes/apps/
 ## 5) Fill in secrets and local values
 
 Update `kubernetes/srdp-chart/values-local.yaml` before installing:
+
 - set your own Zitadel master key, DB passwords, OAuth2 client values, and cookie secret
 - keep `custom-ingress-cert` (created above) or point to another TLS secret if you prefer.
 
