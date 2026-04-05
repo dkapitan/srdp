@@ -29,6 +29,7 @@ prod-apply:
 	cd kubernetes/opentofu && source ./secrets.sh && tofu apply -auto-approve
 
 prod-destroy:
+	just prod-uninstall || echo "Helm uninstall skipped (cluster may already be down)"
 	cd kubernetes/opentofu && source ./secrets.sh && tofu destroy -auto-approve
 
 prod-use-kubeconfig:
@@ -43,13 +44,13 @@ prod-traefik-only:
 	cd kubernetes && \
 		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
 		export KUBECONFIG="{{kubeconfig}}"; \
-		helm upgrade --install srdp srdp-chart --namespace {{namespace}} --create-namespace -f srdp-chart/values-prod.yaml --set zitadel.enabled=false --set oauth2-proxy.enabled=false --set marimo.enabled=false --set quarto.enabled=false
+		helm upgrade --install srdp srdp-chart --namespace {{namespace}} --create-namespace -f srdp-chart/values-prod.yaml --set zitadel.enabled=false --set oauth2-proxy.enabled=false --set dagster.enabled=false --set marimo.enabled=false --set quarto.enabled=false
 
 prod-auth-only:
 	cd kubernetes && \
 		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
 		export KUBECONFIG="{{kubeconfig}}"; \
-		helm upgrade srdp srdp-chart --namespace {{namespace}} --reset-values -f srdp-chart/values-prod.yaml --set zitadel.enabled=true --set oauth2-proxy.enabled=true --set marimo.enabled=false --set quarto.enabled=false
+		helm upgrade srdp srdp-chart --namespace {{namespace}} --reset-values -f srdp-chart/values-prod.yaml --set zitadel.enabled=true --set oauth2-proxy.enabled=true --set dagster.enabled=false --set marimo.enabled=false --set quarto.enabled=false
 
 prod-full:
 	cd kubernetes && \
@@ -61,6 +62,9 @@ prod-uninstall:
 	cd kubernetes && \
 		if [ ! -f "{{kubeconfig}}" ]; then echo "kubeconfig not found, run 'just prod-use-kubeconfig' first"; exit 1; fi; \
 		export KUBECONFIG="{{kubeconfig}}"; \
-		kubectl delete jobs --all -n {{namespace}} && \
-		kubectl delete pvc --all -n {{namespace}} && \
-		helm uninstall srdp -n {{namespace}} || true
+		echo "Deleting LoadBalancer service (releases Scaleway LB)..." && \
+		kubectl delete svc srdp-traefik -n {{namespace}} --ignore-not-found && \
+		echo "Waiting 30s for LB cleanup..." && sleep 30 && \
+		helm uninstall srdp -n {{namespace}} || true && \
+		kubectl delete jobs --all -n {{namespace}} --ignore-not-found && \
+		kubectl delete pvc --all -n {{namespace}} --ignore-not-found
