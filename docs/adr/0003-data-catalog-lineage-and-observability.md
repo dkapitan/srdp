@@ -58,9 +58,11 @@ Why an IO manager, not a Dagster resource? A resource requires every asset to ex
 
 The `StorageBackend` abstract base class (`srdp.io.storage`) decouples DuckLake from storage providers. Implementing a new backend requires two methods: `get_base_path()` and `configure_duckdb()`. Built-in: local filesystem. Optional via extras: Azure Blob Storage, S3-compatible storage.
 
-### Lineage: OpenLineage as a core feature, collected by Marquez
+### Lineage: OpenLineage as a core feature, backend pluggable
 
-Chosen option: "OpenLineage as a core feature". DuckLake tracks what data exists and how it changed, but not the full flow across systems. Lineage is captured at the Dagster asset boundary, not inside each library, so coverage does not depend on whether the tools used inside an asset support OpenLineage natively. Marquez, the reference self-hostable OpenLineage server, collects it and runs as a core platform service. Lineage works out of the box; a deployment can repoint emission at its own collector.
+Chosen option: "OpenLineage as a core feature". DuckLake tracks what data exists and how it changed, but not the full flow across systems. Lineage is captured at the Dagster asset boundary, not inside each library, so coverage does not depend on whether the tools used inside an asset support OpenLineage natively.
+
+The lineage backend is pluggable via the OpenLineage transport configuration. The default stores events in PostgreSQL (which the platform already runs), requiring no additional service. Dagster's built-in asset catalog provides lineage browsing out of the box. When cross-system lineage querying or a dedicated lineage UI is needed, a specialized backend (such as Marquez or any other OpenLineage-compatible collector) can be added as an optional service.
 
 | Source | How lineage is captured |
 |:---|:---|
@@ -77,7 +79,7 @@ Logs and metrics are different signals and use different tools. Prometheus is a 
 
 | Signal | Sink | Notes |
 |:---|:---|:---|
-| Audit and access logs | Append-only JSONL or Parquet on blob storage | Most resilient: survives PostgreSQL, Dagster, and engine outages; DuckDB-queryable later |
+| Audit and access logs | Append-only JSONL or Parquet on blob storage | Decoupled from the services they monitor: survives outages of PostgreSQL, Dagster, and the query engine as long as the storage sink is reachable; DuckDB-queryable later |
 | Transformation and pipeline logs | Dagster | `context.log` and `logging`, event log in PostgreSQL, compute-log manager ships to blob |
 | Application logs | stdout and stderr | Aggregated by the hosting environment (Docker log driver, Kubernetes tooling) |
 | Metrics and alerting | Prometheus + Grafana (+ Alertmanager) | Optional: self-host by default, managed endpoint as an option |
@@ -95,7 +97,7 @@ Failure-mode matrix:
 | PostgreSQL (catalog) | Blob audit logs; read sessions already open against attached catalogs, where their metadata is cached | New writes, new catalog reads and new read sessions; Dagster runs |
 | Dagster | Direct reads of existing data; the API read path | Pipelines, materializations, scheduled jobs |
 | Storage backend (blob) | Catalog metadata browsing | Reading and writing actual data |
-| Marquez | Everything except lineage capture | New lineage events (buffered or dropped, not blocking pipelines) |
+| Lineage backend | Everything except lineage capture | New lineage events (buffered or dropped, not blocking pipelines) |
 | Metrics stack | Everything | Dashboards and alerting |
 
 PostgreSQL holds the DuckLake catalog and is the platform's single most critical component. The catalog points at managed Parquet snapshots in storage (logically immutable, not physically write-once; see [ADR-0004](./0004-data-organization-and-ingestion.md)), so the data itself is not lost if the catalog is, but the catalog must be recoverable (backup and restore is an operational runbook, not an ADR). Whether the catalog can be rebuilt from storage alone is bounded by what DuckLake metadata is reconstructable; the platform treats PostgreSQL as the source of truth and protects it with backups rather than relying on reconstruction.
@@ -107,11 +109,10 @@ Data integrity: storage locations are reachable only through the platform, and t
 - Good, because data observability is automatic: every write to a lake-managed layer goes through DuckLake, so no lake-managed data exists outside the catalog.
 - Good, because the IO wrapper is tool-agnostic: asset authors choose their own dataframe library.
 - Good, because the catalog needs no extra server, and DuckDB is in-process.
-- Good, because lineage is decided (OpenLineage core, Marquez backend) rather than left planned.
-- Good, because audit logs on append-only blob remain available through the outage of any single stateful service.
+- Good, because lineage is decided (OpenLineage core, pluggable backend) rather than left planned. The default backend is PostgreSQL, requiring no new service.
+- Good, because audit logs are decoupled from the services they monitor, so they remain available through outages of the catalog, orchestrator, or query engine.
 - Good, because the failure-mode matrix and drift detection make resilience and integrity explicit architectural properties.
 - Bad, because DuckLake is newer than Iceberg, so fewer external tools can read its metadata natively.
-- Bad, because Marquez is a JVM service with its own metadata database, adding an always-present service and database to the core stack; this is a deliberate cost accepted for first-class lineage.
 
 ## Pros and Cons of the Options
 

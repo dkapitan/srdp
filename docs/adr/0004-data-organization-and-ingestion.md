@@ -98,7 +98,7 @@ Immutability is logical, not physical-write-once. Raw is a lakehouse table forma
 
 Consequence: reproducibility and audit reach back only as far as the snapshot-retention window. Retention depth is a per-deployment policy knob (long for audit-heavy deployments, short for storage- or erasure-sensitive ones).
 
-Erasure (GDPR): erasure is a separate, optional, audited administrative operation, enabled per deployment when personal data is in scope and recorded in an erasure ledger. It is not a pipeline write. It reuses the maintenance machinery (logical delete, then expire snapshots, then cleanup old files) or crypto-shredding (destroy a per-subject or per-delivery key, leaving unreadable ciphertext in place). This preserves reproducibility for normal operations while providing a compliant escape hatch.
+Erasure (GDPR): when personal data is in scope, erasure is supported through DuckLake's maintenance machinery (logical delete, then expire snapshots, then cleanup old files). This is a separate, audited administrative operation, not a pipeline write. The specific erasure strategy (direct deletion, crypto-shredding, or other techniques) is a per-deployment decision with its own implementation requirements.
 
 ### Ingestion: landing zone first
 
@@ -115,6 +115,10 @@ Ingestion building blocks the platform provides:
 - API ingestion: data pushed through the FastAPI API, landed, and processed by a triggered Dagster job.
 - Landing zone: files dropped into a configurable location; a Dagster sensor detects and processes them.
 - Direct asset loading: a client asset loads from any source and returns a dataframe; the IO manager handles the rest.
+
+### Out of scope: per-project concerns
+
+Schema evolution and data quality are supported by the platform but governed by client projects. DuckLake supports schema evolution (additive columns, type widening) and Dagster provides asset checks that can gate promotion between layers. The specific policies (which schema changes are accepted, what quality checks run, what blocks promotion from raw to curated) are per-project decisions.
 
 ### Consequences
 

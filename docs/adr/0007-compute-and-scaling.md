@@ -67,6 +67,29 @@ Async work follows the request-reply pattern: the API accepts the request (a lan
 
 All writes to lake-managed layers go through Dagster by default, for lineage, retries, asset checks, and scheduling (see [ADR-0002](./0002-api-and-access-strategy.md), [ADR-0004](./0004-data-organization-and-ingestion.md)). A direct API write path exists only as an explicit, audited exception.
 
+### Scaling boundaries
+
+The platform has components that scale horizontally and components that do not. This table makes the boundaries explicit so deployments can plan around them.
+
+Scales horizontally:
+
+| Component | How |
+|:---|:---|
+| FastAPI (API server) | Stateless; multiple workers per host, multiple replicas behind Traefik |
+| Dagster webserver | Stateless (state in PostgreSQL); multiple replicas behind a load balancer |
+| Traefik | Stateless; standard reverse proxy scaling |
+| Dagster assets (on K8s) | With the `dagster-k8s` executor, each run gets its own pod |
+
+Single-instance or bounded:
+
+| Component | Constraint | Mitigation |
+|:---|:---|:---|
+| PostgreSQL | Single instance; holds catalog metadata, Dagster state, identity data, lineage events. The most critical scaling boundary. | Managed PostgreSQL with automated failover and read replicas for heavy read loads |
+| Dagster daemon | Single instance by design (coordinates schedules, sensors, run queue). Cannot be replicated. | Lightweight process; rarely the bottleneck in practice. Monitor for run queue depth. |
+| Dagster code server | One replica per code location | Each client project is its own code location; scaling is per-project, not per-replica |
+| DuckDB in-process | Compute co-located with the process running the query; bounded by single-node memory and CPU | Memory limits per connection; heavy queries offloaded to async Dagster jobs (see serve-vs-offload above) |
+| Object storage | Throughput and IOPS limits vary by provider and tier | Provider-specific tuning; DuckLake's file-level parallelism helps |
+
 ### Consequences
 
 - Good, because single-node deployments run with no extra execution infrastructure, while Kubernetes deployments get per-run isolation when they want it.
