@@ -1,4 +1,0 @@
-dagster==1.12.17
-dagster-k8s==0.28.17
-dagster-postgres==0.28.17
-polars==1.32.3

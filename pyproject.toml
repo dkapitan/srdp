@@ -1,0 +1,157 @@
+[project]
+name = "srdp"
+version = "0.1.0"
+description = "Single Repo Data Platform: a composable, self-hostable data stack"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Yannick Vinkesteijn" },
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dagster>=1.12.17",
+    "polars>=1.32.3",
+]
+
+[project.optional-dependencies]
+infra = [
+    "dagster-k8s>=0.28.17",
+    "dagster-postgres>=0.28.17",
+    "dagster-webserver>=1.12.17",
+    "dagster-graphql>=1.12.17",
+]
+ducklake = [
+    "duckdb>=1.4.0",
+    "psycopg2-binary>=2.9.0",
+    "pydantic-settings>=2.9.0",
+    "pyarrow>=23.0.0",
+]
+azure = [
+    "azure-identity>=1.25.0",
+    "azure-storage-blob>=12.28.0",
+]
+
+[project.urls]
+Homepage = "https://srdphub.com"
+Repository = "https://github.com/srdp-hub/srdp"
+Issues = "https://github.com/srdp-hub/srdp/issues"
+Documentation = "https://docs.srdphub.com"
+
+[dependency-groups]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "security" },
+]
+lint = [
+    "ruff>=0.15.0",
+    "ty>=0.0.15",
+    "pre-commit>=4.0.0",
+]
+test = [
+    "pytest>=9.0.0",
+    "pytest-cov>=6.0.0",
+]
+security = [
+    "uv-secure>=0.15.4",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.0,<0.11.0"]
+build-backend = "uv_build"
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+fix = true
+src = ["src", "projects"]
+exclude = [
+    "docs/",
+    "services/",
+    "deploy/",
+]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "COM812",  # Trailing comma missing — conflicts with ruff formatter
+    "ISC001",  # Implicit string concat — conflicts with ruff formatter
+    "D203",    # One blank line before class docstring — conflicts with D211
+    "D213",    # Multi-line summary on second line — conflicts with D212
+    "E501",    # Line length regulated by formatter
+    "TD002",   # Missing author in TODO
+    "TD003",   # Missing issue link on TODO
+    "FIX002",  # Line contains TODO
+    "TRY003",  # Long messages outside exception class
+    "SIM102",  # Nested if statements
+    "SIM108",  # Ternary operator
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["srdp", "etl"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",    # assert in tests
+    "S608",    # SQL in test assertions
+    "D100", "D103", "D104",  # docstrings not required in tests
+    "ANN",     # type annotations not required in tests
+    "INP001",  # implicit namespace package
+    "PLR2004", # magic values in assertions
+    "PLR0913", # many fixture arguments
+    "SLF001",  # private member access
+    "ARG001",  # unused fixture arguments
+    "PLC0415", # inline imports in scoped test helpers
+]
+"projects/**/*.py" = [
+    "INP001",  # implicit namespace package
+]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+# ---------------------------------------------------------------------------
+# ty
+# ---------------------------------------------------------------------------
+
+[tool.ty.src]
+exclude = [
+    "projects/",
+    "services/",
+]
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.rules]
+unused-ignore-comment = "warn"
+invalid-return-type = "error"
+invalid-argument-type = "error"
+division-by-zero = "error"
+redundant-cast = "warn"
+invalid-method-override = "warn"
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "-q", "--strict-config", "--strict-markers", "--import-mode=importlib"]
+xfail_strict = true
+filterwarnings = ["error"]
