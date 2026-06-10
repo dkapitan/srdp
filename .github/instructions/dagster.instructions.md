@@ -1,5 +1,11 @@
 ---
-applyTo: "projects/**/assets/**/*.py,projects/**/definitions.py,src/srdp/assets/**/*.py,src/srdp/io/**/*.py,src/srdp/resources/**/*.py"
+applyTo:
+  - "kubernetes/apps/**/*.py"
+  - "projects/**/assets/**/*.py"
+  - "projects/**/definitions.py"
+  - "src/srdp/assets/**/*.py"
+  - "src/srdp/io/**/*.py"
+  - "src/srdp/resources/**/*.py"
 ---
 
 ## Dagster conventions

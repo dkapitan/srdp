@@ -1,5 +1,8 @@
 ---
-applyTo: "deploy/**/*,services/**/*,Justfile,config/**/*"
+applyTo:
+  - "docker/**/*"
+  - "kubernetes/**/*"
+  - "Justfile"
 ---
 
 ## Deployment and infrastructure
