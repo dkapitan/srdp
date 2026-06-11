@@ -72,7 +72,7 @@ just docker-down
 ### 1) Clone the repo
 
 ```bash
-git clone git@github.com:dkapitan/srdp.git # or git clone https://github.com/dkapitan/srdp.git
+git clone git@github.com:srdp-hub/srdp.git # or git clone https://github.com/srdp-hub/srdp.git
 cd srdp
 ```
 
