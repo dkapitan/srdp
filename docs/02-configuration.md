@@ -5,72 +5,134 @@ icon: lucide/locate-fixed
 
 # Local Configuration & Setup
 
-This guide will walk you through the steps to get the Single Repo Data Platform (SRDP) running on your local machine.
+This guide will walk you through the steps to get the Single Repo Data Platform (SRDP) running on your local machine. There are two options:
 
-## 1) Clone the repo
+- **Docker Compose** — simplest, no Kubernetes needed, good for trying out the stack locally.
+- **Kubernetes (Helm)** — closer to the production setup, requires a local cluster.
+
+Both options require mkcert for local TLS certificates and `/etc/hosts` entries for the `*.local.dev` domains.
+
+---
+
+## Option A: Docker Compose
+
+### 1) Clone the repo
 
 ```bash
-git clone git@github.com:dkapitan/srdp.git # or git clone https://github.com/dkapitan/srdp.git
+git clone git@github.com:srdp-hub/srdp.git # or git clone https://github.com/srdp-hub/srdp.git
 cd srdp
 ```
 
-## 2) Point DNS at your cluster
+### 2) Point DNS at localhost
+
+Add the following line to your hosts file (`/etc/hosts` on macOS/Linux):
+
+```
+127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev dagster.local.dev
+```
+
+### 3) Install the local CA and generate TLS certificates
+
+The stack serves everything over HTTPS because Zitadel and OAuth2-Proxy require it. [`mkcert`](https://github.com/FiloSottaro/mkcert) creates locally-trusted certificates so your browser won't show warnings.
+
+```bash
+brew install mkcert   # or see mkcert docs for other platforms
+mkcert -install       # one-time: installs a local Certificate Authority
+just docker-tls       # generates certs in deploy/docker/certs/
+```
+
+### 4) Create the environment file
+
+```bash
+cp deploy/docker/.env.example deploy/docker/.env
+```
+
+The defaults in `.env.example` are fine for local development. You will need to update `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` after Zitadel creates the OIDC application on first boot (see [03-usage.md](./03-usage.md)).
+
+### 5) Start the stack
+
+```bash
+just docker-up
+```
+
+This builds the Marimo and Quarto images locally and starts all services: Traefik, PostgreSQL, Zitadel, OAuth2-Proxy, Marimo, and Quarto. First run will take a few minutes while images are pulled and built.
+
+To stop the stack:
+
+```bash
+just docker-down
+```
+
+> **Warning:** Do not run `docker compose down -v` unless you want to destroy all persistent data, including your Zitadel configuration.
+
+---
+
+## Option B: Kubernetes (Helm)
+
+### 1) Clone the repo
+
+```bash
+git clone git@github.com:srdp-hub/srdp.git # or git clone https://github.com/srdp-hub/srdp.git
+cd srdp
+```
+
+### 2) Point DNS at your cluster
 
 The chart uses `*.local.dev` by default. Point those hostnames at the IP you will use to reach Traefik:
 
 - For NodePort/local clusters: `127.0.0.1` is usually fine.
 - For a LoadBalancer: use the external IP once Traefik comes up.
 
-Add one line to your hosts file:
+Add one line to your hosts file (`/etc/hosts` on macOS/Linux):
 
 ```
 127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev dagster.local.dev
 ```
 
-## 3) Create a local TLS secret
-
-Generate a certificate for the local domains and create the secret that the Helm chart expects.
+### 3) Install the local CA and generate TLS certificates
 
 ```bash
-mkdir -p kubernetes/certs
-mkcert -cert-file kubernetes/certs/selfsigned.crt -key-file kubernetes/certs/selfsigned.key \
+brew install mkcert   # or see mkcert docs for other platforms
+mkcert -install       # one-time: installs a local Certificate Authority
+just local-tls        # generates certs and creates the k8s TLS secret
+```
+
+Or manually:
+
+```bash
+mkdir -p deploy/kubernetes/certs
+mkcert -cert-file deploy/kubernetes/certs/selfsigned.crt -key-file deploy/kubernetes/certs/selfsigned.key \
   "auth.local.dev" "marimo.local.dev" "quarto.local.dev" "dagster.local.dev"
 
-# Apply the secret into your target namespace (default here is srdp)
 kubectl create namespace srdp --dry-run=client -o yaml | kubectl apply -f -
 kubectl create secret tls custom-ingress-cert \
   --namespace srdp \
-  --key kubernetes/certs/selfsigned.key \
-  --cert kubernetes/certs/selfsigned.crt \
+  --key deploy/kubernetes/certs/selfsigned.key \
+  --cert deploy/kubernetes/certs/selfsigned.crt \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Or simply run:
-```bash
-just local-tls
-```
-
-## 4) Build local container images
+### 4) Build local container images
 
 The Helm chart references three application images. For local development the pull policy is set to `Never`, so the images must exist in your local Docker/containerd cache:
 
 ```bash
-docker build -t rg.nl-ams.scw.cloud/srdp-registry/marimo:v1.0 docker/apps/marimo
-docker build -t rg.nl-ams.scw.cloud/srdp-registry/quarto:v1.0 docker/apps/quarto
-docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 kubernetes/apps/srdp-etl
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/marimo:v1.0 services/marimo
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/quarto:v1.0 services/quarto
+docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 -f projects/default-etl/Dockerfile .
 ```
 
-## 5) Fill in secrets and local values
+### 5) Fill in secrets and local values
 
-Update `kubernetes/srdp-chart/values-local.yaml` before installing:
+Update `deploy/kubernetes/srdp-chart/values-local.yaml` before installing:
 
 - set your own Zitadel master key, DB passwords, OAuth2 client values, and cookie secret
 - keep `custom-ingress-cert` (created above) or point to another TLS secret if you prefer.
 
-## 6) Install the chart locally
+### 6) Install the chart locally
 
 ```bash
-cd kubernetes/srdp-chart
+cd deploy/kubernetes/srdp-chart
 helm dependency update
 helm upgrade --install srdp . \
   --namespace srdp --create-namespace \

@@ -1,0 +1,5 @@
+services:
+  traefik:
+    volumes:
+      - "./certs/selfsigned.crt:/etc/certs/selfsigned.crt:ro"
+      - "./certs/selfsigned.key:/etc/certs/selfsigned.key:ro"

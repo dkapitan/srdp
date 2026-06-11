@@ -1,6 +1,9 @@
 # OSX
 .DS_Store
 
+# Shell
+.zshrc.save
+
 # Environment variables
 .env
 secrets.sh
@@ -21,4 +24,7 @@ kubeconfig.yaml
 # Kubernetes
 values-prod.yaml
 charts/
+
+# Local ADR review notes (not committed)
+docs/adr/ADR-REVIEW.md
 

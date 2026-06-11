@@ -1,0 +1,70 @@
+# Traefik's static configuration
+
+log:
+  level: "INFO"
+accessLog: {}
+ping: {}
+
+providers:
+  docker: # Enable the Docker provider to automatically discover services
+    exposedByDefault: false # Only expose containers we explicitly label
+    network: "srdp-app"
+  file:
+    filename: "/etc/traefik/traefik.yaml"
+entrypoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: "websecure"
+          scheme: "https"
+          permanent: true
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+
+http:
+  routers:
+    zitadel:
+      entryPoints:
+        - "websecure"
+      service: "zitadel"
+      rule: '(Host(`auth.local.dev`) && !PathPrefix(`/ui/v2/login`) && !PathPrefix(`/oauth2/`))'
+      tls: {}
+    zitadel-login:
+      entryPoints:
+        - "websecure"
+      service: "zitadel-login"
+      rule: '(Host(`auth.local.dev`) && PathPrefix(`/ui/v2/login`))'
+      tls: {}
+  services:
+    zitadel:
+      loadBalancer:
+        serversTransport: "zitadel"
+        passHostHeader: true
+        servers:
+          - url: "https://zitadel:8080"
+    zitadel-login:
+      loadBalancer:
+        serversTransport: "zitadel-login"
+        passHostHeader: true
+        servers:
+          - url: "http://zitadel-login:3000"
+  serversTransports:
+    zitadel:
+      insecureSkipVerify: true
+    zitadel-login:
+      insecureSkipVerify: true
+
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/etc/certs/selfsigned.crt"
+        keyFile: "/etc/certs/selfsigned.key"
+
+api:
+  dashboard: true # Enable the Traefik dashboard for debugging
+  insecure: true # IMPORTANT: Only use 'insecure: true' for local development!
