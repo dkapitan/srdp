@@ -88,8 +88,7 @@ We follow the [Linux Foundation policy on generative AI](https://www.linuxfounda
 
 ### Guidelines for maintaining agent instructions
 
-The top-level `AGENTS.md` should stay under 50 lines. Overloaded instruction files cause agents to lose focus and ignore important rules.
-
+The top-level `AGENTS.md` should stay concise (ideally ~50 lines). Overloaded instruction files cause agents to lose focus and ignore important rules.
 **Structure it hierarchically:**
 
 1. `AGENTS.md` contains only the essentials: one-line project description, condensed repo layout, 5-10 hard rules, and links to detail files.
