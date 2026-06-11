@@ -1,3 +1,9 @@
+---
+status: proposed
+date: YYYY-MM-DD
+decision-makers: <name>
+---
+
 # {short title, representative of solved problem and found solution}
 
 ## Context and Problem Statement

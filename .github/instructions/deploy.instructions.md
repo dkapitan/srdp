@@ -1,5 +1,9 @@
 ---
-applyTo: "deploy/**/*,services/**/*,Justfile,config/**/*"
+applyTo:
+  - "deploy/**/*"
+  - "services/**/*"
+  - "config/**/*"
+  - "Justfile"
 ---
 
 ## Deployment and infrastructure

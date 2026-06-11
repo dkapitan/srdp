@@ -1,6 +1,6 @@
 ---
 status: proposed
-date: 2026-06-05
+date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
 
@@ -8,12 +8,13 @@ decision-makers: Yannick Vinkesteijn
 
 ## Context and Problem Statement
 
-A running SRDP instance needs to answer two categories of questions:
+A running SRDP instance needs to answer three categories of questions:
 
 1. Data observability: what data exists, where did it come from, what transformed it, and is it current? Without an enforced write path, data can change unobserved: files appear on storage that no catalog knows about, transformations run without lineage, and no one can answer "what happened to this dataset."
 2. Functional observability: are services running, are pipelines succeeding, and what errors occurred?
+3. Resilience and integrity: does the platform keep working when a component fails, and how does it detect data that changed outside its control?
 
-These two concerns require different mechanisms. Data observability is solved by making the catalog mandatory: if every data change goes through a single IO layer, every change is automatically tracked. Functional observability is solved at the infrastructure layer with logging, health checks, and pipeline status.
+These concerns require different mechanisms. This ADR decides all three, including the parts an earlier draft deferred: where logs live, what the lineage backend is, and how the platform survives partial failure.
 
 ## Considered Options
 
@@ -23,10 +24,15 @@ These two concerns require different mechanisms. Data observability is solved by
 2. Apache Iceberg + REST catalog: industry-standard open table format with broad engine support.
 3. No mandatory catalog: let services and assets write data directly, track metadata separately.
 
-### Data observability: lineage
+### Lineage
 
-1. OpenLineage: open standard for lineage events, emitted at each layer.
+1. OpenLineage as a core feature, emitted across the stack and collected by a backend.
 2. Dagster-native lineage only: rely on Dagster's built-in asset graph.
+
+### Logs and metrics
+
+1. One tool for everything (for example ship all signals to a single stack).
+2. Layered model: separate sinks for audit logs, transformation logs, application logs, and metrics, matched to each signal's durability and query needs.
 
 ## Decision Outcome
 
@@ -34,74 +40,79 @@ These two concerns require different mechanisms. Data observability is solved by
 
 Chosen option: "DuckLake as mandatory IO wrapper", because it makes data observability automatic rather than opt-in. By routing all writes through the Dagster IO manager and into DuckLake, every data change is cataloged, versioned, and discoverable without any action from the asset author.
 
-This is the core architectural decision: DuckLake is not optional. It is the mechanism that ensures no data exists outside the catalog. Without it, observability depends on each asset author remembering to register their output, which is error-prone.
+This is a core architectural decision: DuckLake is not optional. It is the mechanism that ensures no lake-managed data exists outside the catalog; the landing zone is governed separately as a pre-catalog ingress area (see [ADR-0004](./0004-data-organization-and-ingestion.md)). DuckLake stores catalog metadata in PostgreSQL, which the platform already runs, so there is no separate catalog server. Data is written as standard Parquet files to any storage backend, and DuckDB serves as the in-process query engine.
 
-DuckLake stores catalog metadata in PostgreSQL, which the platform already runs for Dagster and Zitadel. This means zero additional infrastructure for the catalog: no separate catalog server, no new database, just a new schema in the existing PostgreSQL instance. Data is written as standard Parquet files to any storage backend. DuckDB serves as the in-process query engine.
+The IO wrapper is agnostic to how data is produced. Asset authors can use Polars, pandas, DuckDB SQL, or any other tool. What is mandatory is that every output goes through the IO manager into DuckLake.
 
-The IO wrapper is agnostic to how data is produced. Asset authors can use Polars, pandas, DuckDB SQL, or any other tool to build their transformations. The platform provides Polars as a core dependency, but it is not mandatory. What is mandatory is that every output goes through the IO manager into DuckLake.
+### Why DuckLake over Iceberg
+
+The decisive reason is single-node operational simplicity. SRDP's design point is a self-hostable platform that runs the same way on a laptop and a single production VM. DuckLake keeps its catalog in the PostgreSQL the platform already runs and queries data in-process through DuckDB, so there is no extra server to deploy, secure, or back up. Iceberg can be deployed in many ways, but those deployments are typically more complex and less optimized for this single-node target, and most require additional services and resources (a catalog service, and often more) whose value is broad multi-engine, distributed access that SRDP does not need. DuckLake has proven efficient in-process and adds no services beyond the PostgreSQL already present: it is the simple, easy option for this design point. The trade accepted is that fewer external tools can read DuckLake metadata natively today.
 
 ### Write path: Dagster IO manager
 
-The IO manager (`srdp.io.ducklake`) is the single write path into DuckLake. Asset code contains no storage logic; the IO manager handles persistence and catalog registration automatically.
+The IO manager (`srdp.io.ducklake`) is the single write path into DuckLake. Asset code contains no storage logic; the IO manager handles persistence and catalog registration automatically. The asset-key-to-catalog mapping is specified in [ADR-0004](./0004-data-organization-and-ingestion.md), and the catalog dimension (project) in [ADR-0006](./0006-deployment-and-project-isolation-model.md).
 
-```python
-@asset(key_prefix="raw")
-def source_data(context) -> pl.DataFrame:
-    return pl.read_csv("data.csv")
-    # → IO manager writes to DuckLake table: raw.source_data
-```
-
-The IO manager maps asset key segments to DuckLake schemas and tables:
-
-| Asset key | DuckLake table | Storage path |
-|:---|:---|:---|
-| `["orders"]` | `ducklake.main.orders` | `DATA_PATH/main/orders/` |
-| `["raw", "orders"]` | `ducklake.raw.orders` | `DATA_PATH/raw/orders/` |
-
-DuckLake manages Parquet files autonomously: UUID-named, immutable, copy-on-write. There is no manual file management.
-
-Why an IO manager, not a Dagster resource? A resource requires every asset to explicitly call `ducklake.write(...)`. A developer forgetting that call means data exists in the pipeline but not in the catalog. The IO manager makes catalog registration automatic and impossible to skip.
+Why an IO manager, not a Dagster resource? A resource requires every asset to explicitly call `ducklake.write(...)`; a developer forgetting that call means data exists in the pipeline but not in the catalog. The IO manager makes catalog registration automatic and impossible to skip.
 
 ### Storage backends
 
-The `StorageBackend` abstract base class (`srdp.io.storage`) decouples DuckLake from storage providers. Implementing a new backend requires two methods:
+The `StorageBackend` abstract base class (`srdp.io.storage`) decouples DuckLake from storage providers. Implementing a new backend requires two methods: `get_base_path()` and `configure_duckdb()`. Built-in: local filesystem. Optional via extras: Azure Blob Storage, S3-compatible storage.
 
-- `get_base_path()`: returns the root path or URI for data files.
-- `configure_duckdb()`: installs extensions and sets credentials on the DuckDB connection.
+### Lineage: OpenLineage as a core feature, backend pluggable
 
-Built-in: local filesystem (`.data/ducklake/`). Optional via extras: Azure Blob Storage, S3-compatible storage.
+Chosen option: "OpenLineage as a core feature". DuckLake tracks what data exists and how it changed, but not the full flow across systems. Lineage is captured at the Dagster asset boundary, not inside each library, so coverage does not depend on whether the tools used inside an asset support OpenLineage natively.
 
-### Data observability: OpenLineage for cross-system lineage
+The lineage backend is pluggable via the OpenLineage transport configuration. The default stores events in PostgreSQL (which the platform already runs), requiring no additional service. Dagster's built-in asset catalog provides lineage browsing out of the box. When cross-system lineage querying or a dedicated lineage UI is needed, a specialized backend (such as Marquez or any other OpenLineage-compatible collector) can be added as an optional service.
 
-Chosen option: "OpenLineage as the lineage standard", because DuckLake tracks what data exists and how it changed, but not the full lineage across systems. OpenLineage extends observability beyond the catalog by tracking data flow across Dagster and DuckDB, both of which support OpenLineage natively. Polars supports OpenLineage in its on-premises/distributed engine (v1.39.2+), but not in the standard open-source single-node library.
+| Source | How lineage is captured |
+|:---|:---|
+| Dagster assets | Native OpenLineage emission at the asset boundary; the default and the baseline guarantee |
+| Asset metadata | Authors attach lineage and schema as Dagster asset metadata, filled dynamically (for example from Polars or other dataframe metadata) or set explicitly, so libraries with no native OpenLineage support are still tracked |
+| DuckDB / DuckLake | Finer-grained lineage via the lineage extension where available |
+| External systems | OpenLineage Python client for processes that run outside Dagster |
 
-| Layer | Integration | Status |
+Because lineage rides on Dagster asset metadata, a library lacking native OpenLineage support is not a gap: the asset still emits lineage, dynamically derived or explicitly set. Dagster's built-in asset catalog remains the primary browsing interface for data discovery; OpenLineage augments it with cross-system lineage, it does not replace it.
+
+### Functional observability: a layered model
+
+Logs and metrics are different signals and use different tools. Prometheus is a metrics system, not a logging collector. The platform uses a layered model, and the metrics layer is pluggable to match the core-vs-optional boundary in [ADR-0001](./0001-platform-architecture-and-distribution.md).
+
+| Signal | Sink | Notes |
 |:---|:---|:---|
-| Dagster | `openlineage-dagster` | Planned |
-| DuckDB / DuckLake | `duck_lineage` extension | Planned |
-| Polars Distributed | Native (v0.6.1+) | Available when distributed engine is deployed |
+| Audit and access logs | Append-only JSONL or Parquet on blob storage | Decoupled from the services they monitor: survives outages of PostgreSQL, Dagster, and the query engine as long as the storage sink is reachable; DuckDB-queryable later |
+| Transformation and pipeline logs | Dagster | `context.log` and `logging`, event log in PostgreSQL, compute-log manager ships to blob |
+| Application logs | stdout and stderr | Aggregated by the hosting environment (Docker log driver, Kubernetes tooling) |
+| Metrics and alerting | Prometheus + Grafana (+ Alertmanager) | Optional: self-host by default, managed endpoint as an option |
 
-Lineage events are collected by a compatible backend (Marquez self-hosted or a managed endpoint).
+Instrumentation is via OpenTelemetry so the metrics and tracing backend stays swappable. The responsibility split is: Dagster owns transformation logs, blob audit owns API and access logs, Prometheus owns metrics.
 
-Dagster's built-in asset catalog serves as the primary browsing interface for data discovery. It stores asset metadata, descriptions, partition status, and freshness in PostgreSQL. OpenLineage augments this with cross-system lineage; it does not replace Dagster's catalog.
+### Resilience and data integrity
 
-### Functional observability
+The platform commits to a resilience posture and to detecting data that changes outside its control.
 
-Functional concerns (logs, health, metrics) are handled at the infrastructure layer, not in the data catalog:
+Failure-mode matrix:
 
-- Application logs: all services write structured logs to stdout/stderr. Log aggregation is the responsibility of the hosting environment (Docker log driver, Kubernetes log tooling).
-- Pipeline health: Dagster tracks run success/failure and asset materialization status in its UI and PostgreSQL.
-- Metrics: a Prometheus + Grafana stack is a reasonable future addition but is not part of the platform core yet. Live service status is covered by health endpoints.
+| Component down | What still works | What stops |
+|:---|:---|:---|
+| PostgreSQL (catalog) | Blob audit logs; read sessions already open against attached catalogs, where their metadata is cached | New writes, new catalog reads and new read sessions; Dagster runs |
+| Dagster | Direct reads of existing data; the API read path | Pipelines, materializations, scheduled jobs |
+| Storage backend (blob) | Catalog metadata browsing | Reading and writing actual data |
+| Lineage backend | Everything except lineage capture | New lineage events (buffered or dropped, not blocking pipelines) |
+| Metrics stack | Everything | Dashboards and alerting |
+
+PostgreSQL holds the DuckLake catalog and is the platform's single most critical component. The catalog points at managed Parquet snapshots in storage (logically immutable, not physically write-once; see [ADR-0004](./0004-data-organization-and-ingestion.md)), so the data itself is not lost if the catalog is, but the catalog must be recoverable (backup and restore is an operational runbook, not an ADR). Whether the catalog can be rebuilt from storage alone is bounded by what DuckLake metadata is reconstructable; the platform treats PostgreSQL as the source of truth and protects it with backups rather than relying on reconstruction.
+
+Data integrity: storage locations are reachable only through the platform, and the platform detects and alerts on out-of-band changes (catalog-versus-storage drift), distinct from service health. Detection is a mix of cheap in-job reconciliation during or after writes and a periodic full reconciliation that compares the DuckLake catalog against actual storage and alerts on divergence.
 
 ### Consequences
 
-- Good, because data observability is automatic: every write goes through DuckLake, so no data exists outside the catalog.
-- Good, because the IO wrapper is tool-agnostic: asset authors choose their own dataframe library, the platform ensures observability regardless.
-- Good, because zero additional infrastructure for the catalog. DuckDB is in-process, PostgreSQL is already deployed.
-- Good, because storage backends are pluggable via a two-method interface.
-- Good, because OpenLineage extends observability beyond the catalog with cross-system lineage.
-- Bad, because DuckLake is newer than Iceberg, so fewer external tools can read DuckLake metadata natively.
-- Bad, because a lineage collector (Marquez) is an additional service to deploy.
+- Good, because data observability is automatic: every write to a lake-managed layer goes through DuckLake, so no lake-managed data exists outside the catalog.
+- Good, because the IO wrapper is tool-agnostic: asset authors choose their own dataframe library.
+- Good, because the catalog needs no extra server, and DuckDB is in-process.
+- Good, because lineage is decided (OpenLineage core, pluggable backend) rather than left planned. The default backend is PostgreSQL, requiring no new service.
+- Good, because audit logs are decoupled from the services they monitor, so they remain available through outages of the catalog, orchestrator, or query engine.
+- Good, because the failure-mode matrix and drift detection make resilience and integrity explicit architectural properties.
+- Bad, because DuckLake is newer than Iceberg, so fewer external tools can read its metadata natively.
 
 ## Pros and Cons of the Options
 
@@ -109,16 +120,21 @@ Functional concerns (logs, health, metrics) are handled at the infrastructure la
 
 - Good, because widest engine support (Spark, Trino, Flink, Snowflake, BigQuery).
 - Bad, because the REST catalog is an additional service to deploy and operate.
-- Bad, because JVM dependency conflicts with SRDP's Python-native, in-process philosophy.
+- Bad, because its deployments are typically more complex and less optimized for a single-node target; its value is broad multi-engine, distributed access that SRDP does not need.
 
 ### No mandatory catalog
 
 - Good, because no IO wrapper overhead; services write data directly.
 - Bad, because data changes are unobserved unless each service implements its own tracking.
-- Bad, because no single source of truth for what data exists in the platform.
+- Bad, because no single source of truth for what data exists.
 
 ### Dagster-native lineage only
 
 - Good, because zero additional dependencies.
-- Bad, because lineage is only visible inside the Dagster UI, not portable.
-- Bad, because DuckDB queries executed outside Dagster (notebooks, API) produce no lineage.
+- Bad, because lineage is only visible inside the Dagster UI, not portable across systems.
+- Bad, because DuckDB queries executed outside Dagster produce no lineage.
+
+### One tool for everything
+
+- Good, because a single pipeline to operate.
+- Bad, because logs and metrics have different durability and query needs; a single sink is either too heavy for logs or too weak for metrics, and tends to fail together with the rest of the stack.
