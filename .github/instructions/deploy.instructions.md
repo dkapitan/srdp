@@ -1,7 +1,8 @@
 ---
 applyTo:
-  - "docker/**/*"
-  - "kubernetes/**/*"
+  - "deploy/**/*"
+  - "services/**/*"
+  - "config/**/*"
   - "Justfile"
 ---
 

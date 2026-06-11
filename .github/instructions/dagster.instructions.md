@@ -1,6 +1,5 @@
 ---
 applyTo:
-  - "kubernetes/apps/**/*.py"
   - "projects/**/assets/**/*.py"
   - "projects/**/definitions.py"
   - "src/srdp/assets/**/*.py"
