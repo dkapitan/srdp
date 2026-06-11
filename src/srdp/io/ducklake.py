@@ -125,7 +125,9 @@ def ensure_database(settings: DuckLakeSettings) -> None:
             if cur.fetchone():
                 logger.info("DuckLake database '%s' already exists.", settings.pg_db)
                 return
-            cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(settings.pg_db
+            cur.execute(
+                sql.SQL("CREATE DATABASE {}").format(sql.Identifier(settings.pg_db)),
+            )
 
             logger.info("Created DuckLake database '%s'.", settings.pg_db)
     finally:
