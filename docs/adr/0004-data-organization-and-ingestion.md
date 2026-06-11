@@ -74,15 +74,15 @@ Default layers:
 
 ### Asset key to catalog mapping
 
-The IO manager maps Dagster asset key segments to the schema and table levels; the catalog comes from the project (see [ADR-0006](./0006-deployment-and-project-isolation-model.md)).
+Asset keys use 2–3 lowercase segments: [layer, table] or [layer, domain, table]. DuckLake uses a flat catalog.schema.table hierarchy. The catalog comes from the project (see ADR-0006), so only schema and table remain. The first segment becomes the schema; remaining segments joined with _ form the table name.
 
-| Dagster asset key | Catalog (project) | Schema | Table |
-|:---|:---|:---|:---|
-| `["raw", "orders"]` | from code location | `raw` | `orders` |
-| `["raw", "sales", "orders"]` | from code location | `raw` | `sales_orders` |
-| `["curated", "sales", "orders"]` | from code location | `curated` | `sales_orders` |
+| Dagster asset key              | Catalog (project)  | Schema  | Table        |
+|--------------------------------|--------------------|---------|--------------|
+| ["raw", "orders"]              | from code location | raw     | orders       |
+| ["raw", "sales", "orders"]     | from code location | raw     | sales_orders |
+| ["curated", "sales", "orders"] | from code location | curated | sales_orders |
 
-Rules: the first segment is the schema (layer); remaining segments joined with `_` form the table. DuckLake manages the filesystem layout within the project's storage prefix automatically (UUID-named Parquet files, copy-on-write). There is no manual file management.
+DuckLake manages the filesystem layout within the project's storage prefix automatically (UUID-named Parquet files, copy-on-write). There is no manual file management.
 
 ### Write semantics: invariants and a write-mode menu
 

@@ -82,7 +82,7 @@ The API is stateless and scales horizontally (multiple workers per host, multipl
 
 ### Internal trust: zero-trust, with a read and write split
 
-Chosen option: "Zero-trust". The closed network is defense in depth, not the basis for trust. Interactive services sit on the internal network, but a human drives them through a browser and can touch data, so each is effectively an external surface. The platform authenticates by who is making the request at every service, not by network position.
+Chosen option: "Zero-trust". The closed network adds protection, but is not sufficient on its own. Every service still authenticates requests regardless of network position. Interactive services sit on the internal network, but a human drives them through a browser and can touch data, so each is effectively an external surface. The platform authenticates by who is making the request at every service, not by network position.
 
 Because DuckDB and DuckLake have no per-row or per-column security, authorization cannot be pushed into the engine. The platform therefore splits reads from writes:
 
