@@ -1,0 +1,91 @@
+name: "🐛 Bug report"
+description: Report a bug in SRDP
+labels: ["bug", "needs triage"]
+
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have searched for existing issues covering this bug.
+          required: true
+        - label: I have confirmed this bug exists on the latest version of SRDP.
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: SRDP version
+      description: What version of SRDP are you using? Check `pyproject.toml` or run `uv run python -c "import srdp; print(srdp.__version__)"`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear description of what the bug is, including any error messages.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Run `just ...`
+        2. Navigate to `...`
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error output
+      render: shell
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      multiple: true
+      options:
+        - "Platform: library (src/srdp/)"
+        - "Platform: IO managers"
+        - "Platform: Other"
+        - "Orchestration: Dagster"
+        - "Deploy: Docker Compose"
+        - "Deploy: Kubernetes"
+        - "Deploy: Other"
+        - "Infra: Zitadel"
+        - "Infra: Traefik"
+        - "Infra: Other"
+        - "Services: marimo"
+        - "Services: Quarto"
+        - "Services: Other"
+        - "CI/CD"
+        - "Other"
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Deployment target
+      multiple: false
+      options:
+        - "Docker Compose"
+        - "Kubernetes (local)"
+        - "Kubernetes (production)"
+        - "Local development"
+        - "Other"

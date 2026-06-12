@@ -1,0 +1,24 @@
+name: "📖 Documentation"
+description: Report a documentation issue or suggest an improvement
+labels: ["documentation"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs to be documented or fixed?
+      description: Describe the documentation issue or improvement clearly.
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Page or section
+      description: Link to the affected documentation page, or describe where it is.
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: How should it be improved? You can paste a draft here.
