@@ -81,22 +81,21 @@ icon: lucide/life-buoy
 
 ## macOS-specific
 
-### `*.local.dev` hostnames resolve to Cloudflare instead of localhost (VPN)
-
-- **Symptom:** Browser shows a `502` with `server: cloudflare` in the response headers, even though the entry is in `/etc/hosts`.
-- **Cause:** `local.dev` is a real, registered domain served by Cloudflare. VPN clients (such as ProtonVPN) typically route all DNS through their own resolver and bypass `/etc/hosts`, so the OS never checks the local file.
-- **Fix:** Disconnect the VPN before accessing the `*.local.dev` services, or configure the VPN's split-tunnelling to exclude these hostnames.
-- **Long-term:** Consider switching the chart's local domain to `*.srdp.localhost` — `.localhost` is reserved (RFC 2606) and cannot be registered, so there is no risk of a real DNS record shadowing it.
-
 ### `/etc/hosts` changes not picked up after editing (mDNSResponder cache)
 
-- **Symptom:** After adding the `*.local.dev` entries to `/etc/hosts` and flushing the DNS cache with `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder`, the hostnames still resolve to the old address.
+- **Symptom:** After adding entries to `/etc/hosts` and flushing the DNS cache with `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder`, the hostnames still resolve to the old address.
 - **Cause:** On recent macOS versions, sending `HUP` to mDNSResponder does not reliably trigger a re-read of `/etc/hosts`. The stale entries remain cached.
 - **Fix:** Fully restart the daemon:
   ```bash
   sudo killall mDNSResponder
   ```
-  It relaunches automatically. Verify the change has taken effect with:
+  It relaunches automatically. Verify with:
   ```bash
-  ping -c1 quarto.local.dev   # should show 127.0.0.1
+  ping -c1 quarto.srdp.localhost   # should show 127.0.0.1
   ```
+
+### Why the local domain is `*.srdp.localhost` and not `*.local.dev`
+
+`local.dev` is a real, registered domain served by Cloudflare. VPN clients with DNS leak protection (such as ProtonVPN) route all DNS through their own resolver and bypass `/etc/hosts` — so `*.local.dev` would resolve to Cloudflare IPs instead of `127.0.0.1`, producing a confusing `502 server: cloudflare` error with no obvious connection to the VPN.
+
+`*.srdp.localhost` cannot have this problem: `.localhost` is a reserved TLD (RFC 2606) that can never be registered or have a real DNS record.
