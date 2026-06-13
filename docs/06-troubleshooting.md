@@ -76,3 +76,27 @@ icon: lucide/life-buoy
 *   **Symptom:** Your Zitadel project and apps are missing after restarting the containers.
 *   **Cause:** You ran `docker compose down -v`, which removes all persistent volumes.
 *   **Solution:** Only use `docker compose down` to stop the containers. Do **not** use the `-v` flag unless you intend to reset all data.
+
+---
+
+## macOS-specific
+
+### `*.local.dev` hostnames resolve to Cloudflare instead of localhost (VPN)
+
+- **Symptom:** Browser shows a `502` with `server: cloudflare` in the response headers, even though the entry is in `/etc/hosts`.
+- **Cause:** `local.dev` is a real, registered domain served by Cloudflare. VPN clients (such as ProtonVPN) typically route all DNS through their own resolver and bypass `/etc/hosts`, so the OS never checks the local file.
+- **Fix:** Disconnect the VPN before accessing the `*.local.dev` services, or configure the VPN's split-tunnelling to exclude these hostnames.
+- **Long-term:** Consider switching the chart's local domain to `*.srdp.localhost` — `.localhost` is reserved (RFC 2606) and cannot be registered, so there is no risk of a real DNS record shadowing it.
+
+### `/etc/hosts` changes not picked up after editing (mDNSResponder cache)
+
+- **Symptom:** After adding the `*.local.dev` entries to `/etc/hosts` and flushing the DNS cache with `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder`, the hostnames still resolve to the old address.
+- **Cause:** On recent macOS versions, sending `HUP` to mDNSResponder does not reliably trigger a re-read of `/etc/hosts`. The stale entries remain cached.
+- **Fix:** Fully restart the daemon:
+  ```bash
+  sudo killall mDNSResponder
+  ```
+  It relaunches automatically. Verify the change has taken effect with:
+  ```bash
+  ping -c1 quarto.local.dev   # should show 127.0.0.1
+  ```
