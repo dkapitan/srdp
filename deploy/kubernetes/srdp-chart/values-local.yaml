@@ -69,5 +69,5 @@ dagster:
           repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-etl
           tag: "v1.0"
           pullPolicy: Never
-        dagsterApiGrpcArgs: ["-m", "definitions"]
+        dagsterApiGrpcArgs: ["-m", "etl.definitions"]
         port: 3030
