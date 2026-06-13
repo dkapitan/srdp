@@ -89,13 +89,4 @@ icon: lucide/life-buoy
   ```bash
   sudo killall mDNSResponder
   ```
-  It relaunches automatically. Verify with:
-  ```bash
-  ping -c1 quarto.srdp.localhost   # should show 127.0.0.1
-  ```
-
-### Why the local domain is `*.srdp.localhost` and not `*.local.dev`
-
-`local.dev` is a real, registered domain served by Cloudflare. VPN clients with DNS leak protection (such as ProtonVPN) route all DNS through their own resolver and bypass `/etc/hosts` — so `*.local.dev` would resolve to Cloudflare IPs instead of `127.0.0.1`, producing a confusing `502 server: cloudflare` error with no obvious connection to the VPN.
-
-`*.srdp.localhost` cannot have this problem: `.localhost` is a reserved TLD (RFC 2606) that can never be registered or have a real DNS record.
+  It relaunches automatically.
