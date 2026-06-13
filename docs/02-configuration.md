@@ -157,7 +157,7 @@ docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 -f projects/defa
 >
 > If you see `ErrImagePull` with `unexpected status from HEAD request to http://registry-mirror:1273/...`, Docker Desktop's internal mirror is intercepting the pull. Create a per-registry override inside the Kubernetes node:
 > ```bash
-> docker run --rm --privileged --pid=host debian nsenter -t 1089 -m -- bash -c "
+> docker run --rm --privileged --pid=host debian nsenter -t <containerd-pid> -m -- bash -c "
 >   mkdir -p /etc/containerd/certs.d/host.docker.internal:5001
 >   cat > /etc/containerd/certs.d/host.docker.internal:5001/hosts.toml << 'EOF'
 > server = \"http://host.docker.internal:5001\"
@@ -167,7 +167,10 @@ docker build -t rg.nl-ams.scw.cloud/srdp-registry/srdp-etl:v1.0 -f projects/defa
 > EOF
 > "
 > ```
-> Replace `1089` with the PID of `/usr/local/bin/containerd` (check with `docker run --rm --privileged --pid=host debian nsenter -t 1 -m -- ps aux | grep containerd`).
+> Find the PID of `/usr/local/bin/containerd` (the k8s one, not Docker's) with:
+> ```bash
+> docker run --rm --privileged --pid=host debian nsenter -t 1 -m -- ps aux | grep '/usr/local/bin/containerd' | grep -v shim
+> ```
 > Note this override lives inside the Docker Desktop VM and **does not survive a Docker Desktop restart**.
 >
 > **Recommendation:** For frequent local Kubernetes development, [kind](https://kind.sigs.k8s.io/) or [minikube](https://minikube.sigs.k8s.io/) avoid all of this — they provide `kind load docker-image` and `minikube image load` respectively.
@@ -201,31 +204,29 @@ To re-run with updated values, run the same `helm upgrade` command (or `just loc
 
 The `clientID` and `clientSecret` in `values-local.yaml` must match an OIDC app in your Zitadel instance. The values committed to the repo are placeholders — a fresh Zitadel deployment will not recognise them, causing a `{"error":"invalid_request","error_description":"Errors.App.NotFound"}` error when you first open a service URL.
 
-After the chart is deployed, create the app via the Zitadel UI (`https://auth.local.dev`) or the management API using the `iam-admin-pat` secret the setup job creates:
+After the chart is deployed, create the app via the Zitadel management API using the `iam-admin-pat` secret the setup job creates:
 
 ```bash
 PAT=$(kubectl get secret -n srdp iam-admin-pat -o jsonpath='{.data.pat}' | base64 -d)
 
-# Create a project
-PROJECT_ID=$(curl -s -H "Authorization: Bearer $PAT" -H "Content-Type: application/json" \
-  -d '{"name":"srdp"}' https://auth.local.dev/management/v1/projects \
+PROJECT_ID=$(curl -sk -H "Authorization: Bearer $PAT" -H "Content-Type: application/json" \
+  -d '{"name":"srdp"}' https://auth.srdp.localhost/management/v1/projects \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
-# Create an OIDC app
-curl -s -H "Authorization: Bearer $PAT" -H "Content-Type: application/json" \
+curl -sk -H "Authorization: Bearer $PAT" -H "Content-Type: application/json" \
   -d '{
     "name": "oauth2-proxy",
     "redirectUris": [
-      "https://marimo.local.dev/oauth2/callback",
-      "https://quarto.local.dev/oauth2/callback",
-      "https://dagster.local.dev/oauth2/callback"
+      "https://marimo.srdp.localhost/oauth2/callback",
+      "https://quarto.srdp.localhost/oauth2/callback",
+      "https://dagster.srdp.localhost/oauth2/callback"
     ],
     "responseTypes": ["OIDC_RESPONSE_TYPE_CODE"],
     "grantTypes": ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"],
     "appType": "OIDC_APP_TYPE_WEB",
     "authMethodType": "OIDC_AUTH_METHOD_TYPE_BASIC",
     "accessTokenType": "OIDC_TOKEN_TYPE_BEARER"
-  }' "https://auth.local.dev/management/v1/projects/$PROJECT_ID/apps/oidc"
+  }' "https://auth.srdp.localhost/management/v1/projects/$PROJECT_ID/apps/oidc"
 ```
 
 Copy the `clientId` and `clientSecret` from the response into `values-local.yaml` under `oauth2-proxy.config`, then run `just local-deploy` again.
