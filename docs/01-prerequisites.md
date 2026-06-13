@@ -11,7 +11,7 @@ Required tools (all deployment methods)
 - Git
 - Container runtime (Docker Engine + Docker Compose)
 - [`just`](https://github.com/casey/just) — task runner for common commands
-- [`mkcert`](https://github.com/FiloSottaro/mkcert) — local TLS certificates for `*.local.dev`
+- [`mkcert`](https://github.com/FiloSottaro/mkcert) — local TLS certificates for `*.srdp.localhost`
 
 Additional tools for Kubernetes deployment
 - `kubectl` + a Kubernetes cluster (tested with 1.32+)
