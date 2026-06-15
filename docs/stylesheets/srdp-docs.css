@@ -1,0 +1,273 @@
+/* ============================================================
+   SRDP docs theme — drop-in stylesheet for docs.srdphub.com
+   Restyles the Zensical / Material-for-MkDocs output to match
+   the srdphub.com identity (SRDP brand v1.0, June 2026).
+
+   HOW TO USE — see README.md in this folder. In short:
+     1. Copy this file into your docs source (e.g. docs/stylesheets/srdp-docs.css)
+     2. Register it as extra CSS in your config (extra_css: [stylesheets/srdp-docs.css])
+     3. Point the theme font + palette at the values noted in README.md
+   The variable overrides below also work on their own, so even if the
+   config keys differ between Zensical versions, dropping this file in as
+   extra CSS gets you 90% of the way.
+
+   Palette + type come straight from the SRDP tokens:
+     ink #161616 · paper #FBFAF6 · sand #F1ECE1 · cyan #7DEDF6 · deep blue #006BD4
+     Mozilla Headline (display) · Mozilla Text (body) · JetBrains Mono (code)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Mozilla+Headline:wght@400;600;700&family=Mozilla+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ---------- 1. Brand tokens + Material variable overrides ---------- */
+:root,
+[data-md-color-scheme="default"] {
+  /* SRDP tokens (local aliases) */
+  --srdp-ink:   #161616;
+  --srdp-paper: #FBFAF6;
+  --srdp-sand:  #F1ECE1;
+  --srdp-sand-deep: #E6DECF;
+  --srdp-cyan:  #7DEDF6;
+  --srdp-cyan-tint: #C3F7FA;
+  --srdp-blue:  #006BD4;
+
+  /* fonts */
+  --md-text-font: "Mozilla Text";
+  --md-code-font: "JetBrains Mono";
+
+  /* header / primary */
+  --md-primary-fg-color:        #161616;
+  --md-primary-fg-color--light: #161616;
+  --md-primary-fg-color--dark:  #000000;
+  --md-primary-bg-color:        #FBFAF6;
+  --md-primary-bg-color--light: rgba(251, 250, 246, .72);
+
+  /* links / accents */
+  --md-accent-fg-color:             #006BD4;
+  --md-accent-fg-color--transparent: rgba(0, 107, 212, .10);
+  --md-typeset-a-color:             #006BD4;
+
+  /* surfaces + text */
+  --md-default-bg-color:            #FBFAF6;
+  --md-default-fg-color:            #161616;
+  --md-default-fg-color--light:     rgba(22, 22, 22, .70);
+  --md-default-fg-color--lighter:   rgba(22, 22, 22, .45);
+  --md-default-fg-color--lightest:  rgba(22, 22, 22, .12);
+
+  /* marker highlight + code */
+  --md-typeset-mark-color: rgba(125, 237, 246, .55);
+  --md-code-fg-color:      #161616;
+  --md-code-bg-color:      #F1ECE1;
+
+  /* footer */
+  --md-footer-bg-color:        #161616;
+  --md-footer-bg-color--dark:  #000000;
+  --md-footer-fg-color:        #FBFAF6;
+  --md-footer-fg-color--light: rgba(251, 250, 246, .75);
+  --md-footer-fg-color--lighter: rgba(251, 250, 246, .45);
+}
+
+/* ---------- 2. Typography ---------- */
+body,
+input,
+.md-typeset {
+  font-family: "Mozilla Text", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-header__title,
+.md-nav__title,
+.md-ellipsis {
+  font-family: "Mozilla Headline", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.015em;
+}
+.md-typeset h1 { font-weight: 700; color: var(--srdp-ink); }
+.md-typeset h2 { font-weight: 700; }
+.md-typeset code,
+.md-typeset pre,
+.md-typeset kbd,
+code, kbd, pre {
+  font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* ---------- 3. Header ---------- */
+.md-header {
+  background-color: var(--srdp-ink);
+  color: var(--srdp-paper);
+  border-bottom: 2px solid var(--srdp-ink);
+  box-shadow: none;
+}
+.md-header--shadow { box-shadow: 0 0 0 transparent; }
+.md-header__title { font-weight: 600; }
+
+/* header search TRIGGER — the "⌘K" / "Search" pill on the dark ink bar.
+   The default theme renders it dark-on-dark, so it vanishes; force a solid
+   paper pill with ink text + a cyan hover so it is unmistakably visible. */
+.md-search__button {
+  background-color: var(--srdp-paper);
+  color: var(--srdp-ink);
+  border: 2px solid var(--srdp-ink);
+  border-radius: 2px;
+  opacity: 1;
+  padding: 6px 12px;
+}
+.md-search__button,
+.md-search__button * { color: var(--srdp-ink); }
+.md-search__button:hover {
+  background-color: var(--srdp-cyan);
+  color: var(--srdp-ink);
+  border-color: var(--srdp-ink);
+}
+.md-search__button:hover * { color: var(--srdp-ink); }
+
+/* search box inside the dark header — solid paper pill so it stands out
+   on the ink bar, with dark text that is always readable */
+.md-search__form {
+  background-color: var(--srdp-paper);
+  border: 2px solid var(--srdp-ink);
+  border-radius: 2px;
+  color: var(--srdp-ink);
+}
+.md-search__form:hover {
+  background-color: #ffffff;
+}
+/* the field text, icon and placeholder all sit on the light pill */
+.md-search__input { color: var(--srdp-ink); }
+.md-search__input::placeholder { color: rgba(22, 22, 22, .55); }
+.md-search__icon { color: var(--srdp-ink); }
+/* cyan focus ring so it picks up the brand accent when active */
+[data-md-toggle="search"]:checked ~ .md-header .md-search__form {
+  background-color: var(--srdp-paper);
+  border-color: var(--srdp-cyan);
+  box-shadow: 0 0 0 3px rgba(125, 237, 246, .45);
+}
+
+/* tabs strip (if navigation.tabs is on) */
+.md-tabs {
+  background-color: var(--srdp-ink);
+  border-bottom: 2px solid var(--srdp-ink);
+}
+
+/* ---------- 4. Links + marker ---------- */
+.md-typeset a {
+  color: var(--srdp-blue);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.md-typeset a:hover { color: var(--srdp-ink); }
+.md-typeset mark {
+  background: linear-gradient(var(--srdp-cyan), var(--srdp-cyan));
+  background-size: 100% 72%;
+  background-position: 0 62%;
+  background-repeat: no-repeat;
+  color: var(--srdp-ink);
+}
+::selection { background: var(--srdp-cyan); color: var(--srdp-ink); }
+
+/* ---------- 5. Left nav + active state ---------- */
+.md-nav__title { color: var(--srdp-ink); }
+.md-nav__link:focus,
+.md-nav__link:hover { color: var(--srdp-blue); }
+.md-nav__item .md-nav__link--active,
+.md-nav__link--active {
+  color: var(--srdp-ink);
+  font-weight: 700;
+}
+/* active page gets a cyan marker bar, brand-style */
+.md-nav--primary .md-nav__link--active {
+  box-shadow: inset 3px 0 0 var(--srdp-cyan);
+  padding-left: 9px;
+}
+/* right-hand "On this page" current anchor */
+.md-nav--secondary .md-nav__link--active { color: var(--srdp-blue); }
+
+/* ---------- 6. Code, tables, admonitions, quotes ---------- */
+.md-typeset pre > code,
+.md-typeset > p > code,
+.md-typeset li > code {
+  border-radius: 2px;
+}
+.md-typeset pre {
+  border: 2px solid var(--srdp-ink);
+  border-radius: 4px;
+}
+.md-typeset pre > code { background: var(--srdp-ink); color: var(--srdp-paper); }
+.highlight .filename,
+.md-typeset .highlighttable .filename {
+  background: var(--srdp-ink);
+  color: var(--srdp-paper);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.md-typeset table:not([class]) {
+  border: 2px solid var(--srdp-ink);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.md-typeset table:not([class]) th {
+  background: var(--srdp-ink);
+  color: var(--srdp-paper);
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+.md-typeset table:not([class]) tr:nth-child(even) { background: var(--srdp-sand); }
+
+.md-typeset blockquote {
+  border-left: 3px solid var(--srdp-cyan);
+  color: var(--md-default-fg-color--light);
+}
+
+/* admonitions: square brand blocks, cyan accent by default */
+.md-typeset .admonition,
+.md-typeset details {
+  border: 2px solid var(--srdp-ink);
+  border-radius: 4px;
+  box-shadow: none;
+  font-size: .76rem;
+}
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background: var(--srdp-cyan-tint);
+  font-family: "Mozilla Headline", sans-serif;
+}
+.md-typeset .admonition.note,
+.md-typeset .admonition.info,
+.md-typeset .admonition.tip { border-color: var(--srdp-ink); }
+
+/* ---------- 7. Buttons (.md-button) ---------- */
+.md-typeset .md-button {
+  border: 2px solid var(--srdp-ink);
+  border-radius: 2px;
+  color: var(--srdp-ink);
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.md-typeset .md-button:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 5px 5px 0 var(--srdp-cyan);
+  background: transparent;
+  color: var(--srdp-ink);
+  border-color: var(--srdp-ink);
+}
+.md-typeset .md-button--primary {
+  background: var(--srdp-ink);
+  color: var(--srdp-paper);
+  border-color: var(--srdp-ink);
+}
+.md-typeset .md-button--primary:hover {
+  background: var(--srdp-cyan);
+  color: var(--srdp-ink);
+  border-color: var(--srdp-ink);
+}
+
+/* ---------- 8. Footer ---------- */
+.md-footer-meta { background-color: var(--srdp-ink); }
+
+/* ---------- 9. Focus ring (a11y, brand blue) ---------- */
+*:focus-visible {
+  outline: 2px solid var(--srdp-blue);
+  outline-offset: 2px;
+}

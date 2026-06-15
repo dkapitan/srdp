@@ -3,7 +3,28 @@ site_name = "SRDP – Single Repo Data Platform"
 site_url = "https://docs.srdphub.com/"
 repo_url = "https://github.com/srdp-hub/srdp"
 
+# SRDP brand theme (matches srdphub.com identity v1.0).
+# The drop-in stylesheet overrides the --md-* variables directly, so it carries
+# the bulk of the styling; the palette/font keys below just align the defaults.
+extra_css = ["stylesheets/srdp-docs.css"]
+
+[project.theme]
+# Paper logo for the dark ink header; favicon shared with the main site.
+logo = "assets/srdp-hub-tree-paper.png"
+favicon = "assets/favicon.png"
+font.text = "Mozilla Text"
+font.code = "JetBrains Mono"
+
+[project.theme.palette]
+scheme = "default"
+primary = "black"
+accent = "blue"
+
 [project.theme.icon]
 repo = "fontawesome/brands/github"
+
+# Logo links back to the marketing site so the docs feel like one more section.
+[project.extra]
+homepage = "https://srdphub.com/"
 
 [project.markdown_extensions.footnotes]
