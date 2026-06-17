@@ -31,9 +31,9 @@ The platform is composed of four layers:
 
 Core library (`src/srdp/`): the Python package clients install. Contains IO managers, resources, base asset patterns, and the FastAPI API server. This is what `uv add srdp` provides.
 
-Core infrastructure services (containers, always deployed): PostgreSQL, Traefik, Dagster (daemon, code server, and the internal webserver that serves GraphQL), Zitadel, and oauth2-proxy. These form the platform runtime and are deployed via Docker Compose or Helm. They are not Python packages. The Dagster webserver runs as core because the FastAPI API depends on its GraphQL endpoint internally (see [ADR-0002](./0002-api-and-access-strategy.md)); exposing the Dagster UI route externally through Traefik is the optional part. OpenLineage events are stored in PostgreSQL by default, requiring no additional lineage service (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md)).
+Core infrastructure services (containers, always deployed): PostgreSQL, Traefik, Dagster (daemon, code server, and the internal webserver that serves GraphQL), Zitadel, and oauth2-proxy. These form the platform runtime and are deployed via Docker Compose or Helm. They are not Python packages. The Dagster webserver runs as core because the FastAPI API depends on its GraphQL endpoint internally (see [ADR-0002](./0002-api-and-access-strategy.md)); exposing the Dagster UI route externally through Traefik is the optional part. Lineage browsing uses Dagster's built-in asset catalog by default, which needs no additional service (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md)).
 
-Optional services (containers, added as needed): the externally-exposed Dagster UI route, marimo, quarto, the metrics and alerting stack (Prometheus, Grafana, Alertmanager; see [ADR-0003](./0003-data-catalog-lineage-and-observability.md)), and potentially others. These extend the platform with additional capabilities. Some may import `srdp` (e.g. through a Python client), others are standalone. The platform functions without any of these deployed.
+Optional services (containers, added as needed): the externally-exposed Dagster UI route, marimo, quarto, the metrics and alerting stack (Prometheus, Grafana, Alertmanager), the Marquez lineage backend (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md) for both), and potentially others. These extend the platform with additional capabilities. Some may import `srdp` (e.g. through a Python client), others are standalone. The platform functions without any of these deployed.
 
 Optional extras (Python dependencies, environment-specific): cloud storage backends and deployment-target-specific dependencies. These are genuine optional extras because the platform functions without them on a default local deployment.
 
@@ -74,7 +74,7 @@ The resulting image contains both the platform library and the client's assets. 
 
 Containers and pods are stateless and rebuildable from their image plus Git; they hold no durable state. All durable state lives in two surfaces, both reachable by configuration so the platform never assumes co-location with a service:
 
-- PostgreSQL: the DuckLake catalog, the Dagster run and event log, Zitadel identity data, and OpenLineage events.
+- PostgreSQL: the DuckLake catalog, the Dagster run and event log, and Zitadel identity data. The optional Marquez lineage backend runs its own separate database (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md)).
 - Object storage (or a mounted data volume): DuckLake Parquet files, the landing zone, append-only audit and access logs, and shipped Dagster compute logs.
 
 Everything else is ephemeral. Project caches, DuckDB spill, and scratch are disposable and rebuildable, so they sit on local scratch (`emptyDir` or tmpfs) and are never backed up. Application logs go to stdout for the host or cluster to aggregate; durable audit logs and compute logs are already externalized to blob (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md)).

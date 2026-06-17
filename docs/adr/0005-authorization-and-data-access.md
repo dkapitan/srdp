@@ -56,6 +56,17 @@ Chosen option: "Project-scoped RBAC". Roles are granted per project, which is th
 
 RBAC is chosen over ABAC because the access question the platform actually has is "which projects may this user read or write," which roles express directly. ABAC's per-request attribute evaluation is more power than the model needs today.
 
+### Subjects, tenants, and project membership
+
+A **tenant** is an organization (a Zitadel Organization). Each tenant has **principals**: users (people) and service keys (machine-to-machine), both authenticated via Zitadel. One tenant is the **deployment owner**: it owns the deployment and decides single vs multi tenancy and the project landscape; other tenants are admitted as participants. A deployment hosts one or many tenants at the owner's choice. One tenant per deployment is the recommended default for hard isolation; co-hosting multiple tenants is an explicit opt-in that relaxes ADR-0006's "one deployment per customer", with tenants inside a deployment separated by catalog/project plus RBAC rather than by the deployment boundary.
+
+Project access has two grains:
+
+- Tenant-to-project **membership** (coarse): every project has an owner tenant that controls its grants and lifecycle; other tenants may *participate* in projects they do not own (the cross-tenant shared case). This gates which organizations may reach a project.
+- Principal-to-project **RBAC** (fine): within a reachable project, each principal (user or service key) holds reader/writer/admin/service roles. A principal's grant is valid only if its tenant owns or participates in that project.
+
+Project-scoped RBAC is the mandatory core and a complete access model on its own. Fine column/row/consent scope via data contracts (ADR-0008) and credential materialization (ADR-0009) are an opt-in layer for deployments that need shared or regulated access; the core does not depend on it.
+
 ### Grants in Zitadel now; policy store later
 
 Chosen option: "Zitadel roles and claims now, optional PostgreSQL policy store later." Role grants live in Zitadel and arrive as token claims, reusing the existing identity stack with no new component. If finer-grained rules are later required (for example per-table or conditional grants), a PostgreSQL policy store the PEP consults is added without changing where enforcement happens. A standalone policy engine is deliberately deferred until the rules justify it.
