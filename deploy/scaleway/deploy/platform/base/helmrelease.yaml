@@ -1,0 +1,19 @@
+# External Secrets Operator (env-agnostic). The per-env Scaleway binding lives in
+# the ClusterSecretStore under platform/clusters/<env> (Scaleway provider +
+# the scaleway-eso-creds secret Terraform seeded).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-secrets
+  namespace: external-secrets
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: external-secrets
+      version: "0.10.4" # pin; bump deliberately
+      sourceRef:
+        kind: HelmRepository
+        name: external-secrets
+  values:
+    installCRDs: true

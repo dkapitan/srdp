@@ -1,0 +1,121 @@
+# Terraform CI for the Scaleway landing zone.
+# PR  -> fmt/validate + per-env plan (read-only).
+# main -> plan + apply, promoted hub -> dev -> stage -> prod via environments.
+#
+# The SRDP/mesh/platform layers are NOT deployed here — Flux reconciles them from
+# git (pull-based). This workflow only manages infrastructure (Terraform).
+#
+# Prereqs (repo settings):
+#  - Secrets: SCW_ACCESS_KEY, SCW_SECRET_KEY, and the four PROJECT_ID_* values.
+#  - Environments `srdp-stage` / `srdp-prod` with required reviewers (gated apply).
+#
+# Runners: GitHub-hosted (ubuntu-latest). The Scaleway API is public, so Terraform
+# manages all Scaleway resources fine with the SCW_* secrets.
+# CAVEAT: the in-cluster bits (Flux/ESO) hit the ACL-locked Kapsule API, which a
+# hosted runner's roaming IP can't reach. Apply those over the mesh / from an
+# allowlisted host, or temporarily add the runner egress to api_extra_allowed_cidrs.
+#
+# LOCATION: GitHub only runs workflows from `<repo-root>/.github/workflows/`.
+# This blueprint lives in a subdirectory (deploy/scaleway), so copy this file to
+# the repo root's `.github/workflows/` to activate it. The `defaults.working-
+# directory` + path prefixes below assume the blueprint is at `deploy/scaleway`;
+# adjust them if you place it elsewhere.
+
+name: terraform-ci
+
+on:
+  pull_request:
+    paths: [deploy/scaleway/**]
+  push:
+    branches: [main]
+    paths: [deploy/scaleway/**]
+
+defaults:
+  run:
+    working-directory: deploy/scaleway
+
+env:
+  TF_VERSION: "1.10.3"
+  ORG_PREFIX: ${{ vars.ORG_PREFIX }}
+  REGION: ${{ vars.REGION }}
+  ZONE: ${{ vars.ZONE }}
+  SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+  SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+  PROJECT_ID_HUB: ${{ secrets.PROJECT_ID_HUB }}
+  PROJECT_ID_DEV: ${{ secrets.PROJECT_ID_DEV }}
+  PROJECT_ID_STAGE: ${{ secrets.PROJECT_ID_STAGE }}
+  PROJECT_ID_PROD: ${{ secrets.PROJECT_ID_PROD }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.10.3" }
+      - run: terraform fmt -check -recursive
+      - name: validate each env
+        run: |
+          for e in hub dev stage prod; do
+            terraform -chdir=envs/$e init -backend=false -input=false
+            terraform -chdir=envs/$e validate
+          done
+
+  plan:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { env: [hub, dev, stage, prod] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.10.3" }
+      - run: just plan ${{ matrix.env }}
+
+  # Gated applies on main, in order. stage/prod use the in-VPC runner.
+  apply-hub:
+    if: github.ref == 'refs/heads/main'
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.10.3" }
+      - run: just apply hub
+
+  apply-dev:
+    if: github.ref == 'refs/heads/main'
+    needs: apply-hub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.10.3" }
+      - run: just apply dev
+
+  apply-stage:
+    if: github.ref == 'refs/heads/main'
+    needs: apply-dev
+    environment: srdp-stage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.10.3" }
+      - run: just apply stage
+
+  apply-prod:
+    if: github.ref == 'refs/heads/main'
+    needs: apply-stage
+    environment: srdp-prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.10.3" }
+      - run: just apply prod

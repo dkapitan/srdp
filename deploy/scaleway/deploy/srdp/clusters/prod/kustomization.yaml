@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: srdp
+resources:
+  - ../../base
+# Per-env values -> srdp-values-env ConfigMap (overrides base).
+configMapGenerator:
+  - name: srdp-values-env
+    files:
+      - values.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+# Pin THIS env's chart version (independent upgrades).
+patches:
+  - target:
+      kind: HelmRelease
+      name: srdp
+    patch: |
+      - op: replace
+        path: /spec/chart/spec/version
+        value: "0.1.0"

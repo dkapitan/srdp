@@ -1,0 +1,29 @@
+# SRDP release. The chart VERSION is patched per cluster overlay -> each env
+# upgrades independently. Values merge: base (shared Scaleway deltas) then env.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: srdp
+  namespace: srdp
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: srdp-chart
+      version: "0.0.0" # REPLACED by each clusters/<env> overlay
+      sourceRef:
+        kind: HelmRepository
+        name: srdp-registry
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  valuesFrom:
+    - kind: ConfigMap
+      name: srdp-values-base
+      valuesKey: values.yaml
+    - kind: ConfigMap
+      name: srdp-values-env # per-env, overrides base
+      valuesKey: values.yaml

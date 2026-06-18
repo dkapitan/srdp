@@ -1,0 +1,126 @@
+#cloud-config
+# Tailscale subnet router for the spoke PN. Advertises the PN CIDR + Kapsule API
+# /32 into the tailnet so kubectl reaches the (public, ACL'd) API over the mesh.
+#
+# No public IP (full isolation, like the Kapsule nodes). The PN is attached as a
+# SECONDARY NIC (ens6); the Public Gateway hands it the gateway as default route
+# via DHCP, so egress (Headscale registration, image pulls) and subnet-routed
+# kubectl all go out the gateway, SNAT'd to the gateway public IP -- the IP
+# allow-listed in the Kapsule ACL. PN hosts (nodes, RDB, LB) are on-link via ens6.
+#
+# RELIABILITY (learned the hard way -- see DEBUG-SESSION-NOTES.md): on a fresh boot
+# the PN NIC's DHCP (IP + gateway default route) is racy and sometimes never
+# completes, leaving the router with no egress so it never registers. So mesh-up:
+#   - actively KICKS DHCP (`networkctl renew`) whenever the PN NIC has no IP yet,
+#   - installs the gateway default route explicitly (net-fix) once the IP is up,
+#   - gates registration on real egress (a call to Headscale /health),
+# and loops forever until it registers. Its output also goes to the serial console
+# (break-glass: `scw instance server console <id>`).
+users:
+  - name: mesh
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+write_files:
+  - path: /etc/sysctl.d/99-ip-forward.conf
+    content: |
+      net.ipv4.ip_forward=1
+      net.ipv6.conf.all.forwarding=1
+  - path: /usr/local/bin/net-fix.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      # Ensure a default route via the Public Gateway on the PN interface.
+      set -uo pipefail
+      GW="${gateway_ip}"
+      [ -z "$GW" ] && exit 0
+      PN_IF=$(ip -o -4 addr show \
+        | awk '$4 ~ /^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/ {print $2; exit}')
+      [ -z "$${PN_IF:-}" ] && exit 0
+      ip route replace default via "$GW" dev "$${PN_IF}"
+  - path: /usr/local/bin/mesh-up.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      # Bring up PN egress (kicking DHCP if needed), then advertise PN + API /32.
+      # Loops forever until registration succeeds.
+      set -uo pipefail
+      AUTHKEY="${headscale_authkey}"
+      if [ -z "$AUTHKEY" ]; then
+        AUTHKEY="$${TS_AUTHKEY:-}"
+        [ -z "$AUTHKEY" ] && { echo "no authkey; not registering"; exit 0; }
+      fi
+      HS_URL="${headscale_url}"
+      API_HOST=$(echo "${apiserver_url}" | sed -E 's#^https?://##; s#[:/].*$##')
+      while true; do
+        PN_IF=$(ip -o -4 addr show \
+          | awk '$4 ~ /^(10\.|172\.(1[6-9]|2[0-9]|3[01])\.|192\.168\.)/ {print $2; exit}')
+        if [ -z "$PN_IF" ]; then
+          echo "PN interface has no IP yet; kicking DHCP"
+          networkctl renew 2>/dev/null || systemctl restart systemd-networkd 2>/dev/null || true
+          sleep 6; continue
+        fi
+        /usr/local/bin/net-fix.sh || true
+        if ! command -v tailscale >/dev/null 2>&1; then
+          curl -fsSL https://tailscale.com/install.sh | sh || { echo "install retry"; sleep 10; continue; }
+        fi
+        systemctl is-active --quiet tailscaled || systemctl start tailscaled || true
+        if ! curl -fsS -m 8 "$HS_URL/health" >/dev/null 2>&1; then
+          echo "egress not ready (cannot reach Headscale yet); retrying"; sleep 6; continue
+        fi
+        API_IP=$(getent hosts "$API_HOST" | awk '{print $1}' | head -1)
+        ROUTES="${pn_cidr}"
+        [ -n "$API_IP" ] && ROUTES="$ROUTES,$API_IP/32"
+        if tailscale up \
+            --login-server="$HS_URL" \
+            --authkey="$AUTHKEY" \
+            --advertise-routes="$ROUTES" \
+            --accept-dns=false \
+            --hostname=${hostname} \
+            --reset; then
+          echo "registered; advertised routes: $ROUTES (approve them on Headscale)"
+          exit 0
+        fi
+        echo "tailscale up failed; retrying"; sleep 10
+      done
+  - path: /etc/systemd/system/net-fix.service
+    content: |
+      [Unit]
+      Description=Install default route via the Public Gateway (PN egress)
+      After=network.target
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/net-fix.sh
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/systemd/system/net-fix.timer
+    content: |
+      [Unit]
+      Description=Re-assert the gateway default route (DHCP renewals / late NIC)
+      [Timer]
+      OnBootSec=5
+      OnUnitActiveSec=20
+      [Install]
+      WantedBy=timers.target
+  - path: /etc/systemd/system/mesh-up.service
+    content: |
+      [Unit]
+      Description=Register tailscale subnet router (kicks DHCP, waits for egress)
+      After=network.target
+      StartLimitIntervalSec=0
+      [Service]
+      Type=simple
+      ExecStart=/usr/local/bin/mesh-up.sh
+      StandardOutput=journal+console
+      StandardError=journal+console
+      Restart=on-failure
+      RestartSec=10
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - sysctl --system
+  - /usr/local/bin/net-fix.sh
+  - systemctl daemon-reload
+  - systemctl enable --now net-fix.timer
+  - systemctl enable --now mesh-up.service

@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: srdp
+resources:
+  - namespace.yaml
+  - helmrepository.yaml
+  - helmrelease.yaml
+# Shared Scaleway values -> ConfigMap consumed by the HelmRelease valuesFrom.
+configMapGenerator:
+  - name: srdp-values-base
+    files:
+      - values.yaml
+generatorOptions:
+  disableNameSuffixHash: true # stable name for valuesFrom reference

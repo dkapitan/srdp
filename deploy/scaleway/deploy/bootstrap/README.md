@@ -1,0 +1,51 @@
+# State backend bootstrap
+
+Creates the per-Project Terraform **state backend** — a Scaleway Object Storage
+bucket named `<prefix>-tfstate-<code>` (`<code>` = `hub`/`dev`/`stg`/`prd`) — that
+`envs/<env>` expect via Terraform's S3 backend. Run **once per Project, before**
+any `terraform init` in an env.
+
+This config uses **local state** by design: it builds the remote backend, so it
+can't yet store its own state there.
+
+## Run (via the Justfile — recommended)
+
+```bash
+just bootstrap-state hub
+just bootstrap-state dev
+just bootstrap-state stage
+just bootstrap-state prod
+```
+
+## Run (directly)
+
+```bash
+cd deploy/bootstrap
+terraform init
+terraform apply -state=terraform-dev.tfstate \
+  -var prefix=acme -var env=dev \
+  -var region=nl-ams \
+  -var project_id=<dev-project-id>
+# repeat with env=hub/stg/prd and the matching Project id + -state=terraform-<code>.tfstate
+```
+
+> The per-env `-state=` is important: a shared state file makes each run replace
+> the previous Project's bucket (single bucket resource). One state file per code.
+
+## S3 backend wiring
+
+`envs/<env>` declare an empty `backend "s3" {}`; the Justfile injects:
+
+```
+bucket                      = <prefix>-tfstate-<code>
+key                         = <env>.tfstate
+region                      = nl-ams
+endpoints.s3                = https://s3.nl-ams.scw.cloud
+access_key / secret_key     = SCW_ACCESS_KEY / SCW_SECRET_KEY
+skip_credentials_validation = true
+skip_region_validation      = true
+skip_requesting_account_id  = true
+```
+
+Keep `deploy/bootstrap/terraform-*.tfstate` safe — they only track these
+foundational buckets and rarely change.

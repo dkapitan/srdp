@@ -1,0 +1,120 @@
+# Bootstrap orchestration for the SRDP-on-Scaleway landing zone.
+# Company-specific config lives in `.env` (copy from .env.example) — no IDs here.
+#
+#   cp .env.example .env   # then fill in
+#   just bootstrap-all     # state backends + hub, then all spokes
+#
+# Reusable across companies: everything keys off ORG_PREFIX + the Project IDs in
+# .env. No Project IDs or org names are hardcoded in this file. Scaleway creds
+# (SCW_ACCESS_KEY / SCW_SECRET_KEY) are read from the environment by the provider
+# and the S3 state backend.
+
+set dotenv-load := true
+
+prefix := env_var('ORG_PREFIX')
+region := env_var_or_default('REGION', 'nl-ams')
+# Single shared Terraform-state bucket. Scaleway's S3 API resolves buckets within
+# the API key's PREFERRED PROJECT only, so ALL state lives in one bucket in that
+# Project (per-env isolation is via the object key, <env>.tfstate). Set the key's
+# preferred Project to match this bucket's Project (recommended: hub).
+tfstate_bucket := env_var_or_default('TFSTATE_BUCKET', prefix + '-tfstate-hub')
+zone   := env_var_or_default('ZONE', 'nl-ams-1')
+
+# Map an env -> short state code (hub|dev|stg|prd).
+_code env:
+    #!/usr/bin/env bash
+    case {{env}} in
+      hub) echo hub;; dev) echo dev;; stage) echo stg;; prod) echo prd;;
+      *) echo "unknown env: {{env}} (use hub|dev|stage|prod)" >&2; exit 1;;
+    esac
+
+# Print the Project id for an env (from .env).
+_project env:
+    #!/usr/bin/env bash
+    case {{env}} in
+      hub) echo "${PROJECT_ID_HUB}";;
+      dev) echo "${PROJECT_ID_DEV}";;
+      stage) echo "${PROJECT_ID_STAGE}";;
+      prod) echo "${PROJECT_ID_PROD}";;
+      *) echo "unknown env: {{env}}" >&2; exit 1;;
+    esac
+
+default:
+    @just --list
+
+# Sanity-check tooling + config.
+doctor:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for t in terraform; do command -v $t >/dev/null || { echo "missing: $t"; exit 1; }; done
+    : "${ORG_PREFIX:?set ORG_PREFIX in .env}"
+    : "${PROJECT_ID_HUB:?}" "${PROJECT_ID_DEV:?}" "${PROJECT_ID_STAGE:?}" "${PROJECT_ID_PROD:?}"
+    : "${SCW_ACCESS_KEY:?}" "${SCW_SECRET_KEY:?}"
+    echo "prefix=${ORG_PREFIX} region={{region}} ok"
+
+# --- Phase 1: state backends (run once per Project) -------------------------
+bootstrap-state env:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    code=$(just _code {{env}}); project=$(just _project {{env}})
+    terraform -chdir=deploy/bootstrap init -input=false
+    # Per-env local state so each Project gets its OWN bucket (a shared state file
+    # would make each run replace the previous Project's bucket).
+    terraform -chdir=deploy/bootstrap apply -input=false -auto-approve \
+      -state="terraform-$code.tfstate" \
+      -var "prefix={{prefix}}" -var "env=$code" \
+      -var "region={{region}}" -var "project_id=$project"
+
+# terraform init for an env (S3 backend against Scaleway Object Storage).
+init env:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cfg=$(mktemp)
+    cat > "$cfg" <<EOF
+    bucket                      = "{{tfstate_bucket}}"
+    key                         = "{{env}}.tfstate"
+    region                      = "{{region}}"
+    access_key                  = "${SCW_ACCESS_KEY}"
+    secret_key                  = "${SCW_SECRET_KEY}"
+    endpoints                   = { s3 = "https://s3.{{region}}.scw.cloud" }
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+    EOF
+    terraform -chdir=envs/{{env}} init -input=false -reconfigure -backend-config="$cfg"
+    rm -f "$cfg"
+
+# Shared TF_VAR env, then run a terraform subcommand in an env.
+_tf env +cmd:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    project=$(just _project {{env}})
+    export TF_VAR_project_id="$project"
+    export TF_VAR_hub_project_id="${PROJECT_ID_HUB}"
+    export TF_VAR_prefix="{{prefix}}" TF_VAR_region="{{region}}" TF_VAR_zone="{{zone}}"
+    # Spokes need the hub VPC id (peering target) + Headscale URL from hub state.
+    export TF_VAR_hub_vpc_id="$(terraform -chdir=envs/hub output -raw hub_vpc_id 2>/dev/null || echo '')"
+    hs_url="$(terraform -chdir=envs/hub output -raw headscale_url 2>/dev/null || echo '')"
+    [ -n "$hs_url" ] && export TF_VAR_headscale_url="$hs_url"
+    terraform -chdir=envs/{{env}} {{cmd}}
+
+plan env: (init env)
+    @just _tf {{env}} "plan -input=false"
+
+apply env: (init env)
+    @just _tf {{env}} "apply -input=false -auto-approve"
+
+up env: (apply env)
+
+# --- Orchestration: hub first, then spokes ----------------------------------
+# One shared state bucket in the hub Project (the API key's preferred Project).
+# All envs key into it as <env>.tfstate.
+bootstrap-all:
+    just bootstrap-state hub   # creates the shared {{tfstate_bucket}}
+    just up hub                # VPC + egress + registry + Headscale
+    just up dev                # spokes peer to the hub VPC (read from hub state)
+    just up stage
+    just up prod
+    @echo "Infra up. Next: publish chart+images, seed mesh authkey, set DNS."
