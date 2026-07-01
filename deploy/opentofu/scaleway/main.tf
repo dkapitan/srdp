@@ -94,7 +94,7 @@ resource "scaleway_instance_security_group" "srdp_lb" {
 resource "scaleway_k8s_cluster" "srdp_cluster" {
   name = var.cluster_name
   type = "kapsule"
-  version = "1.32.13"
+  version = "1.34.6"
   cni = "cilium"
   private_network_id = scaleway_vpc_private_network.k8s_network.id
   delete_additional_resources = false

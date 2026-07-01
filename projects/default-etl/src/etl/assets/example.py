@@ -87,9 +87,7 @@ def raw_orders() -> Output[pl.DataFrame]:
         df,
         metadata={
             "num_orders": len(df),
-            "countries": MetadataValue.text(
-                ", ".join(df["country"].unique().sort().to_list())
-            ),
+            "countries": MetadataValue.text(", ".join(df["country"].unique().sort().to_list())),
             "total_revenue": MetadataValue.float(df["revenue_eur"].sum()),
         },
     )

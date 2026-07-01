@@ -69,5 +69,7 @@ dagster:
           repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-etl
           tag: "v1.0"
           pullPolicy: Never
-        dagsterApiGrpcArgs: ["-m", "definitions"]
+        # package is `etl`; matches Dockerfile CMD. Required here because Helm
+        # replaces the whole `deployments` list per value-file (no merge with base).
+        dagsterApiGrpcArgs: ["-m", "etl.definitions"]
         port: 3030
