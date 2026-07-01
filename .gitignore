@@ -23,8 +23,12 @@ kubeconfig.yaml
 
 # Kubernetes
 values-prod.yaml
+values-prod.yaml.enc
 charts/
 
 # Local ADR review notes (not committed)
 docs/adr/ADR-REVIEW.md
 
+
+# coverage data
+.coverage
