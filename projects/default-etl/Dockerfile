@@ -16,6 +16,8 @@ RUN uv sync --frozen --no-dev --all-extras
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
 ENV PYTHONPATH="/app/projects/default-etl/src:${PYTHONPATH}"
+# Put the venv on PATH so the k8s chart can exec `dagster` directly (it bypasses `uv run`)
+ENV PATH="/app/.venv/bin:${PATH}"
 RUN mkdir -p "${DAGSTER_HOME}"
 
 EXPOSE 3030
