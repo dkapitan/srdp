@@ -12,9 +12,7 @@ Before you begin, ensure you have the following software installed on your local
 - Git
 - Container runtime (Docker Engine + Docker Compose)
 - [`just`](https://github.com/casey/just) — task runner for common commands
-- [`mkcert`](https://github.com/FiloSottile/mkcert) — local TLS certificates for `*.local.dev`
-
-### Additional tools for Kubernetes deployment
+- [`mkcert`](https://github.com/FiloSottaro/mkcert) — local TLS certificates for `*.srdp.localhost`
 
 - `kubectl` + a Kubernetes cluster (tested with 1.32+)
 - Helm 3.x

@@ -1,6 +1,6 @@
 # Global settings
 global:
-  domain: "local.dev"
+  domain: "srdp.localhost"
 
 # Traefik
 traefik:
@@ -70,7 +70,7 @@ zitadel:
           Admin:
             Password: srdpTest123
     configmapConfig:
-      ExternalDomain: auth.local.dev
+      ExternalDomain: auth.srdp.localhost
       ExternalPort: 443
       TLS:
         Enabled: false
@@ -163,13 +163,13 @@ oauth2-proxy:
     skip-provider-button: "true"
     http-address: "0.0.0.0:4180" 
     cookie-secure: "false" 
-    cookie-domain: ".local.dev"
-    whitelist-domain: ".local.dev"
+    cookie-domain: ".srdp.localhost"
+    whitelist-domain: ".srdp.localhost"
     cookie-samesite: "lax"
     cookie-expire: "168h"
     provider: "oidc"
     provider-display-name: "ZITADEL"
-    oidc-issuer-url: "https://auth.local.dev"
+    oidc-issuer-url: "https://auth.srdp.localhost"
     insecure-oidc-skip-issuer-verification: "true"
     ssl-insecure-skip-verify: "true"
     email-domain: "*"
@@ -177,13 +177,13 @@ oauth2-proxy:
     reverse-proxy: "true"
 
   customRequestHeaders:
-    - "Host:auth.local.dev"
+    - "Host:auth.srdp.localhost"
     - "X-Forwarded-Proto:https"
-  
+
   hostAliases:
     - ip: "10.96.0.50"
       hostnames:
-        - "auth.local.dev"
+        - "auth.srdp.localhost"
 
 # Dagster orchestration
 dagster:
