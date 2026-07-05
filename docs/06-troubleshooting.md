@@ -76,3 +76,17 @@ icon: lucide/life-buoy
 *   **Symptom:** Your Zitadel project and apps are missing after restarting the containers.
 *   **Cause:** You ran `docker compose down -v`, which removes all persistent volumes.
 *   **Solution:** Only use `docker compose down` to stop the containers. Do **not** use the `-v` flag unless you intend to reset all data.
+
+---
+
+## macOS-specific
+
+### `/etc/hosts` changes not picked up after editing (mDNSResponder cache)
+
+- **Symptom:** After adding entries to `/etc/hosts` and flushing the DNS cache with `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder`, the hostnames still resolve to the old address.
+- **Cause:** On recent macOS versions, sending `HUP` to mDNSResponder does not reliably trigger a re-read of `/etc/hosts`. The stale entries remain cached.
+- **Fix:** Fully restart the daemon:
+  ```bash
+  sudo killall mDNSResponder
+  ```
+  It relaunches automatically.
