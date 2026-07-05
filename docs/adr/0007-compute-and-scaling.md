@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
@@ -44,7 +44,9 @@ Reads are served at the tier that matches a deployment's sensitivity and trust, 
 
 Tier A is the default and the fastest: the connection attaches only the project catalogs the user may read (see [ADR-0006](./0006-deployment-and-project-isolation-model.md)), compute is distributed in the tool's process, and there is no API hop. Tier B adds per-query audit with a client-side wrapper that logs each query before executing it locally, requiring that the platform provisions the connection and the tool never receives raw storage credentials. Tier C centralizes compute behind a gateway only when code is untrusted or central audit is mandatory.
 
-The Tier C gateway protocol (HTTP via FastAPI versus Arrow Flight SQL) is a deferred sub-decision; it does not need resolving until a Tier C deployment exists.
+Every tier consumes a short-lived capability token, and engine credentials are materialized against it (see [ADR-0008](./0008-identity-propagation-and-data-contracts.md), [ADR-0009](./0009-data-plane-credential-materialization.md)). Tier A serves coarse project grants only: fine-grained contract grants (column and row scope) are enforceable only on the mediated Tier C path, because direct engine credentials cannot subset DuckLake columns or filter rows.
+
+The Tier C gateway protocol is a deferred sub-decision. The concrete candidates are the OData endpoint and a future Quack server (HTTP via FastAPI) versus Arrow Flight SQL (see [ADR-0008](./0008-identity-propagation-and-data-contracts.md)); it does not need resolving until a Tier C deployment exists.
 
 ### Serve versus offload: hybrid
 
@@ -84,7 +86,7 @@ Single-instance or bounded:
 
 | Component | Constraint | Mitigation |
 |:---|:---|:---|
-| PostgreSQL | Single instance; holds catalog metadata, Dagster state, identity data, lineage events. The most critical scaling boundary. | Managed PostgreSQL with automated failover and read replicas for heavy read loads |
+| PostgreSQL | Default deployment is a single instance holding catalog metadata, Dagster state, and identity data, so one busy workload can degrade the others. | Catalog, Dagster, and identity are independent databases and can move to separate instances when one workload dominates; HA, replicas, and managed-vs-self-hosted are per-deployment choices, not platform prescriptions |
 | Dagster daemon | Single instance by design (coordinates schedules, sensors, run queue). Cannot be replicated. | Lightweight process; rarely the bottleneck in practice. Monitor for run queue depth. |
 | Dagster code server | One replica per code location | Each client project is its own code location; scaling is per-project, not per-replica |
 | DuckDB in-process | Compute co-located with the process running the query; bounded by single-node memory and CPU | Memory limits per connection; heavy queries offloaded to async Dagster jobs (see serve-vs-offload above) |

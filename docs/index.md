@@ -3,34 +3,33 @@ title: SRDP
 icon: material/butterfly-outline
 ---
 
-# The Single Repo Data Platform (SRDP aka the serendipitious data platform)
-Because your data stack shouldn't require a PhD in Kubernetes and a second mortgage.
+# Single Repo Data Platform (SRDP)
 
-Welcome, weary data traveler. You've stumbled upon something serendipitous, a quixotic quest to build a sane, powerful, and actually usable data platform from the best open-source components we can find. All from the comfort of a single Git repository.[^1]
+SRDP is a self-hostable data platform assembled from established open-source components and deployed from a single Git repository. It is aimed at teams that want a coherent, governable data stack without operating a large set of separately managed services. Combining a single-repository approach containing components known from homelab stacks and modern data platforms, SRDP is a serendipitous mix of best practices in one data platform. It is designed to be easy to deploy, easy to operate, and easy to extend.
 
-What's the big idea? To stop gluing together 87 different services with YAML, duct tape, and desperate Stack Overflow searches at 3 AM. We're assembling a dream team of data tools that play nicely together, so you can spend less time wrangling infrastructure and more time doing... well, whatever it is you data people do. Probably making fancy charts.
+The same logical architecture runs from a laptop (Docker Compose) to a single VM to a Kubernetes cluster, so development and production stay aligned.[^1]
 
-[^1]: We take inspiration from [Instant OpenHIE](https://openhie.github.io/instant/) project who have done the same for open source health information exchange platforms.
+[^1]: The single-repository approach takes inspiration from the [Instant OpenHIE](https://openhie.github.io/instant/) project, which packages an open-source health information exchange the same way.
 
----
+## Components
 
-## The Dream Team: Our All-Star Roster
-We didn't just pick these tools out of a hat. Okay, maybe a little. But mostly, we chose them because they're fast, modern, and don't make us want to throw our laptops out the window. Think of them as the Avengers of the data world, if the Avengers were less about smashing aliens and more about smashing GROUP BY queries.
+| Component | Role in SRDP |
+|:---|:---|
+| [Zitadel](https://zitadel.com/) | Identity and access management. The single OIDC issuer; handles authentication and coarse project roles. |
+| [Traefik](https://traefik.io/) | Reverse proxy and ingress. Terminates TLS, routes by hostname, and load-balances across services. |
+| [OAuth2-Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) | Edge authentication. Runs the OIDC login flow and gates protected services via Traefik forward-auth. |
+| [DuckLake](https://ducklake.select/) / [DuckDB](https://duckdb.org/) | Lakehouse storage and the in-process analytical query engine. |
+| [Dagster](https://dagster.io/) | Data orchestration. Asset-based pipelines with scheduling, retries, and lineage. |
+| [dlt](https://dlthub.com/) | Data loading. Extracts data from external sources into the platform. |
+| [dbt](https://www.getdbt.com/) | SQL-based data transformation. |
+| [Polars](https://pola.rs/) | DataFrame library for in-process transformation in Python. |
+| [marimo](https://marimo.io/) | Reactive Python notebooks for interactive analysis. |
+| [Quarto](https://quarto.org/) | Reporting and publishing of analyses as static reports and sites. |
 
-Here's the lineup of our chosen champions:
+PostgreSQL backs the platform's stateful services (Zitadel and Dagster, and the DuckLake catalog).
 
-| Component |	Role in the SRDP |	Our Unsolicited Opinion |
-|:---|:---|:---|
-|🛡️ Zitadel	|The Bouncer / Identity & Access Management	| Manages who gets to touch the precious data. Because "SELECT * FROM users;" should require more than just a password of password123. |
-|🚦 Traefik	|The Traffic Cop / Cloud Native Proxy	| Directs all the incoming requests so services don't crash into each other. It's the only traffic jam you'll actually enjoy.|
-|🐼 Polars	|The Speed Demon / Dataframe Library	| It's like pandas, but it actually uses all your CPU cores and doesn't take a coffee break on df.groupby(). Written in Rust, because of course it is.|
-|🦆 DuckDB	|The Pocket Rocket / In-Process OLAP DB	| An incredibly fast analytical database that runs inside your application. It's the power of a warehouse in the body of a library. Quack-tastic!|
-|👑 Dagster	|The Conductor / Data Orchestrator	| The sensible, type-aware adult in the room of chaotic data pipelines. It knows what your data assets are and helps you not set the whole factory on fire.|
-|🚰 dlt-hub	|The Plumber / Data Loading Library	| Gets your data from "over there" to "right here" with surprisingly little fuss. Turns messy APIs into clean tables faster than you can say "ETL is dead".|
-|🔧 dbt	    | The Transformer / Data Transformation Tool	| The "T" in ELT that everyone's talking about. It turns your analysts into data engineering heroes with the power of SELECT statements and Jinja.|
-|📓 marimo	|The Mad Scientist's Notebook	| A next-gen reactive Python notebook. Change one cell, and the whole notebook updates. It's like magic, but with fewer rabbits and more legible code.|
-|📜 Quarto	|The Storyteller / Scientific Publishing	| Turns your brilliant analysis into beautiful reports, presentations, and websites. Because data that isn't shared is just sad, lonely numbers.|
+## Architecture
 
----
+![SRDP architecture](images/architecture.png)
 
-![](images/architecture.png)
+See [Architecture & Conventions](03-architecture.md) for the service topology and the edge authentication model, and the [Architectural Decision Records](adr/index.md) for the design decisions behind the platform.

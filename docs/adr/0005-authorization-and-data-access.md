@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
@@ -52,9 +52,20 @@ Chosen option: "Project-scoped RBAC". Roles are granted per project, which is th
 | Project reader | Read-only scoped connection to the project's catalog; read endpoints |
 | Project writer | Reader plus the ability to trigger ingestion and Dagster jobs for the project |
 | Project admin | Writer plus managing grants and project lifecycle |
-| Service roles | Access to specific services (Dagster UI, marimo, quarto) independent of project data grants |
+| Service roles | Access to specific services (Dagster UI, marimo, quarto) independent of project data grants. The exposed Dagster UI is read-only; see "Reads, writes, and audit" |
 
 RBAC is chosen over ABAC because the access question the platform actually has is "which projects may this user read or write," which roles express directly. ABAC's per-request attribute evaluation is more power than the model needs today.
+
+### Subjects, tenants, and project membership
+
+A **tenant** is an organization (a Zitadel Organization). Each tenant has **principals**: users (people) and service keys (machine-to-machine), both authenticated via Zitadel. One tenant is the **deployment owner**: it owns the deployment and decides single vs multi tenancy and the project landscape; other tenants are admitted as participants. A deployment hosts one or many tenants at the owner's choice. One tenant per deployment is the recommended default for hard isolation; co-hosting multiple tenants is an explicit opt-in that relaxes ADR-0006's "one deployment per customer", with tenants inside a deployment separated by catalog/project plus RBAC rather than by the deployment boundary.
+
+Project access has two grains:
+
+- Tenant-to-project **membership** (coarse): every project has an owner tenant that controls its grants and lifecycle; other tenants may *participate* in projects they do not own (the cross-tenant shared case). This gates which organizations may reach a project.
+- Principal-to-project **RBAC** (fine): within a reachable project, each principal (user or service key) holds reader/writer/admin/service roles. A principal's grant is valid only if its tenant owns or participates in that project.
+
+Project-scoped RBAC is the mandatory core and a complete access model on its own. Fine column/row/consent scope via data contracts (ADR-0008) and credential materialization (ADR-0009) are an opt-in layer for deployments that need shared or regulated access; the core does not depend on it.
 
 ### Grants in Zitadel now; policy store later
 
@@ -63,6 +74,7 @@ Chosen option: "Zitadel roles and claims now, optional PostgreSQL policy store l
 ### Reads, writes, and audit
 
 - Writes go through Dagster by default (see [ADR-0002](./0002-api-and-access-strategy.md), [ADR-0007](./0007-compute-and-scaling.md)); the writer role gates who may trigger them.
+- The exposed Dagster webserver runs read-only in production deployments (`--read-only` on `dagster-webserver`; `dagsterWebserver.enableReadOnly` in the Helm chart, the `--read-only` command flag in the compose production override). Dagster OSS has no per-user authorization, so a read-write UI would let anyone holding the service role launch runs, backfills, and terminations regardless of their project roles — the edge can only decide who reaches the service, not what they may do inside it. Read-only is therefore the enforcement mechanism that makes the writer-role gate real: mutations flow exclusively from code, schedules, and sensors reconciled through git, and from writer-gated API triggers. Operators retry runs and launch backfills through a non-exposed read-write instance or the Dagster CLI, not through the public UI.
 - Reads run on a read-only scoped connection, so a reader physically cannot mutate data.
 - Read-only solves the mutation risk but not read confidentiality (who looked at what), which is a separate concern. Read-audit granularity is a per-deployment policy: session and grant level by default, escalating to per-query for sensitive deployments (see the read tiers in [ADR-0007](./0007-compute-and-scaling.md)). API access is always audited per request.
 
