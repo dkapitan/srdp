@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-12
 decision-makers: Yannick Vinkesteijn
 ---
@@ -136,7 +136,8 @@ SRDP allows for the pieces such alignment needs, added at its extension seams ra
 - identity adapters at the PEP (external verifiable-credential identity → capability token),
 - EHDS/dataspace conventions carried in data contracts (formats, consent, ODRL-style usage policies),
 - conforming API surfaces added as routers (as the OData endpoint is),
-- validation hooks in the validator/proxy layer.
+- validation hooks in the validator/proxy layer,
+- per-transaction verification (e.g. consent or usage-policy checks) as API middleware on the mediated path.
 
 The PEP's token issuance and the evaluator's enforcement stay fixed.
 

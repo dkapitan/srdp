@@ -188,6 +188,12 @@ oauth2-proxy:
 # Dagster orchestration
 dagster:
   enabled: true
+  # Deploys an additional webserver in --read-only mode; the exposed ingress
+  # routes to it and the read-write webserver stays cluster-internal for
+  # operators (port-forward). Dagster OSS has no per-user authorization, so
+  # an exposed read-write UI would bypass the writer role (see ADR-0005).
+  dagsterWebserver:
+    enableReadOnly: true
   ingress:
     enabled: false
   postgresql:

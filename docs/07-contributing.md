@@ -70,7 +70,7 @@ Significant, hard-to-reverse decisions (choosing a component, changing a core in
 
 **How to add an ADR:**
 
-1. Copy [`docs/adr/0000-adr-template.md`](https://github.com/srdp-hub/srdp/blob/main/docs/adr/0000-adr-template.md) to `docs/adr/NNNN-short-title.md`, using the next available number.
+1. Copy [`.github/adr-template.md`](https://github.com/srdp-hub/srdp/blob/main/.github/adr-template.md) to `docs/adr/NNNN-short-title.md`, using the next available number. (The template lives outside `docs/` so the docs site does not render it.)
 2. Fill in the context, options considered, and the chosen outcome with justification.
 3. Set `status: proposed` in the frontmatter; it moves to `accepted` once the PR merges.
 

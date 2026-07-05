@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-15
 decision-makers: Yannick Vinkesteijn
 ---
@@ -75,3 +75,41 @@ These hold regardless of the open mechanism choices:
 - Completes the materialization half of ADR-0008's capability-token model (the decision half stays in 0008).
 - Supplies the credential mechanics ADR-0005 and ADR-0007 defer.
 - Sits inside ADR-0006's catalog isolation boundary: materialization never crosses projects.
+
+## Pros and Cons of the Options
+
+### Engine credentials: per-project roles + scoped storage credentials
+
+- Good, because it uses the primitives the systems natively enforce (PostgreSQL role, storage prefix, catalog attach) and keeps coarse reads direct.
+- Bad, because the primitives are persistent while the capability token lives 15 minutes; the lifecycle binding is unresolved (open question 3), and per-principal short-lived roles would churn DDL on the shared PostgreSQL.
+
+### Engine credentials: platform-run Quack server
+
+- Good, because credentials stay platform-held; the principal only ever talks to the server.
+- Bad, because every read becomes mediated, giving up the direct read path.
+- Bad, because Quack is beta; not to be committed to before it stabilizes.
+
+### Engine credentials: both, by tier
+
+- Good, because it matches the read tiers of ADR-0007: direct scoped credentials where coarse is enough, mediated where fine-grained scope requires it.
+- Bad, because it is two mechanisms whose scope and lifetime consistency the platform must maintain.
+
+### Fine-grained enforcement: runtime SQL rewrite
+
+- Good, because the evaluator is the sole boundary and nothing persistent must be reconciled with the token TTL.
+- Bad, because there is no engine backstop: rewrite correctness alone enforces column/row scope on every request.
+
+### Fine-grained enforcement: generated per-contract views
+
+- Good, because scope is baked into an inspectable object that changes only on contract-version change.
+- Bad, because views are persistent objects whose lifecycle does not match the token TTL.
+
+### Compute as data access
+
+- Good, because it keeps a single uniform credential model.
+- Bad, because compute has a different mechanism, audit shape, and failure mode than read access, and modelling it as data access conflates them.
+
+### Compute as a distinct capability (chosen)
+
+- Good, because the write credential is platform-held and never materialized to the user.
+- Bad, because it adds one more mechanism to the fan-out whose consistency is the platform's responsibility.

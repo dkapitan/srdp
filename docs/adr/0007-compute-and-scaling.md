@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
@@ -86,7 +86,7 @@ Single-instance or bounded:
 
 | Component | Constraint | Mitigation |
 |:---|:---|:---|
-| PostgreSQL | Single instance; holds catalog metadata, Dagster state, and identity data. The most critical scaling boundary. | Managed PostgreSQL with automated failover and read replicas for heavy read loads |
+| PostgreSQL | Default deployment is a single instance holding catalog metadata, Dagster state, and identity data, so one busy workload can degrade the others. | Catalog, Dagster, and identity are independent databases and can move to separate instances when one workload dominates; HA, replicas, and managed-vs-self-hosted are per-deployment choices, not platform prescriptions |
 | Dagster daemon | Single instance by design (coordinates schedules, sensors, run queue). Cannot be replicated. | Lightweight process; rarely the bottleneck in practice. Monitor for run queue depth. |
 | Dagster code server | One replica per code location | Each client project is its own code location; scaling is per-project, not per-replica |
 | DuckDB in-process | Compute co-located with the process running the query; bounded by single-node memory and CPU | Memory limits per connection; heavy queries offloaded to async Dagster jobs (see serve-vs-offload above) |
