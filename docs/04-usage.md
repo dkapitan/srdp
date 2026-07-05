@@ -10,10 +10,10 @@ icon: lucide/circle-play
 - `kubectl get pods,svc,ing -n srdp`
 
 ### Access services
-- Marimo: `https://marimo.local.dev`
-- Quarto: `https://quarto.local.dev`
-- Dagster: `https://dagster.local.dev`
-- Zitadel: `https://auth.local.dev`
+- Marimo: `https://marimo.srdp.localhost`
+- Quarto: `https://quarto.srdp.localhost`
+- Dagster: `https://dagster.srdp.localhost`
+- Zitadel: `https://auth.srdp.localhost`
 - Traefik dashboard (if enabled in values): `http://localhost:8080`
 
 All apps (Marimo, Quarto, Dagster) are protected behind OAuth2-Proxy. Accessing any of them will redirect to Zitadel for OIDC login before granting access.
@@ -36,11 +36,11 @@ Once you have completed the setup, you can verify that all services are running 
 Use the following URLs. You will be prompted to authenticate before accessing each service. You can use the admin credentials from [02-configuration.md](./02-configuration.md):
 
 *   **Marimo Dashboard:**
-    *   URL: [https://marimo.local.dev](https://marimo.local.dev)
+    *   URL: [https://marimo.srdp.localhost](https://marimo.srdp.localhost)
     *   You should see an interactive dashboard with a slider.
 
 *   **Quarto Static Site:**
-    *   URL: [https://quarto.local.dev](https://quarto.local.dev)
+    *   URL: [https://quarto.srdp.localhost](https://quarto.srdp.localhost)
     *   You should see a static HTML report titled "My Quarto Report".
 
 *   **Traefik Dashboard (for debugging):**

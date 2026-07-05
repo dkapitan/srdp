@@ -63,14 +63,14 @@ Every container has an explicit `container_name` in `docker-compose.yml` to prev
 
 ### Domains
 
-Local development uses `*.local.dev` with mkcert certificates:
+Local development uses `*.srdp.localhost` with mkcert certificates:
 
 | Domain | Service |
 |:---|:---|
-| `auth.local.dev` | Zitadel |
-| `dagster.local.dev` | Dagster webserver |
-| `marimo.local.dev` | Marimo |
-| `quarto.local.dev` | Quarto |
+| `auth.srdp.localhost` | Zitadel |
+| `dagster.srdp.localhost` | Dagster webserver |
+| `marimo.srdp.localhost` | Marimo |
+| `quarto.srdp.localhost` | Quarto |
 
 ### Databases
 
@@ -104,7 +104,7 @@ Shared across all services. The `initdb/` directory runs SQL scripts on first bo
 
 - Configured as a Traefik forward-auth middleware (`zitadel-auth`).
 - Protects all app services (Marimo, Quarto, Dagster) — requests are redirected to Zitadel for OIDC login.
-- The `dagster.local.dev` domain is included in the oauth2-proxy router rule alongside the other app domains.
+- The `dagster.srdp.localhost` domain is included in the oauth2-proxy router rule alongside the other app domains.
 
 ### Dagster
 

@@ -10,7 +10,7 @@ This guide will walk you through the steps to get the Single Repo Data Platform 
 - **Docker Compose** — simplest, no Kubernetes needed, good for trying out the stack locally.
 - **Kubernetes (Helm)** — closer to the production setup, requires a local cluster.
 
-Both options require mkcert for local TLS certificates and `/etc/hosts` entries for the `*.local.dev` domains.
+Both options require mkcert for local TLS certificates and `/etc/hosts` entries for the `*.srdp.localhost` domains.
 
 ---
 
@@ -28,7 +28,7 @@ cd srdp
 Add the following line to your hosts file (`/etc/hosts` on macOS/Linux):
 
 ```
-127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev dagster.local.dev
+127.0.0.1 auth.srdp.localhost marimo.srdp.localhost quarto.srdp.localhost dagster.srdp.localhost
 ```
 
 ### 3) Install the local CA and generate TLS certificates
@@ -78,7 +78,7 @@ cd srdp
 
 ### 2) Point DNS at your cluster
 
-The chart uses `*.local.dev` by default. Point those hostnames at the IP you will use to reach Traefik:
+The chart uses `*.srdp.localhost` by default. Point those hostnames at the IP you will use to reach Traefik:
 
 - For NodePort/local clusters: `127.0.0.1` is usually fine.
 - For a LoadBalancer: use the external IP once Traefik comes up.
@@ -86,7 +86,7 @@ The chart uses `*.local.dev` by default. Point those hostnames at the IP you wil
 Add one line to your hosts file (`/etc/hosts` on macOS/Linux):
 
 ```
-127.0.0.1 auth.local.dev marimo.local.dev quarto.local.dev dagster.local.dev
+127.0.0.1 auth.srdp.localhost marimo.srdp.localhost quarto.srdp.localhost dagster.srdp.localhost
 ```
 
 ### 3) Install the local CA and generate TLS certificates
@@ -102,7 +102,7 @@ Or manually:
 ```bash
 mkdir -p deploy/kubernetes/certs
 mkcert -cert-file deploy/kubernetes/certs/selfsigned.crt -key-file deploy/kubernetes/certs/selfsigned.key \
-  "auth.local.dev" "marimo.local.dev" "quarto.local.dev" "dagster.local.dev"
+  "auth.srdp.localhost" "marimo.srdp.localhost" "quarto.srdp.localhost" "dagster.srdp.localhost"
 
 kubectl create namespace srdp --dry-run=client -o yaml | kubectl apply -f -
 kubectl create secret tls custom-ingress-cert \
