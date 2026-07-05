@@ -33,7 +33,7 @@ Add the following line to your hosts file (`/etc/hosts` on macOS/Linux):
 
 ### 3) Install the local CA and generate TLS certificates
 
-The stack serves everything over HTTPS because Zitadel and OAuth2-Proxy require it. [`mkcert`](https://github.com/FiloSottaro/mkcert) creates locally-trusted certificates so your browser won't show warnings.
+The stack serves everything over HTTPS because Zitadel and OAuth2-Proxy require it. [`mkcert`](https://github.com/FiloSottile/mkcert) creates locally-trusted certificates so your browser won't show warnings.
 
 ```bash
 brew install mkcert   # or see mkcert docs for other platforms
@@ -47,7 +47,7 @@ just docker-tls       # generates certs in deploy/docker/certs/
 cp deploy/docker/.env.example deploy/docker/.env
 ```
 
-The defaults in `.env.example` are fine for local development. You will need to update `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` after Zitadel creates the OIDC application on first boot (see [03-usage.md](./03-usage.md)).
+The defaults in `.env.example` are fine for local development. You will need to update `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` after you create the OIDC application in Zitadel; see [First boot: create the Zitadel OIDC application](#first-boot-create-the-zitadel-oidc-application) below.
 
 ### 5) Start the stack
 
@@ -55,7 +55,7 @@ The defaults in `.env.example` are fine for local development. You will need to 
 just docker-up
 ```
 
-This builds the Marimo and Quarto images locally and starts all services: Traefik, PostgreSQL, Zitadel, OAuth2-Proxy, Marimo, and Quarto. First run will take a few minutes while images are pulled and built.
+This builds the Marimo and Quarto images locally and starts all services: Traefik, PostgreSQL, Zitadel, OAuth2-Proxy, Dagster (webserver, daemon, and user code), Marimo, and Quarto. First run will take a few minutes while images are pulled and built.
 
 To stop the stack:
 
@@ -147,5 +147,37 @@ just local-deploy
 
 To re-run with updated values, run the same `helm upgrade` command (or `just local-deploy`).
 
-The chart deploys the full stack: Traefik, PostgreSQL (in-cluster via Bitnami Helm chart), Zitadel, OAuth2-Proxy, Dagster (webserver + daemon + user code), Marimo, and Quarto. PostgreSQL hosts both the `zitadel` and `dagster` databases, created automatically via `zitadel-db.primary.initdb.scripts`.
+The chart deploys the full stack: Traefik, PostgreSQL (in-cluster via Bitnami Helm chart), Zitadel, OAuth2-Proxy, Dagster (webserver + daemon + user code), Marimo, and Quarto. PostgreSQL hosts the `zitadel` and `dagster` databases, created automatically via `zitadel-db.primary.initdb.scripts`; the `ducklake` catalog database is created later by the DuckLake IO manager on first use.
+
+---
+
+## First boot: create the Zitadel OIDC application
+
+OAuth2-Proxy needs an OIDC client registered in Zitadel. Zitadel creates its first instance and admin user automatically on first start, but the OIDC application is created manually through the Zitadel console. Do this once, after the stack is up, for either deployment option.
+
+### 1) Sign in to the Zitadel console
+
+Open `https://auth.local.dev` and sign in as the first-instance admin. Zitadel derives the default admin login name from the configured `ExternalDomain`, so for the local stack it is:
+
+- Login name: `zitadel-admin@zitadel.auth.local.dev`
+- Password: `srdpTest123!` for the Kubernetes chart (set in `values.yaml`). The Docker Compose stack does not override the admin password, so Zitadel's default for a fresh instance applies; set `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD` in the compose environment if you want a known value.
+
+If the login name differs, check it under **Users** in the Zitadel console.
+
+### 2) Create the OIDC application
+
+1. Create (or open) a project, then add an application of type **Web**.
+2. Use the **Code** authentication flow (client ID + secret).
+3. Add a redirect URI for each protected service:
+   - `https://marimo.local.dev/oauth2/callback`
+   - `https://quarto.local.dev/oauth2/callback`
+   - `https://dagster.local.dev/oauth2/callback`
+
+Zitadel then shows a **Client ID** and **Client Secret**.
+
+### 3) Apply the credentials
+
+- **Docker Compose**: set `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` in `deploy/docker/.env`, then run `just docker-up` to recreate OAuth2-Proxy with the new values.
+- **Kubernetes**: set the `oauth2-proxy` client ID/secret in `values-local.yaml`, then run `just local-deploy`.
+
 **Congratulations! The local environment should now be up and running.** Proceed to the next section, **Usage & Verification**, to confirm that everything is working correctly.

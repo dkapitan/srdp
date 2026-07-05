@@ -15,6 +15,24 @@ pre-commit install
 uv run pytest
 ```
 
+## GitHub labels
+
+Labels are managed in the GitHub UI under **Settings > Labels**. The set is intentionally small.
+
+| Label | Color | Description |
+|:---|:---|:---|
+| `bug` | `#E99695` | Something isn't working |
+| `enhancement` | `#a2eeef` | New feature or improvement |
+| `documentation` | `#0075ca` | Improvements to docs |
+| `performance` | `#340E3F` | Performance issues or improvements |
+| `regression` | `#6109D4` | Broken by a recent change |
+| `breaking` | `#D47928` | Introduces a breaking change |
+| `good first issue` | `#7057ff` | Good for newcomers |
+| `needs repro` | `#FBCA04` | Bug needs a reproducible example |
+| `needs decision` | `#5319E7` | Needs maintainer decision before proceeding |
+| `wontfix` | `#aaaaaa` | This will not be worked on |
+| `duplicate` | `#cfd3d7` | Already tracked elsewhere |
+
 ## Branching
 
 We use GitHub Flow: feature branches from `main`, merged via PR.

@@ -7,23 +7,28 @@ icon: lucide/list-todo
 
 Before you begin, ensure you have the following software installed on your local machine. This guide assumes you have a basic understanding of using the command line.
 
-Required tools (all deployment methods)
+### Required tools (all deployment methods)
+
 - Git
 - Container runtime (Docker Engine + Docker Compose)
 - [`just`](https://github.com/casey/just) — task runner for common commands
-- [`mkcert`](https://github.com/FiloSottaro/mkcert) — local TLS certificates for `*.local.dev`
+- [`mkcert`](https://github.com/FiloSottile/mkcert) — local TLS certificates for `*.local.dev`
 
-Additional tools for Kubernetes deployment
+### Additional tools for Kubernetes deployment
+
 - `kubectl` + a Kubernetes cluster (tested with 1.32+)
 - Helm 3.x
 
-Additional tools for production
+### Additional tools for production
+
 - [OpenTofu](https://opentofu.org/docs/intro/install/) — infrastructure provisioning on Scaleway Kapsule
 
-Tested with
+### Tested with
+
 - **macOS**: Docker Engine + Docker Compose + Kubernetes via [Colima](https://github.com/abiosoft/colima)
 - **Linux**: Docker Engine + Docker Compose + Kubernetes (native)
 
-Notes
+### Notes
+
 - The `just` recipes require a Bash-compatible shell.
 - You need permission to create namespaces/secrets and, for cloud runs, to provision load balancers.
