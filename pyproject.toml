@@ -82,6 +82,7 @@ ignore = [
     "ISC001",  # Implicit string concat — conflicts with ruff formatter
     "D203",    # One blank line before class docstring — conflicts with D211
     "D213",    # Multi-line summary on second line — conflicts with D212
+    "D107",    # Docstring in __init__ — covered by class docstring
     "E501",    # Line length regulated by formatter
     "TD002",   # Missing author in TODO
     "TD003",   # Missing issue link on TODO
@@ -119,6 +120,7 @@ strict = true
 ]
 "projects/**/*.py" = [
     "INP001",  # implicit namespace package
+    "D100",    # module docstrings not required in app code
 ]
 
 [tool.ruff.format]

@@ -38,6 +38,13 @@ kind: Ingress
 metadata:
   name: auth-routes-ingress
   namespace: {{ .Release.Namespace }}
+  {{- if .Values.traefik.certResolver }}
+  # Traefik ACME: a plain k8s Ingress has no native certResolver field (unlike an
+  # IngressRoute), so the resolver must be set via this router annotation. Without it
+  # Traefik never requests a Let's Encrypt cert and falls back to its default cert.
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.traefik.certResolver }}
+  {{- end }}
 spec:
   ingressClassName: srdp-traefik
   tls:
@@ -51,9 +58,7 @@ spec:
 {{- if .Values.dagster.enabled }}
         - dagster.{{ .Values.global.domain }}
 {{- end }}
-      {{- if .Values.traefik.certResolver }}
-      secretName: {{ .Values.global.domain | replace "." "-" }}-tls
-      {{- else }}
+      {{- if not .Values.traefik.certResolver }}
       secretName: custom-ingress-cert
       {{- end }}
   rules:
@@ -104,14 +109,15 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+    {{- if .Values.traefik.certResolver }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.traefik.certResolver }}
+    {{- end }}
 spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
         - marimo.{{ .Values.global.domain }}
-      {{- if .Values.traefik.certResolver }}
-      secretName: marimo-tls-prod
-      {{- else }}
+      {{- if not .Values.traefik.certResolver }}
       secretName: custom-ingress-cert
       {{- end }}
   rules:
@@ -137,14 +143,15 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+    {{- if .Values.traefik.certResolver }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.traefik.certResolver }}
+    {{- end }}
 spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
         - quarto.{{ .Values.global.domain }}
-      {{- if .Values.traefik.certResolver }}
-      secretName: quarto-tls-prod
-      {{- else }}
+      {{- if not .Values.traefik.certResolver }}
       secretName: custom-ingress-cert
       {{- end }}
   rules:
@@ -170,14 +177,15 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-errors@kubernetescrd,{{ .Release.Namespace }}-oauth-auth@kubernetescrd
+    {{- if .Values.traefik.certResolver }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.traefik.certResolver }}
+    {{- end }}
 spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
         - dagster.{{ .Values.global.domain }}
-      {{- if .Values.traefik.certResolver }}
-      secretName: dagster-tls-prod
-      {{- else }}
+      {{- if not .Values.traefik.certResolver }}
       secretName: custom-ingress-cert
       {{- end }}
   rules:
@@ -203,14 +211,15 @@ metadata:
   annotations:
     # Keep auth protection but avoid 302 error-rewrite behavior on API/websocket requests.
     traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-oauth-auth@kubernetescrd
+    {{- if .Values.traefik.certResolver }}
+    traefik.ingress.kubernetes.io/router.tls.certresolver: {{ .Values.traefik.certResolver }}
+    {{- end }}
 spec:
   ingressClassName: srdp-traefik
   tls:
     - hosts:
         - dagster.{{ .Values.global.domain }}
-      {{- if .Values.traefik.certResolver }}
-      secretName: dagster-tls-prod
-      {{- else }}
+      {{- if not .Values.traefik.certResolver }}
       secretName: custom-ingress-cert
       {{- end }}
   rules:

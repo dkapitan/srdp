@@ -1,17 +1,16 @@
 from dagster import Definitions, ScheduleDefinition, define_asset_job
 
-from srdp.resources.k8s import (
-    BACKFILL_K8S_CONFIG,
-    BASE_RUN_K8S_CONFIG,
-    FAST_LANE_K8S_CONFIG,
-)
-
 from etl.assets.example import (
     executive_summary,
     raw_orders,
     revenue_by_category,
     revenue_by_country,
     top_country,
+)
+from srdp.resources.k8s import (
+    BACKFILL_K8S_CONFIG,
+    BASE_RUN_K8S_CONFIG,
+    FAST_LANE_K8S_CONFIG,
 )
 
 # ---------------------------------------------------------------------------

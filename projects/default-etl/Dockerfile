@@ -16,7 +16,10 @@ RUN uv sync --frozen --no-dev --all-extras
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
 ENV PYTHONPATH="/app/projects/default-etl/src:${PYTHONPATH}"
-# Put the venv on PATH so the k8s chart can exec `dagster` directly (it bypasses `uv run`)
+# Put the uv venv on PATH so entry points (dagster) resolve without `uv run`.
+# The Dagster Helm chart invokes the bare `dagster` binary for its gRPC server
+# and health probe, bypassing the CMD below. This is uv's documented pattern
+# for "activating" a venv in an image (astral-sh/uv Docker guide).
 ENV PATH="/app/.venv/bin:${PATH}"
 RUN mkdir -p "${DAGSTER_HOME}"
 
