@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
@@ -26,8 +26,8 @@ This ADR addresses how traffic flows through the platform at three communication
 
 ### Core platform API framework
 
-1. FastAPI: async-first Python web framework with native Pydantic integration and automatic OpenAPI generation.
-2. GraphQL gateway: a single typed graph over the backends.
+1. FastAPI (REST + OpenAPI): async-first Python web framework with native Pydantic integration and automatic OpenAPI generation.
+2. gRPC: a high-performance RPC framework, primarily for inter-service communication.
 3. Expose backends directly: let consumers call Dagster GraphQL and DuckDB themselves.
 
 ### Internal trust model
@@ -65,7 +65,7 @@ Level 3, internal: services communicate with each other and with platform backen
 Chosen option: "Traefik + Zitadel + oauth2-proxy forwardauth", because it enforces authentication at the edge without touching service code, integrates natively with both Docker Compose (labels) and Kubernetes (IngressRoute CRDs), and Zitadel provides a self-hostable identity stack.
 
 - Unauthenticated requests are redirected to `/oauth2/sign_in`.
-- Authenticated requests receive `X-Auth-Request-User` and `X-Auth-Request-Email` headers.
+- Authenticated requests carry `X-Auth-Request-*` headers as display hints only; services derive identity by validating the forwarded Zitadel JWT, not from these headers (see [ADR-0008](./0008-identity-propagation-and-data-contracts.md)).
 - Adding a new service requires only the Traefik forwardauth middleware labels.
 - TLS certificates are configured once in Traefik's static config, not per service.
 - For machine-to-machine access, Zitadel service accounts authenticate via the OAuth2 token endpoint.
@@ -74,11 +74,13 @@ Edge authentication establishes identity. It does not decide which data a princi
 
 ### Core platform API: FastAPI
 
-Chosen option: "FastAPI", because the platform's API is a browser- and script-facing, data-serving gateway that composes several backends, which is exactly what an HTTP + OpenAPI framework with native Pydantic models fits. A GraphQL gateway adds a query layer the platform does not need (the catalog already provides dynamic discovery), and exposing Dagster GraphQL and DuckDB directly would remove the single place where authentication, authorization, and audit are applied.
+Chosen option: "FastAPI", because the platform's API is a browser- and script-facing, data-serving gateway that composes several backends, which is exactly what an HTTP + OpenAPI (REST) framework with native Pydantic models fits. gRPC is the considered alternative and is deferred (see below); exposing Dagster GraphQL and DuckDB directly would remove the single place where authentication, authorization, and audit are applied.
 
-The API composes data and operations from multiple backends into one surface, organized by function (data access, orchestration, platform management), not by backend tool. It generates an OpenAPI specification directly from Pydantic models, runs as a container behind Traefik, and receives pre-authenticated headers from forwardauth. Each platform module registers its endpoints as a FastAPI router; new modules add a router without modifying shared application code.
+The API composes data and operations from multiple backends into one surface, organized by function (data access, orchestration, platform management), not by backend tool. It generates an OpenAPI specification directly from Pydantic models, runs as a container behind Traefik, and establishes identity by validating the forwarded Zitadel JWT (see [ADR-0008](./0008-identity-propagation-and-data-contracts.md)), not by trusting forwardauth headers. Each platform module registers its endpoints as a FastAPI router; new modules add a router without modifying shared application code.
 
 The API is stateless and scales horizontally (multiple workers per host, multiple replicas behind Traefik, async I/O for I/O-bound calls). It is not a single-server bottleneck. The bottleneck to manage is in-process query compute, which is the subject of [ADR-0007](./0007-compute-and-scaling.md).
+
+**On gRPC.** gRPC is a ready-made, high-performance RPC framework that wins for high-volume, low-latency, and streaming internal traffic (less so for large payloads). It is not the right fit for the platform API now, for two reasons. First, that API is external and human/script-facing, where REST is more mature in tooling and gRPC is discouraged: gRPC runs over HTTP/2 (not natively supported everywhere), and external parties cannot connect without a generated client or grpc-web. Second, adopting gRPC for the API means giving up the FastAPI layer we get for free (Pydantic validation, OpenAPI/Swagger) and rebuilding it ourselves. The internal high-performance case is already covered by the tool-specific protocols that are optimized for it: Dagster uses gRPC for its own internal comms, so that benefit lives inside Dagster and is not ours to build. The platform therefore leans on Dagster and existing tool protocols internally, and routes everything else through the REST API or an authn/visibility proxy. After v1 we can measure where bottlenecks actually are and, if warranted, apply gRPC to specific hot paths behind the proxy rather than committing to it up front.
 
 ### Internal trust: zero-trust, with a read and write split
 
@@ -86,8 +88,8 @@ Chosen option: "Zero-trust". The closed network adds protection, but is not suff
 
 Because DuckDB and DuckLake have no per-row or per-column security, authorization cannot be pushed into the engine. The platform therefore splits reads from writes:
 
-- Reads: interactive tools (marimo, quarto, ad-hoc analysis) receive a read-only, project-scoped DuckDB connection derived from the user's grants (only the project catalogs they may read are attached, read-only; see [ADR-0006](./0006-deployment-and-project-isolation-model.md)). This is fast direct SQL that physically cannot mutate data.
-- Writes: all writes to lake-managed layers go through Dagster by default, for lineage, retries, and asset checks (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md), [ADR-0007](./0007-compute-and-scaling.md)). The API's only write role is accepting drops into the landing zone (which trigger Dagster jobs) plus explicitly-defined operational write endpoints. No interactive tool gets a writable data connection.
+- Reads: interactive tools (marimo, quarto, ad-hoc analysis) get project-scoped read access. How a grant is materialized into engine and storage credentials, and why fine-grained or sensitive reads are served through a mediated path rather than a direct connection — is decided in [ADR-0009](./0009-data-plane-credential-materialization.md). Project isolation follows the catalog boundary of [ADR-0006](./0006-deployment-and-project-isolation-model.md).
+- Writes: all writes to lake-managed layers go through Dagster by default, for lineage, retries, and asset checks (see [ADR-0003](./0003-data-catalog-lineage-and-observability.md), [ADR-0007](./0007-compute-and-scaling.md)). The API's only write role is accepting drops into the landing zone (which trigger Dagster jobs) plus explicitly-defined operational write endpoints. Interactive tools that need to write use these same steps (the API and Dagster path), never a direct writable engine connection. The invariant is that every write is mediated and on-path (lineage, audit, asset checks). In case of interactive tools with write access the same applies.
 
 Service-to-service backend calls that are not user-driven and do not cross a trust boundary may stay network-local on a single-node deployment, which is adequate: the invariant is that the network is never a data-authorization boundary, so any path that carries user identity or touches data must authenticate, while purely internal non-boundary calls need not. When a real boundary appears (multi-node, compliance), they authenticate with Zitadel service accounts (machine-to-machine client credentials), reusing the existing identity stack. mTLS or a service mesh is the heavyweight version and is out of scope.
 
@@ -122,11 +124,12 @@ The platform records who accessed what, when, and through which path. The decisi
 - Bad, because each service must maintain its own OIDC client, session handling, and token refresh logic.
 - Bad, because inconsistent auth UX across services.
 
-### GraphQL gateway
+### gRPC
 
-- Good, because a single typed graph can stitch backends together.
-- Bad, because the catalog already provides dynamic data discovery, so the extra query layer is weight without a matching need.
-- Bad, because audit and authorization middleware is less standard than for plain HTTP.
+- Good, because it is a ready-made framework (not DIY) and wins on high-volume, low-latency, and streaming traffic.
+- Good, because the internal high-performance case is already covered: Dagster uses gRPC for its own internal comms, at no build cost to us.
+- Bad, because it runs over HTTP/2, which is not natively supported everywhere, and external/human-facing consumers need a generated client or grpc-web to connect.
+- Bad, because adopting it for the platform API forfeits the free FastAPI layer (Pydantic validation, OpenAPI/Swagger), which we would have to replace ourselves.
 
 ### Expose backends directly
 

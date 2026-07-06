@@ -44,7 +44,7 @@ icon: lucide/life-buoy
 
 - Cause: `zitadel-db.primary.initdb.scripts` only run on first PostgreSQL initialization. If you reused an old PVC, the `dagster` role/database may be missing.
 - Quick fix (keeps existing data) — adjust the pod name and password for your environment:
-  - Local: `kubectl -n srdp exec -i db-postgresql-0 -- bash -lc "export PGPASSWORD='srdpTest123'; psql -h 127.0.0.1 -U postgres -d postgres"`
+  - Local: `kubectl -n srdp exec -i db-postgresql-0 -- bash -lc "export PGPASSWORD='<your-postgres-password>'; psql -h 127.0.0.1 -U postgres -d postgres"`
   - Production: `kubectl -n srdp exec -i db-postgresql-primary-0 -- bash -lc "export PGPASSWORD='<your-postgres-password>'; psql -h 127.0.0.1 -U postgres -d postgres"`
   - Then run:
     - `CREATE ROLE dagster LOGIN PASSWORD '<your-dagster-password>';` (or `ALTER ROLE ...` if it exists)
@@ -73,6 +73,8 @@ icon: lucide/life-buoy
 ### Traefik stuck in Init
 
 - The Traefik PVC is ReadWriteOnce; if an old pod still holds it, new pods stay in `Init` with a multi-attach warning. Delete the old Traefik pod (or the PVC if needed) so the new pod can mount `/data`.
-*   **Symptom:** Your Zitadel project and apps are missing after restarting the containers.
-*   **Cause:** You ran `docker compose down -v`, which removes all persistent volumes.
-*   **Solution:** Only use `docker compose down` to stop the containers. Do **not** use the `-v` flag unless you intend to reset all data.
+
+### Zitadel project and apps missing after a restart (Docker Compose)
+
+- Cause: you ran `docker compose down -v`, which removes all persistent volumes.
+- Fix: use `docker compose down` (without `-v`) to stop the stack. Only use `-v` when you intend to reset all data.

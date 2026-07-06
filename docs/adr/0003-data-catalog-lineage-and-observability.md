@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
@@ -58,15 +58,20 @@ Why an IO manager, not a Dagster resource? A resource requires every asset to ex
 
 The `StorageBackend` abstract base class (`srdp.io.storage`) decouples DuckLake from storage providers. Implementing a new backend requires two methods: `get_base_path()` and `configure_duckdb()`. Built-in: local filesystem. Optional via extras: Azure Blob Storage, S3-compatible storage.
 
-### Lineage: OpenLineage as a core feature, backend pluggable
+### Lineage: Dagster-native baseline, OpenLineage into Marquez
 
-Chosen option: "OpenLineage as a core feature". DuckLake tracks what data exists and how it changed, but not the full flow across systems. Lineage is captured at the Dagster asset boundary, not inside each library, so coverage does not depend on whether the tools used inside an asset support OpenLineage natively.
+Chosen option: "OpenLineage as a core feature", with a staged rollout. DuckLake tracks what data exists and how it changed, but not the full flow across systems. Lineage is captured at the Dagster asset boundary, not inside each library, so coverage does not depend on whether the tools used inside an asset support OpenLineage natively.
 
-The lineage backend is pluggable via the OpenLineage transport configuration. The default stores events in PostgreSQL (which the platform already runs), requiring no additional service. Dagster's built-in asset catalog provides lineage browsing out of the box. When cross-system lineage querying or a dedicated lineage UI is needed, a specialized backend (such as Marquez or any other OpenLineage-compatible collector) can be added as an optional service.
+Two honest caveats shape delivery, and correct an earlier "near-free" framing:
+
+- **Emission is a platform-provided bridge, not native.** The Dagster OpenLineage integration is unmaintained, so SRDP emits OpenLineage events from a small bridge: a run-status sensor that translates Dagster materializations into OpenLineage RunEvents via `openlineage-python`. This is platform code regardless of backend.
+- **The backend is Marquez, not a bespoke store.** There is no off-the-shelf OpenLineage-to-PostgreSQL store; Marquez *is* the Postgres-backed OpenLineage reference collector. SRDP therefore aims to use **Marquez** as the OpenLineage backend rather than building a custom event store. Marquez is an added (optional) service with its own PostgreSQL database, accepted as the cost of real, queryable lineage with a UI.
+
+Baseline: **Dagster's built-in asset catalog** is the lineage browsing surface out of the box, with no extra service. The OpenLineage bridge into Marquez is the richer tier, enabled when cross-system lineage or a dedicated lineage UI is needed.
 
 | Source | How lineage is captured |
 |:---|:---|
-| Dagster assets | Native OpenLineage emission at the asset boundary; the default and the baseline guarantee |
+| Dagster assets | OpenLineage emission at the asset boundary via the platform bridge (a run-status sensor); the baseline guarantee |
 | Asset metadata | Authors attach lineage and schema as Dagster asset metadata, filled dynamically (for example from Polars or other dataframe metadata) or set explicitly, so libraries with no native OpenLineage support are still tracked |
 | DuckDB / DuckLake | Finer-grained lineage via the lineage extension where available |
 | External systems | OpenLineage Python client for processes that run outside Dagster |
@@ -109,7 +114,8 @@ Data integrity: storage locations are reachable only through the platform, and t
 - Good, because data observability is automatic: every write to a lake-managed layer goes through DuckLake, so no lake-managed data exists outside the catalog.
 - Good, because the IO wrapper is tool-agnostic: asset authors choose their own dataframe library.
 - Good, because the catalog needs no extra server, and DuckDB is in-process.
-- Good, because lineage is decided (OpenLineage core, pluggable backend) rather than left planned. The default backend is PostgreSQL, requiring no new service.
+- Good, because lineage is decided (Dagster-native asset catalog baseline; OpenLineage into Marquez for richer or cross-system lineage) rather than left planned.
+- Bad, because OpenLineage emission needs a platform-built Dagster bridge (the Dagster integration is unmaintained), and Marquez is an added service with its own database, so lineage beyond the Dagster-native baseline is not free.
 - Good, because audit logs are decoupled from the services they monitor, so they remain available through outages of the catalog, orchestrator, or query engine.
 - Good, because the failure-mode matrix and drift detection make resilience and integrity explicit architectural properties.
 - Bad, because DuckLake is newer than Iceberg, so fewer external tools can read its metadata natively.

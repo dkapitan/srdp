@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-06-08
 decision-makers: Yannick Vinkesteijn
 ---
@@ -25,9 +25,15 @@ The answer drives the DuckLake catalog layout, the IO manager's asset-key mappin
 
 Chosen option: "Deployment is the isolation unit; a project is its own DuckLake catalog", because it gives a hard isolation boundary between customers without a multi-tenant security model, and a clean, native subdivision inside a deployment that maps directly onto DuckDB's three-level naming. DuckLake and DuckDB have no per-row or per-column security, so any in-data-plane tenant separation (option 3) would have to be enforced entirely in application code over shared tables, which is both fragile and the wrong place for an isolation boundary.
 
+> **Isolation vs. minimization.** The rejection above is about the *isolation* boundary between customers and projects, which stays hard (separate catalogs, separate deployments). It does **not** rule out fine-grained data *minimization* within a project, meaning which columns and rows a given consumer may see. [ADR-0008](./0008-identity-propagation-and-data-contracts.md) adds that via a constrained evaluator on mediated read paths.
+>
+> The two are different jobs. The evaluator is defence-in-depth inside the catalog boundary, never a replacement for it. A bug in it leaks within-project data to within-project principals, not across tenants. Option 3 was rejected because it would make row/column scoping the isolation boundary, where that fragility is unacceptable. As a minimization layer, it is not load-bearing for isolation.
+
 ### Deployment as the isolation unit
 
-One deployment is one data lake: a single set of sources, pipelines, and users that belong together. Serving multiple customers means running multiple deployments, not partitioning one. This keeps the strongest boundary (separate processes, separate storage, separate identity stack) between bodies of data that must not mix, and it means the platform never has to enforce cross-customer isolation inside a shared query engine.
+One deployment is one data lake: a single set of sources, pipelines, and users that belong together. This keeps the strongest boundary (separate processes, separate storage, separate identity stack) between bodies of data that must not mix, and it means the platform never has to enforce cross-customer isolation inside a shared query engine.
+
+**Multi-tenant deployments are the owner's choice.** A deployment is owned by one tenant (the deployment owner), which decides whether to stay single-tenant or admit additional tenants (see [ADR-0005](./0005-authorization-and-data-access.md)). Single-tenant per deployment remains the recommended default and the only configuration that gives hard isolation. When the owner admits multiple tenants, they are separated *inside* the deployment by catalog/project boundaries plus RBAC (and data contracts for shared data), which is softer than separate deployments; parties that must be hard-isolated still get their own deployments. This refines "serving multiple customers means multiple deployments" into a recommended default rather than a hard requirement, and does not reintroduce option 3: in-deployment separation is by catalog/project, never by row/column scoping over shared tables.
 
 ### Project as a DuckLake catalog
 

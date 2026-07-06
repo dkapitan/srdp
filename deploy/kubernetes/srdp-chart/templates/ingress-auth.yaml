@@ -196,7 +196,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-dagster-webserver
+                # Expose the read-only webserver; the read-write one stays
+                # cluster-internal for operators (see ADR-0005).
+                name: {{ .Release.Name }}-dagster-webserver{{- if .Values.dagster.dagsterWebserver.enableReadOnly }}-read-only{{- end }}
                 port:
                   number: 80
 ---
@@ -228,7 +230,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-dagster-webserver
+                name: {{ .Release.Name }}-dagster-webserver{{- if .Values.dagster.dagsterWebserver.enableReadOnly }}-read-only{{- end }}
                 port:
                   number: 80
 {{- end }}

@@ -1,4 +1,17 @@
 services:
+  # The exposed webserver runs read-only in production: Dagster OSS has no
+  # per-user authorization, so a read-write UI would bypass the writer role
+  # (see ADR-0005). Operators mutate via the Dagster CLI in the containers.
+  dagster-webserver:
+    command:
+      [
+        "dagster-webserver",
+        "-h", "0.0.0.0",
+        "-p", "3000",
+        "-w", "/app/config/dagster/workspace.yaml",
+        "--read-only",
+      ]
+
   traefik:
     command:
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
