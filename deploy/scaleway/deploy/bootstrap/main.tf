@@ -3,7 +3,7 @@
 # envs/<env>. Uses LOCAL state (no backend block) — it builds the very thing
 # remote state needs (chicken-and-egg).
 #
-#   just bootstrap-state hub      # then dev / stage / prod
+#   just bootstrap-state hub      # then each env in SPOKE_ENVS
 #
 # Object Storage is S3-compatible, so envs use Terraform's `backend "s3"` against
 # the Scaleway S3 endpoint. Keep deploy/bootstrap/terraform.tfstate safe.
@@ -27,10 +27,10 @@ variable "project_id" {
 
 variable "env" {
   type        = string
-  description = "Short env code: hub | dev | stg | prd."
+  description = "Environment name (hub + whatever spokes you run, e.g. dev/stage/prod) — becomes the state-bucket suffix."
   validation {
-    condition     = contains(["hub", "dev", "stg", "prd"], var.env)
-    error_message = "env must be one of hub, dev, stg, prd."
+    condition     = can(regex("^[a-z][a-z0-9]{1,15}$", var.env))
+    error_message = "env must be short lowercase alphanumeric (used in the bucket name)."
   }
 }
 

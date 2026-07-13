@@ -1,14 +1,13 @@
-# Spoke variables (dev / stage / prod). IDENTICAL across the three spokes;
-# values are supplied per-env in terraform.tfvars (+ a few injected by the
-# Justfile from .env / the hub state: project_id, hub_project_id, hub_vpc_id,
-# prefix, region, zone, headscale_url).
+# Spoke variables. IDENTICAL across all spokes; values are supplied per-env in
+# terraform.tfvars (+ a few injected by the Justfile from .env / the hub state:
+# project_id, hub_project_id, hub_vpc_id, prefix, region, zone, headscale_url).
 
 variable "environment" {
   type        = string
-  description = "Spoke identity: dev | stage | prod. Drives resource names, the Secret Manager prefix, and the Flux path (deploy/clusters/<environment>)."
+  description = "Spoke identity — any short lowercase name (the shipped examples are dev/stage/prod, but the set is yours: one env is fine). Drives resource names, the Secret Manager prefix, and the Flux path (deploy/gitops/clusters/scaleway/<environment>)."
   validation {
-    condition     = contains(["dev", "stage", "prod"], var.environment)
-    error_message = "environment must be one of dev, stage, prod."
+    condition     = can(regex("^[a-z][a-z0-9]{1,15}$", var.environment))
+    error_message = "environment must be short lowercase alphanumeric (used in resource/bucket names)."
   }
 }
 
@@ -147,5 +146,5 @@ variable "headscale_authkey" {
 variable "enable_hub_peering" {
   type        = bool
   default     = false
-  description = "Create the hub<->spoke VPC connector. Not required for the mesh or cluster reachability; cross-Project connectors currently return an opaque 'invalid argument(s)' from the API (see docs/BACKLOG.md)."
+  description = "Create the hub<->spoke VPC connector. Not required for the mesh or cluster reachability; cross-Project connectors currently return an opaque 'invalid argument(s)' from the API."
 }

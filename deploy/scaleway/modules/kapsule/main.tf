@@ -14,7 +14,7 @@
 variable "name" { type = string }
 variable "kubernetes_version" {
   type    = string
-  default = "1.35" # minor only: auto_upgrade requires x.y (not x.y.z)
+  default = "1.32" # a Kapsule-supported minor; minor only: auto_upgrade requires x.y (not x.y.z)
 }
 variable "private_network_id" { type = string }
 

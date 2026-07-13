@@ -1,7 +1,7 @@
 # State backend bootstrap
 
 Creates the per-Project Terraform **state backend** — a Scaleway Object Storage
-bucket named `<prefix>-tfstate-<code>` (`<code>` = `hub`/`dev`/`stg`/`prd`) — that
+bucket named `<prefix>-tfstate-<env>` (`hub` + each env in `SPOKE_ENVS`) — that
 `envs/<env>` expect via Terraform's S3 backend. Run **once per Project, before**
 any `terraform init` in an env.
 
@@ -26,18 +26,18 @@ terraform apply -state=terraform-dev.tfstate \
   -var prefix=acme -var env=dev \
   -var region=nl-ams \
   -var project_id=<dev-project-id>
-# repeat with env=hub/stg/prd and the matching Project id + -state=terraform-<code>.tfstate
+# repeat for hub + each remaining env with its Project id + -state=terraform-<env>.tfstate
 ```
 
 > The per-env `-state=` is important: a shared state file makes each run replace
-> the previous Project's bucket (single bucket resource). One state file per code.
+> the previous Project's bucket (single bucket resource). One state file per env.
 
 ## S3 backend wiring
 
 `envs/<env>` declare an empty `backend "s3" {}`; the Justfile injects:
 
 ```
-bucket                      = <prefix>-tfstate-<code>
+bucket                      = <prefix>-tfstate-<env>
 key                         = <env>.tfstate
 region                      = nl-ams
 endpoints.s3                = https://s3.nl-ams.scw.cloud

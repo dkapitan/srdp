@@ -22,7 +22,9 @@ to pull-based GitOps + gated CI (steady state).
 ## Prerequisites
 
 - `terraform` 1.10.3 (`.tool-versions`), `just`, `kubectl`, `helm`.
-- A Scaleway Organization with **four Projects** (hub/dev/stage/prod) created.
+- A Scaleway Organization with **one Project per environment** created: hub +
+  each entry in `SPOKE_ENVS` (default `dev stage prod` — the set is yours; a
+  single spoke works).
 - `SCW_DEFAULT_ORGANIZATION_ID` set (IAM apps/policies are Organization-scoped).
 - An IAM API key (`SCW_ACCESS_KEY` / `SCW_SECRET_KEY`) with, across **all** Projects
   (+ the Organization for IAM): the **Editors** group **plus `ObjectStorageFullAccess`**
@@ -51,9 +53,7 @@ to pull-based GitOps + gated CI (steady state).
    region + SCW key.
 3. **Fill env placeholders:** `runner_ssh_public_key` (spokes); the hub's
    `headscale_fqdn` / `headscale_ssh_public_key`.
-4. **One-time chart customization:** set `REPLACE-PREFIX` in
-   `deploy/srdp/base/values.yaml` and `helmrepository.yaml` to your `ORG_PREFIX`.
-5. `just doctor`.
+4. `just doctor`.
 
 ## Infrastructure (`just bootstrap-all`)
 
@@ -64,9 +64,9 @@ Runs, in order (see [Justfile](../Justfile)):
 
 | Step | Recipe | What |
 |---|---|---|
-| 1 | `bootstrap-state hub/dev/stage/prod` | per-Project S3 state buckets ([bootstrap](../deploy/bootstrap/README.md)) |
+| 1 | `bootstrap-state hub` (+ per env if needed) | S3 state bucket(s) ([bootstrap](../deploy/bootstrap/README.md)) |
 | 2 | `up hub` | VPC, egress gateway, Container Registry, Headscale |
-| 3 | `up dev/stage/prod` | spokes: VPC peered to hub, Kapsule, RDB, Object Storage, Secret Manager, Flux, CI runner |
+| 3 | `up <env>` per `SPOKE_ENVS` entry | spokes: VPC peered to hub, Kapsule, RDB, Object Storage, Secret Manager, Flux, CI runner |
 
 After the hub applies: point the `headscale_fqdn` A record at
 `terraform -chdir=envs/hub output -raw headscale_public_ip`, and add that IP to
@@ -75,20 +75,14 @@ each spoke's `api_extra_allowed_cidrs`.
 > **Cold-cluster note (Flux module).** The helm/kubernetes providers are
 > configured from the Kapsule kubeconfig, which doesn't exist until the cluster
 > is created. On a brand-new spoke, apply the cluster first, then the rest:
-> `just _tf dev "apply -target=module.kapsule"` then `just up dev`.
+> `just _tf dev "apply -target=module.spoke"` then `just up dev`.
 
-## Phase 4 — Publish artifacts
+## Phase 4 — Deploy SRDP
 
-Flux has nothing to pull until the chart + images are in the hub registry:
-
-```bash
-# from the srdp repo root (this blueprint lives at deploy/scaleway)
-helm package deploy/kubernetes/srdp-chart
-helm push srdp-chart-<ver>.tgz oci://rg.nl-ams.scw.cloud/<prefix>-srdp/helm
-# + build & push srdp-etl / marimo / quarto images to the same registry
-#   (see deploy/opentofu/scaleway/build-and-push.sh)
-```
-See [deploy/srdp](../deploy/srdp/README.md) for the version-pinning / promotion model.
+Publishing the chart + images and installing the SRDP app are **not part of this
+infra blueprint**. They are handled by the separate, provider-agnostic SRDP
+deployment layer (tracked outside this PR). This blueprint stops at: infra applied,
+Flux running, reconciling the platform (mesh + ESO/secrets).
 
 ## Phase 5 — Open the door (mesh)
 
@@ -98,11 +92,14 @@ After this, `kubectl` works over the mesh and you can reach internal services.
 
 ## Phase 6 — Hand off to self-management
 
-- **Flux** reconciles `deploy/clusters/<env>` (SRDP + mesh + ESO/secrets).
+- **Flux** reconciles `deploy/gitops/clusters/scaleway/<env>` (platform: ESO/secrets; the SRDP app layer arrives via issue #38).
 - **Seed externally-originated secrets** into Secret Manager (oauth2 client
   id/secret from Zitadel, Headscale key) — ESO syncs them in.
 - **GitHub Actions** manages infra: PR → plan, merge to main → gated apply
-  hub → dev → stage → prod (see [.github/workflows](../.github/workflows/terraform-ci.yml)).
+  hub → spokes in order. The workflow ships as an inactive template
+  ([.github/workflows/terraform-ci.yml](../.github/workflows/terraform-ci.yml));
+  activating it is deferred to the repo-level platform config work (srdp.toml
+  proposal), which will drive the env matrix and gate from one place.
 
 From here: **infra changes go through PR → workflow; app/version changes through
 git commits → Flux.**
@@ -112,6 +109,4 @@ git commits → Flux.**
 | Task | How |
 |---|---|
 | Change infra | PR → `terraform-ci` plan → merge → apply (stage/prod gated) |
-| Upgrade SRDP in one env | bump chart version in `deploy/srdp/clusters/<env>`, commit |
-| Promote | bump dev → soak → stage → prod, per env |
 | Rotate generated secrets | `terraform apply` regenerates + re-stores in Secret Manager |

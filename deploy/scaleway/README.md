@@ -9,8 +9,8 @@ all environment knobs (CIDRs, cluster sizing, Postgres tier) live in each env's
 This mirrors the Scaleway/Azure landing-zone pattern: a hub-spoke architecture
 and GitOps model built on Scaleway-native primitives. The mapping to the
 equivalent Azure services is kept below as reference; where Scaleway genuinely
-diverges, the difference is called out inline and tracked in
-[docs/BACKLOG.md](docs/BACKLOG.md).
+diverges, the difference is called out inline. Accepted trade-offs are captured
+as ADRs (`docs/adr/`), open gaps as GitHub issues.
 
 ## Architecture decisions (locked)
 
@@ -37,7 +37,7 @@ diverges, the difference is called out inline and tracked in
 | Azure | Scaleway |
 |---|---|
 | Subscriptions | Projects |
-| VNet + peering | VPC per Project; `scaleway_vpc_connector` is **optional/off** — hub services are public+IAM, so no private peering is needed (see BACKLOG) |
+| VNet + peering | VPC per Project; `scaleway_vpc_connector` is **optional/off** — hub services are public+IAM, so no private peering is needed |
 | Azure Firewall (forced tunnel) | Public Gateway NAT (+ VPC ACLs) — **no native L7** |
 | AKS (private API) | Kapsule + `scaleway_k8s_acl` (API locked to PN/mesh) |
 | ADLS Gen2 + workload identity | Object Storage + IAM key (**static creds**) |
@@ -61,19 +61,22 @@ modules/
   iam-app/        IAM application + policy + API key (workload-identity stand-in)
   secrets/        Secret Manager secrets + versions
   flux/           Flux install + per-env GitRepository/Kustomization
+  spoke/          one whole spoke composed from the blocks above (env roots are thin wrappers)
+  spoke-k8s/      in-cluster bootstrap: ESO credential + Flux (split for provider ordering)
   headscale-vm/   mesh control plane (hub)
   mesh-router/    per-spoke subnet-router VM (PN CIDR + API /32 over the mesh)
   ci-runner/      OPTIONAL in-VPC GitHub Actions runner (not deployed by default)
 envs/
   hub/                    connectivity: VPC, egress, registry, Headscale
-  dev/  stage/  prod/     workload spokes (peered to the hub)
+  dev/  stage/  prod/     example spokes — the SET is configurable (SPOKE_ENVS in .env)
 deploy/
   bootstrap/    per-Project Object Storage state buckets
-  clusters/     per-env Flux entrypoint (srdp + platform + mesh)
-  srdp/         the umbrella chart deploy (base + per-env overlays)
-  platform/     External Secrets (Scaleway provider)
   mesh/         Headscale subnet routers
 ```
+
+What each cluster's Flux reconciles lives in the repo-shared GitOps tree —
+**[deploy/gitops](../gitops/README.md)** — at `clusters/scaleway/<env>`
+(cloud-agnostic platform base + the Scaleway/env-specific bindings).
 
 ## Getting started
 
@@ -85,15 +88,23 @@ Per-environment knobs (PN CIDRs, Kapsule sizing, Postgres tier, the GitOps repo
 URL, your SSH public key) live in **`envs/<env>/terraform.tfvars`**. The shipped
 tfvars carry sensible defaults and a few placeholders — replace
 `AAAA_REPLACE_WITH_YOUR_PUBLIC_KEY` and `https://github.com/your-org/srdp.git`
-before applying. The spoke `main.tf` files are identical across dev/stage/prod;
-only the tfvars differ.
+before applying. The spoke `main.tf`/`variables.tf` are identical thin wrappers
+around `modules/spoke`; only the tfvars differ.
+
+**The environment set is yours** — `SPOKE_ENVS` in `.env` (default
+`"dev stage prod"`). Running a single env is fine: `SPOKE_ENVS=prod`, one
+`envs/prod/`, one gitops leaf. To add an env: copy a spoke dir, write its
+tfvars, add `PROJECT_ID_<ENV>` to `.env`, and copy a gitops leaf
+(`deploy/gitops/clusters/scaleway/<env>`).
 
 ```bash
-cp .env.example .env        # set ORG_PREFIX + four PROJECT_ID_* + SCW_ACCESS/SECRET_KEY
+cp .env.example .env        # ORG_PREFIX, SPOKE_ENVS, PROJECT_ID_* + SCW_ACCESS/SECRET_KEY
 # edit envs/*/terraform.tfvars  # SSH key + git_repo_url placeholders, sizing
 just doctor                 # check tooling/config
 just bootstrap-all          # state backends + hub, then all spokes
 ```
+
+(Or from the repo root: `just scaleway doctor`, `just scaleway bootstrap-all`, …)
 
 > **Before applying:** verify your Scaleway identity / raise quotas at
 > <https://console.scaleway.com/organization/quotas>. Fresh Organizations have a
@@ -103,18 +114,17 @@ just bootstrap-all          # state backends + hub, then all spokes
 > state backend resolves buckets only within the key's preferred Project). See
 > [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-Terraform is pinned to **1.10.3** (`.tool-versions`). One-time: set the registry
-`REPLACE-PREFIX` in `deploy/srdp/base/` (see [deploy/srdp](deploy/srdp/README.md)).
+Terraform is pinned to **1.10.3** (`.tool-versions`).
 
 For the full end-to-end runbook see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ## Apply order (what `bootstrap-all` does)
 
 ```
-bootstrap-state hub/dev/stage/prod  → per-Project S3 state buckets
+bootstrap-state hub                 → shared S3 state bucket
 up hub                              → VPC + egress + Container Registry + Headscale
                                       (outputs: hub_vpc_id, registry_endpoint, headscale_public_ip)
-up dev / stage / prod               → spokes: VPC peered to the hub, Kapsule, RDB,
+up <env>, per SPOKE_ENVS entry      → spokes: VPC peered to the hub, Kapsule, RDB,
                                       Object Storage, Secret Manager, Flux, CI runner
 ```
 

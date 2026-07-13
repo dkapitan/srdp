@@ -1,7 +1,0 @@
-# Everything prod's Flux reconciles (path: deploy/clusters/prod). Each child keeps
-# its own namespace. Add future per-env platform pieces here.
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - ../../platform/clusters/prod
-  - ../../srdp/clusters/prod

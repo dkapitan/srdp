@@ -4,7 +4,8 @@
 # equivalent, so we install Flux ourselves with Helm (community charts) — still
 # from Terraform, still per-env, still reconciling ONLY this env's path:
 #   - flux2       : the controllers (source/kustomize/helm/notification)
-#   - flux2-sync  : a GitRepository + Kustomization pinned to deploy/clusters/<env>
+#   - flux2-sync  : a GitRepository + Kustomization pinned to this cluster's
+#                   gitops leaf (deploy/gitops/clusters/scaleway/<env>)
 #
 # Helm-only (no kubernetes_manifest) so `terraform plan` does not need to reach
 # the API server before the cluster exists. The helm provider is configured in
@@ -26,7 +27,7 @@ variable "git_branch" {
 }
 variable "git_path" {
   type        = string
-  description = "Repo-relative path this cluster reconciles, e.g. deploy/clusters/dev."
+  description = "Repo-relative path this cluster reconciles, e.g. deploy/gitops/clusters/scaleway/dev."
 }
 variable "git_ssh_private_key" {
   type        = string

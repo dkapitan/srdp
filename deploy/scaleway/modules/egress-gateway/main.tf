@@ -7,8 +7,7 @@
 # DIVERGENCE FROM AZURE: Scaleway has no managed L7 egress firewall (no FQDN
 # allow-lists like Azure Firewall application rules). For coarse network-level
 # control, attach a scaleway_vpc_acl to the VPC (see envs). FQDN-level egress
-# filtering, if required, must run in-cluster (e.g. a forward proxy). Tracked in
-# docs/BACKLOG.md.
+# filtering, if required, must run in-cluster (e.g. a forward proxy).
 
 variable "name_prefix" { type = string }
 variable "private_network_id" { type = string }

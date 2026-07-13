@@ -8,61 +8,60 @@
 # .env. No Project IDs or org names are hardcoded in this file. Scaleway creds
 # (SCW_ACCESS_KEY / SCW_SECRET_KEY) are read from the environment by the provider
 # and the S3 state backend.
+#
+# The environment SET is yours: SPOKE_ENVS in .env lists the spokes (default
+# "dev stage prod"). Each entry needs an envs/<env>/ directory, a
+# PROJECT_ID_<ENV> in .env, and a gitops leaf (deploy/gitops/clusters/scaleway/<env>).
 
 set dotenv-load := true
 
 prefix := env_var('ORG_PREFIX')
 region := env_var_or_default('REGION', 'nl-ams')
+zone   := env_var_or_default('ZONE', 'nl-ams-1')
+# Spoke environments, in bootstrap/promotion order. Override in .env.
+spoke_envs := env_var_or_default('SPOKE_ENVS', 'dev stage prod')
 # Single shared Terraform-state bucket. Scaleway's S3 API resolves buckets within
 # the API key's PREFERRED PROJECT only, so ALL state lives in one bucket in that
 # Project (per-env isolation is via the object key, <env>.tfstate). Set the key's
 # preferred Project to match this bucket's Project (recommended: hub).
 tfstate_bucket := env_var_or_default('TFSTATE_BUCKET', prefix + '-tfstate-hub')
-zone   := env_var_or_default('ZONE', 'nl-ams-1')
 
-# Map an env -> short state code (hub|dev|stg|prd).
-_code env:
-    #!/usr/bin/env bash
-    case {{env}} in
-      hub) echo hub;; dev) echo dev;; stage) echo stg;; prod) echo prd;;
-      *) echo "unknown env: {{env}} (use hub|dev|stage|prod)" >&2; exit 1;;
-    esac
-
-# Print the Project id for an env (from .env).
+# Print the Project id for an env: PROJECT_ID_<ENV> from .env (e.g. PROJECT_ID_DEV).
 _project env:
     #!/usr/bin/env bash
-    case {{env}} in
-      hub) echo "${PROJECT_ID_HUB}";;
-      dev) echo "${PROJECT_ID_DEV}";;
-      stage) echo "${PROJECT_ID_STAGE}";;
-      prod) echo "${PROJECT_ID_PROD}";;
-      *) echo "unknown env: {{env}}" >&2; exit 1;;
-    esac
+    set -euo pipefail
+    var="PROJECT_ID_$(echo {{env}} | tr '[:lower:]' '[:upper:]')"
+    val="${!var:-}"
+    [ -n "$val" ] || { echo "missing $var in .env (env: {{env}})" >&2; exit 1; }
+    echo "$val"
 
 default:
     @just --list
 
-# Sanity-check tooling + config.
+# Sanity-check tooling + config, for hub + every env in SPOKE_ENVS.
 doctor:
     #!/usr/bin/env bash
     set -euo pipefail
     for t in terraform; do command -v $t >/dev/null || { echo "missing: $t"; exit 1; }; done
     : "${ORG_PREFIX:?set ORG_PREFIX in .env}"
-    : "${PROJECT_ID_HUB:?}" "${PROJECT_ID_DEV:?}" "${PROJECT_ID_STAGE:?}" "${PROJECT_ID_PROD:?}"
     : "${SCW_ACCESS_KEY:?}" "${SCW_SECRET_KEY:?}"
-    echo "prefix=${ORG_PREFIX} region={{region}} ok"
+    for e in hub {{spoke_envs}}; do
+      just _project "$e" >/dev/null
+      [ -d "envs/$e" ] || { echo "missing envs/$e (copy an existing spoke dir)"; exit 1; }
+    done
+    echo "prefix=${ORG_PREFIX} region={{region}} envs='hub {{spoke_envs}}' ok"
 
 # --- Phase 1: state backends (run once per Project) -------------------------
 bootstrap-state env:
     #!/usr/bin/env bash
     set -euo pipefail
-    code=$(just _code {{env}}); project=$(just _project {{env}})
+    project=$(just _project {{env}})
     terraform -chdir=deploy/bootstrap init -input=false
     # Per-env local state so each Project gets its OWN bucket (a shared state file
     # would make each run replace the previous Project's bucket).
     terraform -chdir=deploy/bootstrap apply -input=false -auto-approve \
-      -state="terraform-$code.tfstate" \
-      -var "prefix={{prefix}}" -var "env=$code" \
+      -state="terraform-{{env}}.tfstate" \
+      -var "prefix={{prefix}}" -var "env={{env}}" \
       -var "region={{region}}" -var "project_id=$project"
 
 # terraform init for an env (S3 backend against Scaleway Object Storage).
@@ -110,11 +109,13 @@ up env: (apply env)
 
 # --- Orchestration: hub first, then spokes ----------------------------------
 # One shared state bucket in the hub Project (the API key's preferred Project).
-# All envs key into it as <env>.tfstate.
+# All envs key into it as <env>.tfstate. Spokes come up in SPOKE_ENVS order.
 bootstrap-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
     just bootstrap-state hub   # creates the shared {{tfstate_bucket}}
     just up hub                # VPC + egress + registry + Headscale
-    just up dev                # spokes peer to the hub VPC (read from hub state)
-    just up stage
-    just up prod
-    @echo "Infra up. Next: publish chart+images, seed mesh authkey, set DNS."
+    for e in {{spoke_envs}}; do
+      just up "$e"             # spokes peer to the hub VPC (read from hub state)
+    done
+    echo "Infra up. Next: seed mesh authkey, set DNS. App deploys via the shared layer (issue #38)."

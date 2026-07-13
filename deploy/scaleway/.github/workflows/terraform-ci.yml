@@ -5,21 +5,30 @@
 # The SRDP/mesh/platform layers are NOT deployed here — Flux reconciles them from
 # git (pull-based). This workflow only manages infrastructure (Terraform).
 #
-# Prereqs (repo settings):
-#  - Secrets: SCW_ACCESS_KEY, SCW_SECRET_KEY, and the four PROJECT_ID_* values.
+# INACTIVE TEMPLATE: GitHub only runs workflows from `<repo-root>/.github/
+# workflows/`, so this file does nothing here. That is deliberate: activating
+# infra CI is deferred to the repo-level platform config proposal (srdp.toml),
+# which will drive the env matrix and the enable/disable gate from one place.
+# If you copy it to the root before that lands, the job gate below
+# (TERRAFORM_CI_ENABLED repository variable, unset by default) keeps it inert
+# until explicitly enabled.
+#
+# Prereqs to enable (repo settings):
+#  - Variable: TERRAFORM_CI_ENABLED=true (+ ORG_PREFIX, REGION, ZONE).
+#  - Secrets: SCW_ACCESS_KEY, SCW_SECRET_KEY, and one PROJECT_ID_<ENV> per env.
 #  - Environments `srdp-stage` / `srdp-prod` with required reviewers (gated apply).
 #
-# Runners: GitHub-hosted (ubuntu-latest). The Scaleway API is public, so Terraform
-# manages all Scaleway resources fine with the SCW_* secrets.
+# Runners: all jobs use GitHub-hosted runners (ubuntu-latest). The Scaleway API
+# is public, so Terraform manages all Scaleway resources fine with the SCW_*
+# secrets. To run applies from inside the VPC instead, deploy the optional
+# modules/ci-runner and change `runs-on` to your self-hosted labels.
 # CAVEAT: the in-cluster bits (Flux/ESO) hit the ACL-locked Kapsule API, which a
 # hosted runner's roaming IP can't reach. Apply those over the mesh / from an
 # allowlisted host, or temporarily add the runner egress to api_extra_allowed_cidrs.
 #
-# LOCATION: GitHub only runs workflows from `<repo-root>/.github/workflows/`.
-# This blueprint lives in a subdirectory (deploy/scaleway), so copy this file to
-# the repo root's `.github/workflows/` to activate it. The `defaults.working-
-# directory` + path prefixes below assume the blueprint is at `deploy/scaleway`;
-# adjust them if you place it elsewhere.
+# ENV SET: the matrix/apply chain below ships with the example envs
+# (hub -> dev -> stage -> prod). If you change SPOKE_ENVS in deploy/scaleway/.env,
+# mirror it here (matrix lists, apply-* jobs, PROJECT_ID_* env vars).
 
 name: terraform-ci
 
@@ -47,7 +56,10 @@ env:
   PROJECT_ID_PROD: ${{ secrets.PROJECT_ID_PROD }}
 
 jobs:
+  # Root of the needs-chain: gating this job on TERRAFORM_CI_ENABLED gates the
+  # whole workflow (every other job `needs` it, directly or transitively).
   validate:
+    if: vars.TERRAFORM_CI_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +85,9 @@ jobs:
         with: { terraform_version: "1.10.3" }
       - run: just plan ${{ matrix.env }}
 
-  # Gated applies on main, in order. stage/prod use the in-VPC runner.
+  # Gated applies on main, in order: hub first (spokes read its state), then
+  # each spoke; stage/prod additionally wait on their GitHub environment's
+  # required reviewers. All on hosted runners (see header for self-hosted).
   apply-hub:
     if: github.ref == 'refs/heads/main'
     needs: plan
