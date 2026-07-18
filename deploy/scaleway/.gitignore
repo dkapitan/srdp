@@ -1,0 +1,22 @@
+# Secrets / local config
+.env
+*.tfvars.local
+kubeconfig*.yaml
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Keep the bootstrap state (foundational; see deploy/bootstrap/README.md).
+# One per-Project state file: terraform-{hub,dev,stg,prd}.tfstate
+!deploy/bootstrap/terraform-*.tfstate
+
+# Local debug handoff (contains a secret)
+DEBUG-SESSION-NOTES.md

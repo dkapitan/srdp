@@ -1,0 +1,9 @@
+# No namespace transformer here: every resource carries its own explicit
+# namespace (the srdp Namespace must not be rewritten to external-secrets).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - namespace-srdp.yaml
+  - helmrepository.yaml
+  - helmrelease.yaml

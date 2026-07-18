@@ -1,0 +1,6 @@
+# The namespace the SRDP app (and its ESO-synced secrets) lands in. Owned by the
+# platform layer so secret sync works before the app layer (issue #38) installs.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: srdp

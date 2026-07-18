@@ -1,0 +1,64 @@
+#cloud-config
+# Headscale ${headscale_version} behind Caddy (auto-TLS for ${fqdn}).
+# NOTE: headscale config keys are version-sensitive -- verify against the pinned
+# version before relying on this in prod.
+users:
+  - name: headscale-admin
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+package_update: true
+packages:
+  - curl
+  - debian-keyring
+  - debian-archive-keyring
+  - apt-transport-https
+write_files:
+  - path: /etc/headscale/config.yaml
+    permissions: "0644"
+    content: |
+      server_url: https://${fqdn}
+      listen_addr: 127.0.0.1:8080
+      metrics_listen_addr: 127.0.0.1:9090
+      grpc_listen_addr: 127.0.0.1:50443
+      noise:
+        private_key_path: /var/lib/headscale/noise_private.key
+      prefixes:
+        v4: 100.64.0.0/10
+        allocation: sequential
+      database:
+        type: sqlite
+        sqlite:
+          path: /var/lib/headscale/db.sqlite
+      dns:
+        magic_dns: true
+        override_local_dns: false # don't force-push DNS (0.29 needs nameservers.global if true)
+        base_domain: mesh.srdp.internal
+      derp:
+        server:
+          enabled: true
+          region_id: 999
+          region_code: srdp
+          private_key_path: /var/lib/headscale/derp_server_private.key
+          stun_listen_addr: 0.0.0.0:3478
+        urls: []
+        paths: []
+  - path: /etc/caddy/Caddyfile
+    permissions: "0644"
+    content: |
+      ${fqdn} {
+        reverse_proxy 127.0.0.1:8080
+      }
+runcmd:
+  # --force-confold + noninteractive: we pre-wrote the package-managed conffiles
+  # above, so dpkg must NOT prompt (an EOF at the prompt aborts postinst and the
+  # caddy/headscale system users never get created -> 217/USER).
+  - curl -fsSL "https://github.com/juanfont/headscale/releases/download/v${headscale_version}/headscale_${headscale_version}_linux_amd64.deb" -o /tmp/headscale.deb
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::=--force-confold /tmp/headscale.deb
+  - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' -o /etc/apt/sources.list.d/caddy-stable.list
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::=--force-confold caddy
+  - systemctl enable --now headscale
+  - systemctl restart caddy

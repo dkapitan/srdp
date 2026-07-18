@@ -9,6 +9,13 @@ default: help
 help:
 	@just --list
 
+# ─── Scaleway landing zone (deploy/scaleway) ─────────────────────────────────
+
+# Run a Scaleway-blueprint recipe, e.g. `just scaleway doctor`, `just scaleway bootstrap-all`,
+# `just scaleway up dev`. Recipes + config: deploy/scaleway/{Justfile,.env}.
+scaleway *args:
+	@just -f deploy/scaleway/Justfile -d deploy/scaleway {{args}}
+
 # ─── Local development ────────────────────────────────────────────────────────
 
 # Generate mkcert TLS certs for the local Docker Compose stack

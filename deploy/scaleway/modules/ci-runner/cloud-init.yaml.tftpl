@@ -1,0 +1,23 @@
+#cloud-config
+# GitHub Actions self-hosted runner inside the spoke PN (outbound-only).
+users:
+  - name: runner
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+package_update: true
+packages:
+  - curl
+  - jq
+  - docker.io
+runcmd:
+  - usermod -aG docker runner
+  - mkdir -p /opt/actions-runner && cd /opt/actions-runner
+  - RUNNER_VERSION=$(curl -fsSL https://api.github.com/repos/actions/runner/releases/latest | jq -r .tag_name | sed 's/^v//')
+  - curl -fsSL -o runner.tar.gz "https://github.com/actions/runner/releases/download/v$${RUNNER_VERSION}/actions-runner-linux-x64-$${RUNNER_VERSION}.tar.gz"
+  - tar xzf runner.tar.gz
+  - chown -R runner:runner /opt/actions-runner
+  - sudo -u runner ./config.sh --unattended --url "${github_repo_url}" --token "${github_runner_token}" --labels "${runner_labels}" --name "scaleway-$(hostname)"
+  - ./svc.sh install runner
+  - ./svc.sh start
