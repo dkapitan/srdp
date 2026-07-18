@@ -40,6 +40,5 @@ variable "headscale_ssh_public_key" {
 
 variable "headscale_allowed_ssh_cidr" {
   type        = string
-  default     = "0.0.0.0/0"
-  description = "Source CIDR allowed to SSH (22) to the Headscale VM. Tighten to your egress IP."
+  description = "Source CIDR allowed to SSH (22) to the public Headscale VM. Required — set to your egress IP/VPN range. No default so applies fail fast rather than exposing SSH to the world."
 }

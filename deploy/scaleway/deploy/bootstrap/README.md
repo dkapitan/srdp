@@ -1,8 +1,12 @@
 # State backend bootstrap
 
-Creates the per-Project Terraform **state backend** — a Scaleway Object Storage
-bucket named `<prefix>-tfstate-<env>` (`hub` + each env in `SPOKE_ENVS`) — that
-`envs/<env>` expect via Terraform's S3 backend. Run **once per Project, before**
+Creates the Terraform **state backend** — a Scaleway Object Storage bucket named
+`<prefix>-tfstate-<env>` — that `envs/<env>` expect via Terraform's S3 backend.
+
+By default the Justfile points **every** env at a single shared bucket
+(`TFSTATE_BUCKET`, default `<prefix>-tfstate-hub`) and isolates envs by object key
+(`<env>.tfstate`), so you only need to bootstrap `hub` once. To get one bucket per
+Project instead, set `TFSTATE_BUCKET` per env and bootstrap each. Run **before**
 any `terraform init` in an env.
 
 This config uses **local state** by design: it builds the remote backend, so it

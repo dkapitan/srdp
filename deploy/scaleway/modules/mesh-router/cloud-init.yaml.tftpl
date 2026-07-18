@@ -52,6 +52,7 @@ write_files:
         [ -z "$AUTHKEY" ] && { echo "no authkey; not registering"; exit 0; }
       fi
       HS_URL="${headscale_url}"
+      [ -z "$HS_URL" ] && { echo "no headscale_url (hub not applied yet?); not registering"; exit 0; }
       API_HOST=$(echo "${apiserver_url}" | sed -E 's#^https?://##; s#[:/].*$##')
       while true; do
         PN_IF=$(ip -o -4 addr show \

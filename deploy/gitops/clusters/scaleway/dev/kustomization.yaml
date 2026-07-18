@@ -1,9 +1,7 @@
 # Everything dev's Flux reconciles (path: deploy/gitops/clusters/scaleway/dev).
-# Shared platform pieces come from platform/base; the Scaleway+env-specific
-# bindings (secret store, secret mappings) live in this leaf.
+# Shared platform pieces come from platform/base. Scaleway secret-store /
+# secret-mapping bindings will be re-added here once tested end to end.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../../platform/base
-  - clustersecretstore.yaml
-  - externalsecrets.yaml

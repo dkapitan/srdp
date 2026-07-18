@@ -20,7 +20,7 @@ as ADRs (`docs/adr/`), open gaps as GitHub issues.
 | Environments | 4 Scaleway **Projects** in one Organization: hub / dev / stage / prod |
 | Region | Single region — `nl-ams` (NL data residency) |
 | IaC | Terraform, **directory-per-env** (no workspaces) |
-| State | **Per-Project** Object Storage (S3) backend (state never crosses envs) |
+| State | Object Storage (S3) backend. Default: one **shared** `<prefix>-tfstate-hub` bucket in the hub Project, per-env isolation via `<env>.tfstate` object keys. Set `TFSTATE_BUCKET` per env for one bucket per Project |
 | Connectivity | Spokes **peered** to the hub via `scaleway_vpc_connector` |
 | Egress | Per-spoke **Public Gateway** (NAT). No managed L7 firewall — see below |
 | Compute | Kapsule (Cilium): always-on system pool + scale-from-zero memory pool for DuckDB/Polars |
