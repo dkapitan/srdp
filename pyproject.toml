@@ -23,7 +23,7 @@ infra = [
 ducklake = [
     "duckdb>=1.4.0",
     "psycopg2-binary>=2.9.0",
-    "pydantic-settings>=2.9.0",
+    "pydantic-settings>=2.14.2",
     "pyarrow>=23.0.0",
 ]
 azure = [
