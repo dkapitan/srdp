@@ -239,3 +239,41 @@ quarto:
     repository: rg.nl-ams.scw.cloud/srdp-registry/quarto
     tag: "v1.0"
     pullPolicy: IfNotPresent
+
+# SRDP API (core routes + cbs-example's income-ingest router)
+api:
+  enabled: true
+  image:
+    repository: rg.nl-ams.scw.cloud/srdp-registry/srdp-api
+    tag: "v1.0"
+    pullPolicy: IfNotPresent
+
+# DuckDB UI, reverse-proxied through Traefik (see services/duckdb-ui and
+# projects/cbs-example/README.md for why it needs the internal route below)
+duckdbUi:
+  enabled: true
+  image:
+    repository: rg.nl-ams.scw.cloud/srdp-registry/duckdb-ui
+    tag: "v1.0"
+    pullPolicy: IfNotPresent
+
+# Static hub landing page, served on the bare domain
+hub:
+  enabled: true
+  image:
+    repository: rg.nl-ams.scw.cloud/srdp-registry/hub
+    tag: "v1.0"
+    pullPolicy: IfNotPresent
+
+# Marquez (OpenLineage backend + UI); upstream images, not built by this repo
+marquez:
+  enabled: true
+  image:
+    repository: marquezproject/marquez
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  web:
+    image:
+      repository: marquezproject/marquez-web
+      tag: "latest"
+      pullPolicy: IfNotPresent
