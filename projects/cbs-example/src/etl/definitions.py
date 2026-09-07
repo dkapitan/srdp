@@ -1,6 +1,6 @@
 """The cbs-example code location: jobs, schedules, resources, and the asset graph."""
 
-from dagster import Definitions, ScheduleDefinition, define_asset_job
+from dagster import Definitions, FilesystemIOManager, ScheduleDefinition, define_asset_job
 from dagster_dbt import DbtCliResource
 
 from etl.assets.dbt_assets import cbs_dbt_assets, cbs_dbt_project
@@ -116,7 +116,8 @@ defs = Definitions(
     schedules=[etl_schedule],
     sensors=[openlineage_sensor],
     resources={
-        "ducklake_io_manager": ducklake_io_manager,
+        "io_manager": ducklake_io_manager,
+        "fs_io_manager": FilesystemIOManager(),
         "dbt": DbtCliResource(project_dir=cbs_dbt_project),
     },
 )

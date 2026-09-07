@@ -58,7 +58,7 @@ def _latest_period() -> str:
     return annual[-1]
 
 
-@asset(io_manager_key="ducklake_io_manager", kinds={"polars"})
+@asset(kinds={"polars"})
 def raw_population() -> Output[pl.DataFrame]:
     """Population per Dutch province and age bracket, fetched live from CBS StatLine."""
     period = _latest_period()
@@ -98,7 +98,7 @@ def raw_population() -> Output[pl.DataFrame]:
     )
 
 
-@asset(io_manager_key="ducklake_io_manager", kinds={"polars"})
+@asset(kinds={"polars"})
 def population_by_province(raw_population: pl.LazyFrame) -> Output[pl.DataFrame]:
     """Total population per province, summed across age brackets."""
     raw_population = raw_population.collect()
@@ -119,7 +119,7 @@ def population_by_province(raw_population: pl.LazyFrame) -> Output[pl.DataFrame]
     )
 
 
-@asset(io_manager_key="ducklake_io_manager", kinds={"polars"})
+@asset(kinds={"polars"})
 def population_by_age_group(raw_population: pl.LazyFrame) -> Output[pl.DataFrame]:
     """Total population per age bracket, summed across provinces."""
     raw_population = raw_population.collect()
@@ -140,7 +140,7 @@ def population_by_age_group(raw_population: pl.LazyFrame) -> Output[pl.DataFrame
     )
 
 
-@asset
+@asset(io_manager_key="fs_io_manager")
 def top_province(population_by_province: pl.LazyFrame) -> Output[str]:
     """Pick the single most populous province."""
     winner = population_by_province.collect().row(0, named=True)
@@ -153,7 +153,7 @@ def top_province(population_by_province: pl.LazyFrame) -> Output[str]:
     )
 
 
-@asset
+@asset(io_manager_key="fs_io_manager")
 def executive_summary(
     population_by_province: pl.LazyFrame,
     population_by_age_group: pl.LazyFrame,

@@ -373,6 +373,9 @@ def ducklake_io_manager(_init_context: InitResourceContext) -> DuckLakeIOManager
     """Dagster IO manager factory — sets up DuckLake and returns the IO manager.
 
     Reads configuration from ``DUCKLAKE_*`` environment variables.
+
+    Register under the ``"io_manager"`` key, not a custom one, so it's every
+    asset's default rather than an opt-in.
     """
     conn = setup_ducklake()
     return DuckLakeIOManager(conn)

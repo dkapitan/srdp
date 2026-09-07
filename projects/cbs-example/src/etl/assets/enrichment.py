@@ -28,7 +28,7 @@ class IncomeByProvinceConfig(Config):
     rows: list[IncomeRow]
 
 
-@asset(io_manager_key="ducklake_io_manager", kinds={"polars"})
+@asset(kinds={"polars"})
 def income_by_province(config: IncomeByProvinceConfig) -> Output[pl.DataFrame]:
     """Average disposable household income per province, from run config.
 
@@ -45,7 +45,7 @@ def income_by_province(config: IncomeByProvinceConfig) -> Output[pl.DataFrame]:
     )
 
 
-@asset(io_manager_key="ducklake_io_manager", kinds={"polars"})
+@asset(kinds={"polars"})
 def population_enriched(
     population_by_province: pl.LazyFrame,
     income_by_province: pl.LazyFrame,
